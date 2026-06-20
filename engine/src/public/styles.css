@@ -1,0 +1,247 @@
+/* True Premium Light-Mode Glassmorphism Design System */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-text-primary: #1A1512;          /* Deep Espresso */
+  --color-text-muted: #5E5854;            /* Roasted Charcoal Muted */
+  --color-accent-mint: #059669;           /* Premium Mint Green */
+  --color-accent-mint-glow: rgba(5, 150, 105, 0.15);
+  --color-accent-mint-solid: #10B981;
+  --color-border-gloss: rgba(255, 255, 255, 0.7);
+  --color-border-dark: rgba(26, 21, 18, 0.08);
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+  background: transparent;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+#compositor-stage {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  box-sizing: border-box;
+}
+
+/* Premium Glassmorphic Card Overlay */
+.overlay-card {
+  position: absolute;
+  top: 80px;
+  left: 60px;
+  width: 420px;
+  
+  /* Double Refraction Glass Backing */
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  
+  /* Light-catching Bevel Border */
+  border: 1px solid var(--color-border-gloss);
+  outline: 1px solid var(--color-border-dark);
+  outline-offset: -1px;
+  
+  box-shadow: 
+    0 30px 60px -15px rgba(26, 21, 18, 0.08), 
+    0 10px 20px -5px rgba(26, 21, 18, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    
+  border-radius: 28px;
+  padding: 32px;
+  box-sizing: border-box;
+  
+  /* Entrance Animation Initial State */
+  opacity: 0;
+  transform: translateY(12px) scale(0.97);
+  transition: 
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s ease;
+  z-index: 10;
+}
+
+/* Pre-warming State (Elegant, semi-visible ghost state) */
+.overlay-card.pre-warming {
+  opacity: 0.25;
+  transform: translateY(6px) scale(0.985);
+  border-color: rgba(5, 150, 105, 0.25);
+  outline-color: rgba(5, 150, 105, 0.1);
+}
+
+/* Active Fully-Rendered State */
+.overlay-card.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  border-color: var(--color-border-gloss);
+  outline-color: var(--color-border-dark);
+}
+
+/* Typography Hierarchy */
+.card-header {
+  margin-bottom: 24px;
+}
+
+.card-subtitle {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--color-text-muted);
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-subtitle::after {
+  content: '';
+  height: 1px;
+  flex-grow: 1;
+  background: rgba(26, 21, 18, 0.06);
+}
+
+.card-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  margin: 0;
+  color: var(--color-text-primary);
+  line-height: 1.15;
+}
+
+.card-content {
+  position: relative;
+  width: 100%;
+}
+
+/* Rounded-Gradient Graph Style */
+.graph-container {
+  width: 100%;
+  height: 160px;
+  margin-top: 10px;
+}
+
+.bar-rect {
+  fill: url(#mint-gradient);
+  filter: drop-shadow(0 4px 10px rgba(5, 150, 105, 0.12));
+  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              y 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bar-border {
+  fill: none;
+  stroke: var(--color-accent-mint);
+  stroke-width: 1.5;
+  opacity: 0.85;
+}
+
+.axis-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--color-text-muted);
+}
+
+.value-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--color-text-primary);
+}
+
+/* Image/Diagram Layout Frame */
+.image-layout {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-dark);
+  box-shadow: 
+    0 12px 24px rgba(26, 21, 18, 0.04),
+    inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: #FBF9F6;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.image-layout img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 12px;
+  max-height: 190px;
+}
+
+/* Editorial Trust Badge (Text Card) */
+.trust-badge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 6px 14px;
+  background: var(--color-accent-mint-glow);
+  border: 1px solid rgba(5, 150, 105, 0.25);
+  border-radius: 30px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-accent-mint);
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.05);
+}
+
+.trust-badge span.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-accent-mint-solid);
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+  animation: pulse-green 2s infinite;
+}
+
+.badge-body {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text-muted);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Floating watermarks */
+.engine-watermark {
+  position: absolute;
+  bottom: 30px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-gloss);
+  box-shadow: 0 4px 12px rgba(26, 21, 18, 0.03);
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}

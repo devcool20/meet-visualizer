@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stash Live — Ambient Control Console</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Styling for the Simulation Dashboard Console */
+    body.dashboard-body {
+      background: #F4F0EB;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      font-family: 'Inter', sans-serif;
+      color: #1A1512;
+    }
+
+    .app-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      box-sizing: border-box;
+    }
+
+    header.dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(26, 21, 18, 0.08);
+    }
+
+    .header-logo h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+
+    .header-logo p {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
+      color: #5A5550;
+      margin: 4px 0 0 0;
+    }
+
+    .header-status {
+      display: flex;
+      gap: 16px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(26, 21, 18, 0.08);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #5A5550;
+    }
+
+    .status-badge span.dot {
+      width: 6px;
+      height: 6px;
+      background: #10B981;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-badge span.dot.offline {
+      background: #EF4444;
+    }
+
+    /* Main Console Grid */
+    .console-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 32px;
+    }
+
+    /* Left Control Panel */
+    .panel-left {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .console-card {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(26, 21, 18, 0.08);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(26, 21, 18, 0.02);
+    }
+
+    .card-title-bar {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 0;
+      margin-bottom: 16px;
+      color: #1A1512;
+    }
+
+    /* Speech triggers */
+    .trigger-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .trigger-btn {
+      text-align: left;
+      padding: 14px 16px;
+      background: #FBF9F6;
+      border: 1px solid rgba(26, 21, 18, 0.06);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      color: #5A5550;
+    }
+
+    .trigger-btn:hover {
+      background: #FFF;
+      border-color: #10B981;
+      color: #1A1512;
+      box-shadow: 0 4px 12px rgba(26, 21, 18, 0.03);
+    }
+
+    .trigger-btn strong {
+      color: #1A1512;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    /* Voice Ingestion Control */
+    .mic-control-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .btn-action {
+      padding: 12px 24px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-mic {
+      background: #1A1512;
+      color: #FFF;
+    }
+
+    .btn-mic:hover {
+      background: #2E2722;
+    }
+
+    .btn-mic.recording {
+      background: #EF4444;
+      animation: pulse 1.5s infinite;
+    }
+
+    .btn-dismiss {
+      background: rgba(26, 21, 18, 0.06);
+      color: #1A1512;
+      border: 1px solid rgba(26, 21, 18, 0.06);
+    }
+
+    .btn-dismiss:hover {
+      background: rgba(26, 21, 18, 0.1);
+    }
+
+    /* Right Preview Stage */
+    .panel-right {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* Video composite container */
+    .meeting-stage-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #100C09;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(26, 21, 18, 0.15);
+      border: 1px solid rgba(26, 21, 18, 0.12);
+    }
+
+    /* Live video background simulator */
+    #presenter-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Overlay blended canvas from server compositor */
+    #compositor-frame-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* Metrics logs */
+    .log-stream {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: #1A1512;
+      color: #D3CFC9;
+      padding: 18px;
+      border-radius: 12px;
+      height: 180px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    .log-entry {
+      margin-bottom: 6px;
+      border-left: 2px solid #5A5550;
+      padding-left: 8px;
+    }
+
+    .log-entry.gemini {
+      border-color: #10B981;
+      color: #ECFDF5;
+    }
+
+    .log-entry.prewarm {
+      border-color: #F59E0B;
+      color: #FEF3C7;
+    }
+
+    .log-entry.system {
+      border-color: #3B82F6;
+      color: #EFF6FF;
+    }
+
+    /* Cache database viewer */
+    .cache-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .cache-item {
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(26, 21, 18, 0.06);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+    }
+
+    .cache-item h4 {
+      margin: 0 0 6px 0;
+      font-family: 'JetBrains Mono', monospace;
+      color: #1A1512;
+      font-size: 11px;
+    }
+
+    .cache-item p {
+      margin: 0;
+      color: #5A5550;
+      font-size: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body class="dashboard-body">
+
+  <div class="app-container">
+    
+    <header class="dashboard-header">
+      <div class="header-logo">
+        <h1>Stash Live</h1>
+        <p>The Ambient Presenter Suite • Cloud Core Console</p>
+      </div>
+      
+      <div class="header-status">
+        <div class="status-badge">
+          <span class="dot" id="ws-dot"></span>
+          Engine socket: <strong id="ws-status" style="margin-left:4px;">Connecting</strong>
+        </div>
+        <div class="status-badge">
+          <span class="dot" id="notion-dot"></span>
+          Notion sync: <strong id="notion-status" style="margin-left:4px;">Synced</strong>
+        </div>
+      </div>
+    </header>
+
+    <div class="console-grid">
+      
+      <!-- Left Panel: Speech Triggers and Ingestion Controls -->
+      <div class="panel-left">
+        
+        <div class="console-card">
+          <h2 class="card-title-bar">Live Presenter Simulation</h2>
+          <p style="font-size:12px; color:#5A5550; margin-top:-8px; margin-bottom:20px;">
+            Click a sample prompt to simulate spoken input, or click the mic button below to speak live.
+          </p>
+
+          <div class="trigger-buttons">
+            <button class="trigger-btn" onclick="sendPrompt('As you can see from our Q2 financial growth charts on my left, our revenue has skyrocketed this quarter.')">
+              <strong>1. Chart Trigger (Graph)</strong>
+              "As you can see from our Q2 financial growth charts on my left, our revenue has skyrocketed this quarter."
+            </button>
+            
+            <button class="trigger-btn" onclick="sendPrompt('This is an image of our updated platform architecture map showing the core serverless ingest gateway.')">
+              <strong>2. System Diagram Trigger (Image)</strong>
+              "This is an image of our updated platform architecture map showing the core serverless ingest gateway."
+            </button>
+            
+            <button class="trigger-btn" onclick="sendPrompt('Our core values focus entirely on uncompromising security protocols and customer trust badges.')">
+              <strong>3. Trust Card Trigger (Text Card)</strong>
+              "Our core values focus entirely on uncompromising security protocols and customer trust badges."
+            </button>
+
+            <button class="trigger-btn" onclick="sendPrompt('I need to look at our financial charts and compliance standards.')">
+              <strong>4. Low Confidence Trigger (Suppressed Gate)</strong>
+              "I need to look at our financial charts and compliance standards." (Confidence &lt; 0.88, stays passive)
+            </button>
+          </div>
+
+          <div class="mic-control-bar">
+            <button class="btn-action btn-mic" id="mic-toggle" onclick="toggleMic()">
+              Start Live Microphone (STT)
+            </button>
+            <button class="btn-action btn-dismiss" onclick="sendDismissal()">
+              Dismiss Overlay Card (Wave Gesture)
+            </button>
+          </div>
+        </div>
+
+        <div class="console-card">
+          <h2 class="card-title-bar">Notion Hot-Cache Explorer</h2>
+          <p style="font-size:12px; color:#5A5550; margin-top:-8px; margin-bottom:16px;">
+            Pre-fetched and cached Notion properties synced 15 minutes before call starts.
+          </p>
+          
+          <div class="cache-grid" id="cache-list">
+            <div class="cache-item">
+              <h4>notion:q2_financials</h4>
+              <p>Type: graph (Apr, May, Jun)</p>
+            </div>
+            <div class="cache-item">
+              <h4>notion:sys_architecture</h4>
+              <p>Type: image (/architecture_v2.png)</p>
+            </div>
+            <div class="cache-item">
+              <h4>notion:security_compliance</h4>
+              <p>Type: text_card (SOC-2 Compliance)</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Panel: Google Meet Video Stage and Logs -->
+      <div class="panel-right">
+        
+        <!-- Google Meet Simulated Participant Stage -->
+        <div class="meeting-stage-container">
+          
+          <!-- Mock Presenter Video (Animated canvas fallback showing presenter outline) -->
+          <canvas id="presenter-video"></canvas>
+          
+          <!-- Live Overlay Frame (PNG with transparency overlay) -->
+          <img id="compositor-frame-overlay" src="" style="display:none;" />
+          
+          <!-- HUD indicator -->
+          <div style="position:absolute; top:16px; right:16px; background:rgba(0,0,0,0.6); padding:4px 10px; border-radius:6px; font-size:10px; color:#FFF; font-weight:600; font-family:monospace; z-index:10;">
+            GMEET STAGE FEED • LIVE OVERLAY
+          </div>
+
+        </div>
+
+        <div class="console-card">
+          <h2 class="card-title-bar">System Pipeline Activity Logs</h2>
+          <div class="log-stream" id="log-box">
+            <div class="log-entry system">[System] Connecting to Stash Live Core...</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Web Socket Connection
+    let ws;
+    const wsUrl = `ws://${window.location.host}`;
+    const logBox = document.getElementById('log-box');
+    const overlayImg = document.getElementById('compositor-frame-overlay');
+    
+    // Status indicators
+    const wsDot = document.getElementById('ws-dot');
+    const wsStatus = document.getElementById('ws-status');
+
+    // Mic recording state
+    let recognition;
+    let isRecording = false;
+
+    function initWebSocket() {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        wsDot.style.background = '#10B981';
+        wsStatus.innerText = 'Connected';
+        addLog('system', 'Connection to Stash Live Core established.');
+      };
+
+      ws.onmessage = (event) => {
+        if (event.data instanceof Blob) {
+          // It's a binary image frame from Puppeteer screenshot
+          const url = URL.createObjectURL(event.data);
+          overlayImg.src = url;
+          overlayImg.style.display = 'block';
+        } else {
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.type === 'log') {
+              addLog(msg.source, msg.text);
+            }
+          } catch(e) {}
+        }
+      };
+
+      ws.onclose = () => {
+        wsDot.style.background = '#EF4444';
+        wsStatus.innerText = 'Offline';
+        addLog('system', 'WebSocket connection lost. Retrying in 3s...');
+        setTimeout(initWebSocket, 3000);
+      };
+    }
+
+    function addLog(source, text) {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${source}`;
+      entry.innerText = `[${source.toUpperCase()}] ${text}`;
+      logBox.appendChild(entry);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function sendPrompt(text) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        addLog('system', `Simulating presenter speaking: "${text}"`);
+        ws.send(JSON.stringify({ type: 'speech', text }));
+      }
+    }
+
+    function sendDismissal() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        addLog('system', 'Triggered gesture offramp (dismiss card).');
+        ws.send(JSON.stringify({ type: 'dismiss' }));
+      }
+    }
+
+    // Web Speech API for Live Mic
+    function toggleMic() {
+      const micBtn = document.getElementById('mic-toggle');
+      
+      if (isRecording) {
+        recognition.stop();
+        isRecording = false;
+        micBtn.innerText = 'Start Live Microphone (STT)';
+        micBtn.classList.remove('recording');
+        addLog('system', 'Microphone recording stopped.');
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('Web Speech API is not supported in this browser. Please use Chrome/Edge or click the simulated buttons.');
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        isRecording = true;
+        micBtn.innerText = 'Recording Speech... Click to Stop';
+        micBtn.classList.add('recording');
+        addLog('system', 'Microphone active. Start speaking now...');
+      };
+
+      recognition.onresult = (event) => {
+        const resultIndex = event.resultIndex;
+        const transcript = event.results[resultIndex][0].transcript;
+        addLog('system', `Heard speech: "${transcript}"`);
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'speech', text: transcript }));
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event);
+        addLog('system', `Speech recognition error: ${event.error}`);
+      };
+
+      recognition.onend = () => {
+        isRecording = false;
+        micBtn.innerText = 'Start Live Microphone (STT)';
+        micBtn.classList.remove('recording');
+      };
+
+      recognition.start();
+    }
+
+    // Mock Presenter Video Stream Simulator (Draws a looping corporate placeholder profile outline)
+    function runPresenterVideoMock() {
+      const canvas = document.getElementById('presenter-video');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 640;
+      canvas.height = 360;
+
+      let frame = 0;
+
+      function draw() {
+        frame++;
+        
+        // Dark premium background with subtle radial gradient
+        const grad = ctx.createRadialGradient(320, 180, 20, 320, 180, 300);
+        grad.addColorStop(0, '#2B211A');
+        grad.addColorStop(1, '#130E0B');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 640, 360);
+
+        // Draw soft ambient lighting circles behind presenter outline
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.04)';
+        ctx.beginPath();
+        ctx.arc(320 + Math.sin(frame * 0.02) * 30, 140, 100 + Math.cos(frame * 0.01) * 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw Presenter Silhouette Outline (mimicking camera frame)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.beginPath();
+        // Head
+        ctx.arc(320, 150 + Math.sin(frame * 0.05) * 2, 45, 0, Math.PI * 2);
+        ctx.fill();
+        // Shoulders
+        ctx.beginPath();
+        ctx.ellipse(320, 260 + Math.sin(frame * 0.05) * 1.5, 90, 60, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Overlay status text
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.font = '10px monospace';
+        ctx.fillText('WEBRTC FEED SIMULATOR [ACTIVE 30 FPS]', 20, 30);
+        ctx.fillText('CAMERA SOURCE: MOCK_PRESENTERS_VIRTUAL_CAM', 20, 45);
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    // Run app loops
+    initWebSocket();
+    runPresenterVideoMock();
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Stash Live GMeet Interceptor",
+  "version": "1.0.0",
+  "description": "Bakes Stash Live glassmorphic cards directly into your Google Meet video feed.",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["inject.js"],
+      "matches": ["https://meet.google.com/*"]
+    }
+  ]
+}

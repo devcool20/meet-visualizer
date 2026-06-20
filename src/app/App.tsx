@@ -3,11 +3,14 @@ import { motion, AnimatePresence } from "motion/react";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import heroBg from "@/imports/HLKJ3SzbkAAfbgT.jpg";
 import orangeTexture from "@/imports/orange.jpg";
+import videoBg from "@/imports/video-bg.jpg";
+import videoFile from "@/imports/Business_man_speaking_in_video_202606202029.mp4";
+
 
 const TRIGGER_MAP: Record<string, { label: string; value: string; color: string }[]> = {
   revenue: [
-    { label: "Q3 Revenue", value: "$2.4M", color: "#10B981" },
-    { label: "YoY Growth", value: "+34%", color: "#10B981" },
+    { label: "Q2 Revenue", value: "$240,000", color: "#10B981" },
+    { label: "YoY Growth", value: "+40%", color: "#10B981" },
     { label: "Churn Rate", value: "1.8%", color: "#5A5550" },
   ],
   team: [
@@ -130,12 +133,12 @@ export function RevenuePreviewCard({ reducedMotion }: { reducedMotion: boolean }
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Q3 REVENUE</p>
-          <p className="text-2xl font-bold text-[#10B981]">$2.4M</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Q2 REVENUE</p>
+          <p className="text-2xl font-bold text-[#10B981]">$240,000</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">GROWTH</p>
-          <p className="text-sm font-semibold text-[#10B981]">+34% YoY</p>
+          <p className="text-sm font-semibold text-[#10B981]">+40% YoY</p>
           <p className="text-[9px] text-gray-600">Churn: 1.8%</p>
         </div>
       </div>
@@ -481,6 +484,53 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const isScrollingToRef = useRef<string | null>(null);
   const [displayedBannerText, setDisplayedBannerText] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().then(() => {
+            setIsPlaying(true);
+          }).catch((err) => {
+            console.log("Autoplay prevented:", err);
+          });
+        } else {
+          video.pause();
+          setIsPlaying(false);
+        }
+      },
+      {
+        threshold: 0.3, // play when 30% of the video is visible
+      }
+    );
+
+    observer.observe(video);
+    return () => {
+      if (video) observer.unobserve(video);
+    };
+  }, []);
+
+  const handleVideoClick = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+      setIsPlaying(false);
+    } else {
+      video.play().then(() => {
+        setIsPlaying(true);
+      }).catch((err) => {
+        console.error("Play failed:", err);
+      });
+    }
+  };
+
 
   // Banner Typewriter Effect Loop (3-second cycle)
   useEffect(() => {
@@ -845,9 +895,9 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="absolute top-[calc(100%+0.5rem)] left-0 right-0 rounded-2xl border border-[rgba(26,21,18,0.08)] shadow-[0_8px_32px_0_rgba(26,21,18,0.06)] p-4 flex flex-col gap-2 md:hidden"
+              className="absolute top-[calc(100%+0.5rem)] left-0 right-0 rounded-2xl border border-[rgba(26,21,18,0.06)] shadow-[0_8px_32px_0_rgba(26, 21, 18, 0.03)] p-4 flex flex-col gap-2 md:hidden"
               style={{
-                background: "rgba(255, 255, 255, 0.95)",
+                background: "rgba(255, 255, 255, 0.55)",
                 backdropFilter: "blur(20px) saturate(120%)",
                 WebkitBackdropFilter: "blur(20px) saturate(120%)",
               }}
@@ -1217,6 +1267,124 @@ export default function App() {
         </div>
       </section>
 
+      {/* ─── VIDEO DEMO SECTION ─── */}
+      <section
+        id="demo"
+        className="w-full grid md:grid-cols-2 items-stretch"
+        style={{ minHeight: "80vh" }}
+      >
+        {/* Left — video on top of a background image */}
+        <div className="relative overflow-hidden min-h-[350px] md:min-h-[500px] flex items-center justify-center">
+          <ImageWithFallback
+            src={videoBg}
+            alt="Video background texture"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: "grayscale(100%) contrast(110%)" }}
+          />
+          {/* Dark overlay for contrast */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "rgba(26,21,18,0.18)" }}
+          />
+          {/* Center the video player */}
+          <div className="relative z-10 w-full max-w-md px-4 sm:px-6">
+            <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black relative group cursor-pointer">
+              <video
+                ref={videoRef}
+                src={videoFile}
+                className="w-full h-full object-cover"
+                playsInline
+                loop
+                muted
+                onClick={handleVideoClick}
+              />
+              {/* Play/Pause overlay indicator */}
+              <div 
+                className={`absolute inset-0 flex items-center justify-center bg-black/35 transition-opacity duration-300 pointer-events-none ${
+                  isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+                }`}
+              >
+                <div className="w-14 h-14 rounded-full bg-white/95 shadow-lg flex items-center justify-center text-[#1A1512] transition-transform duration-300 scale-95 group-hover:scale-100">
+                  {isPlaying ? (
+                    // Pause Icon
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                      <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    // Play Icon
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 ml-0.5">
+                      <path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 20.03c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right — copy explaining data and setup */}
+        <div
+          className="flex flex-col justify-center px-6 py-16 sm:px-12 md:py-20 lg:px-20"
+          style={{ background: "#FBF9F6" }}
+        >
+          <p
+            className="text-xs uppercase tracking-widest mb-6"
+            style={{ color: "#10B981" }}
+          >
+            How it works
+          </p>
+          <h2
+            className="mb-6 leading-tight"
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "clamp(2rem, 3.5vw, 3rem)",
+              fontWeight: 300,
+              letterSpacing: "-0.02em",
+              color: "#1A1512",
+            }}
+          >
+            Real-time data overlays, powered by your voice.
+          </h2>
+          <div className="space-y-6" style={{ color: "#5A5550", fontSize: "0.9rem", lineHeight: 1.8 }}>
+            <div>
+              <h3 className="text-sm font-semibold text-[#1A1512] uppercase tracking-wider mb-2">Types of Overlay Data</h3>
+              <p>
+                Stash Live reads your spoken cues and projects beautifully designed glassmorphic cards right onto your video stream. This includes live <span className="font-semibold text-[#1A1512]">Financial Metrics</span> (such as Q2 Revenue of $240,000 and YoY Growth of +40%), <span className="font-semibold text-[#1A1512]">Team Analytics</span> (active headcount of 142 and NPS score of 78), and <span className="font-semibold text-[#1A1512]">Product Performance</span> (DAU of 48.2K and latency of 18ms).
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-semibold text-[#1A1512] uppercase tracking-wider mb-2">How to Setup</h3>
+              <p>
+                Getting started takes less than 60 seconds:
+              </p>
+              <ol className="list-decimal pl-5 mt-2 space-y-1">
+                <li>Connect your workspaces (Notion, Airtable, or Google Drive) inside the Stash Dashboard.</li>
+                <li>Configure your custom voice triggers and link them to specific metrics or charts.</li>
+                <li>Select Stash Live Virtual Camera as your video input in Zoom, Teams, or Google Meet.</li>
+              </ol>
+            </div>
+          </div>
+          
+          <div className="mt-10 flex items-center gap-6">
+            <button
+              className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
+              style={{ background: "#1A1512", color: "#FBF9F6" }}
+            >
+              Start Setup
+            </button>
+            <a
+              href="#"
+              className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
+              style={{ color: "#5A5550" }}
+            >
+              View Documentation
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ─── VALUE SECTION ─── */}
       <section
         id="features"
@@ -1225,7 +1393,7 @@ export default function App() {
       >
         {/* Left — copy */}
         <div
-          className="flex flex-col justify-center px-6 py-16 sm:px-12 md:py-20 lg:px-20"
+          className="flex flex-col justify-center px-6 py-16 sm:px-12 md:py-20 lg:px-20 order-2 md:order-1"
           style={{ background: "#FBF9F6" }}
         >
           <p
@@ -1281,7 +1449,7 @@ export default function App() {
         </div>
 
         {/* Right — grayscale texture + glassmorphic chart */}
-        <div className="relative overflow-hidden min-h-[350px] md:min-h-[500px]">
+        <div className="relative overflow-hidden min-h-[350px] md:min-h-[500px] order-1 md:order-2">
           <ImageWithFallback
             src={orangeTexture}
             alt="Abstract orange cloud texture rendered in monochrome"
