@@ -58,72 +58,69 @@ const containerVariants = {
 const itemVariants = {
   hidden: (reduced: boolean) => ({
     opacity: 0,
-    y: reduced ? 0 : 20,
+    y: reduced ? 0 : 8,
   }),
   visible: (reduced: boolean) => ({
     opacity: 1,
     y: 0,
     transition: reduced
       ? { duration: 0.01 }
-      : { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+      : { duration: 0.4, ease: "easeOut" },
   }),
 };
 
 const headingVariants = {
   hidden: (reduced: boolean) => ({
     opacity: 0,
-    y: reduced ? 0 : 30,
+    y: reduced ? 0 : 12,
   }),
   visible: (reduced: boolean) => ({
     opacity: 1,
     y: 0,
     transition: reduced
       ? { duration: 0.01 }
-      : { duration: 1.0, ease: [0.16, 1, 0.3, 1] },
+      : { duration: 0.5, ease: "easeOut" },
   }),
 };
 
 const rightWingVariants = {
   hidden: (reduced: boolean) => ({
     opacity: 0,
-    x: reduced ? 0 : 30,
+    y: reduced ? 0 : 10,
   }),
   visible: (reduced: boolean) => ({
     opacity: 1,
-    x: 0,
+    y: 0,
     transition: reduced
       ? { duration: 0.01 }
-      : { duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 },
+      : { duration: 0.4, ease: "easeOut", delay: 0.1 },
   }),
 };
 
 const cardVariants = {
   hidden: (custom: { index: number; reducedMotion: boolean }) => ({
     opacity: 0,
-    y: custom.reducedMotion ? 0 : 20,
-    scale: custom.reducedMotion ? 1 : 0.9,
+    y: custom.reducedMotion ? 0 : 6,
   }),
   visible: (custom: { index: number; reducedMotion: boolean }) => ({
     opacity: 1,
     y: 0,
-    scale: 1,
     transition: custom.reducedMotion
       ? { duration: 0.01 }
       : {
-          ease: [0.16, 1, 0.3, 1],
-          duration: 0.8,
-          delay: custom.index * 0.08,
+          ease: "easeOut",
+          duration: 0.3,
+          delay: custom.index * 0.04,
         },
   }),
   exit: (custom: { index: number; reducedMotion: boolean }) => ({
     opacity: 0,
-    y: custom.reducedMotion ? 0 : -10,
-    scale: custom.reducedMotion ? 1 : 0.95,
+    y: custom.reducedMotion ? 0 : -4,
     transition: custom.reducedMotion
       ? { duration: 0.01 }
       : {
-          duration: 0.2,
-          ease: [0.16, 1, 0.3, 1],
+          duration: 0.15,
+          ease: "easeIn",
         },
   }),
 };
@@ -133,13 +130,13 @@ export function RevenuePreviewCard({ reducedMotion }: { reducedMotion: boolean }
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Q3 REVENUE</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Q3 REVENUE</p>
           <p className="text-2xl font-bold text-[#10B981]">$2.4M</p>
         </div>
         <div className="text-right">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">GROWTH</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">GROWTH</p>
           <p className="text-sm font-semibold text-[#10B981]">+34% YoY</p>
-          <p className="text-[9px] text-gray-500">Churn: 1.8%</p>
+          <p className="text-[9px] text-gray-600">Churn: 1.8%</p>
         </div>
       </div>
 
@@ -232,13 +229,13 @@ export function TeamPreviewCard() {
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">HEADCOUNT</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">HEADCOUNT</p>
           <p className="text-2xl font-bold text-[#10B981]">142 Active</p>
         </div>
         <div className="text-right">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">PERFORMANCE</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">PERFORMANCE</p>
           <p className="text-sm font-semibold text-[#10B981]">78 NPS</p>
-          <p className="text-[9px] text-gray-500">12 Open Roles</p>
+          <p className="text-[9px] text-gray-600">12 Open Roles</p>
         </div>
       </div>
 
@@ -260,10 +257,10 @@ export function TeamPreviewCard() {
 
       {/* Monospaced activity log */}
       <div className="bg-[#1A1512]/5 rounded-xl p-3 border border-[rgba(26,21,18,0.04)]">
-        <p className="text-[10px] uppercase text-gray-400 mb-1.5 tracking-wider font-semibold">
+        <p className="text-[10px] uppercase text-gray-500 mb-1.5 tracking-wider font-semibold">
           ACTIVITY LOG
         </p>
-        <div className="space-y-1 text-[10px] text-[#5A5550] font-normal leading-relaxed">
+        <div className="space-y-1 text-[10px] text-[#2D2520] font-normal leading-relaxed">
           <div className="flex items-center gap-1.5">
             <span className="text-[#10B981]">✔</span>
             <span>Notion API: jane.doe connected</span>
@@ -287,20 +284,20 @@ export function ProductPreviewCard({ reducedMotion }: { reducedMotion: boolean }
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">DAILY ACTIVE USERS</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">DAILY ACTIVE USERS</p>
           <p className="text-2xl font-bold text-[#10B981]">48.2K</p>
         </div>
         <div className="text-right">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">LATENCY</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">LATENCY</p>
           <p className="text-sm font-semibold text-[#10B981]">18ms</p>
-          <p className="text-[9px] text-gray-500">Uptime: 99.97%</p>
+          <p className="text-[9px] text-gray-600">Uptime: 99.97%</p>
         </div>
       </div>
 
       <div className="relative w-full h-24 bg-[#1A1512]/5 rounded-xl p-2 border border-[rgba(26,21,18,0.04)] overflow-hidden">
         <div className="absolute top-2 left-3 flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-ping" />
-          <span className="text-[9px] text-gray-400 uppercase font-normal tracking-wider">
+          <span className="text-[9px] text-gray-500 uppercase font-normal tracking-wider">
             Real-time Latency Monitor
           </span>
         </div>
@@ -383,13 +380,13 @@ export function GrowthPreviewCard({ reducedMotion }: { reducedMotion: boolean })
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">MONTHLY RECURRING REVENUE</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">MONTHLY RECURRING REVENUE</p>
           <p className="text-2xl font-bold text-[#10B981]">$180K</p>
         </div>
         <div className="text-right">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">CONVERSION</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">CONVERSION</p>
           <p className="text-sm font-semibold text-[#10B981]">4.7%</p>
-          <p className="text-[9px] text-gray-500">CAC: $124</p>
+          <p className="text-[9px] text-gray-600">CAC: $124</p>
         </div>
       </div>
 
@@ -476,6 +473,7 @@ export default function App() {
   const [isListening, setIsListening] = useState(false);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("about");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const [speechWarning, setSpeechWarning] = useState<string | null>(null);
   const [isSpeechActive, setIsSpeechActive] = useState(false);
@@ -714,58 +712,97 @@ export default function App() {
             WebkitTransform: "translateZ(0)",
           }}
         />
-        <div className="flex md:grid md:grid-cols-3 items-center justify-between w-full">
-          {/* Left Column */}
-          <nav className="hidden md:flex items-center gap-8 relative">
-            {["about", "features", "integrations"].map((item) => {
-              const isActive = activeSection === item;
-              const showPill = hoveredNav === item || (hoveredNav === null && isActive);
-              return (
-                <a
-                  key={item}
-                  href={`#${item}`}
-                  onMouseEnter={() => setHoveredNav(item)}
-                  onMouseLeave={() => setHoveredNav(null)}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    isScrollingToRef.current = item;
-                    setActiveSection(item);
-                    const el = document.getElementById(item);
-                    if (el) {
-                      el.scrollIntoView({ behavior: "smooth" });
-                    }
-                    setTimeout(() => {
-                      if (isScrollingToRef.current === item) {
-                        isScrollingToRef.current = null;
-                      }
-                    }, 800);
-                  }}
-                  className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 hover:text-[#1A1512]"
-                  style={{
-                    color: (isActive || hoveredNav === item) ? "#1A1512" : "#5A5550",
-                    fontWeight: isActive ? 600 : 400,
-                    letterSpacing: "0.01em",
-                  }}
-                >
-                  {showPill && (
-                    <motion.div
-                      layoutId="hover-pill"
-                      className="absolute inset-0 bg-[rgba(26,21,18,0.06)] rounded-full -z-10"
-                      transition={
-                        reducedMotion
-                          ? { duration: 0.01 }
-                          : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
-                      }
-                    />
-                  )}
-                  <span className="relative z-10">{item}</span>
-                </a>
-              );
-            })}
-          </nav>
+        <div className="flex md:grid md:grid-cols-3 items-center justify-between w-full relative">
+          {/* Left Column (Desktop: Nav links, Mobile: Hamburger + Logo) */}
+          <div className="flex items-center gap-3 md:col-span-1">
+            {/* Hamburger Button (visible only on mobile) */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-1.5 rounded-full hover:bg-[rgba(26,21,18,0.06)] transition-colors focus:outline-none flex items-center justify-center z-50"
+              aria-label="Toggle menu"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                className="w-5 h-5 text-[#1A1512]"
+                strokeWidth="2.2"
+              >
+                {isMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
 
-          {/* Center Column */}
-          <div className="text-left md:text-center">
+            {/* Mobile-only Logo: Stash Live, shifted to the right of the hamburger icon */}
+            <div className="md:hidden flex items-center pl-1">
+              <span
+                className="text-lg font-medium tracking-tight select-none"
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "1.35rem",
+                  color: "#1A1512",
+                }}
+              >
+                Stash Live
+              </span>
+            </div>
+
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center gap-8 relative">
+              {["about", "features", "integrations"].map((item) => {
+                const isActive = activeSection === item;
+                const showPill = hoveredNav === item || (hoveredNav === null && isActive);
+                return (
+                  <a
+                    key={item}
+                    href={`#${item}`}
+                    onMouseEnter={() => setHoveredNav(item)}
+                    onMouseLeave={() => setHoveredNav(null)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      isScrollingToRef.current = item;
+                      setActiveSection(item);
+                      const el = document.getElementById(item);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth" });
+                      }
+                      setTimeout(() => {
+                        if (isScrollingToRef.current === item) {
+                          isScrollingToRef.current = null;
+                        }
+                      }, 800);
+                    }}
+                    className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 hover:text-[#1A1512]"
+                    style={{
+                      color: (isActive || hoveredNav === item) ? "#1A1512" : "#5A5550",
+                      fontWeight: isActive ? 600 : 400,
+                      letterSpacing: "0.01em",
+                    }}
+                  >
+                    {showPill && (
+                      <motion.div
+                        layoutId="hover-pill"
+                        className="absolute inset-0 bg-[rgba(26,21,18,0.06)] rounded-full -z-10"
+                        transition={
+                          reducedMotion
+                            ? { duration: 0.01 }
+                            : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
+                        }
+                      />
+                    )}
+                    <span className="relative z-10">{item}</span>
+                  </a>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Center Column (Desktop-only Logo) */}
+          <div className="hidden md:block text-center">
             <span
               className="text-lg font-medium tracking-tight select-none"
               style={{
@@ -799,6 +836,46 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Dialog */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="absolute top-[calc(100%+0.5rem)] left-0 right-0 rounded-2xl border border-[rgba(26,21,18,0.08)] shadow-[0_8px_32px_0_rgba(26,21,18,0.06)] p-4 flex flex-col gap-2 md:hidden"
+              style={{
+                background: "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(20px) saturate(120%)",
+                WebkitBackdropFilter: "blur(20px) saturate(120%)",
+              }}
+            >
+              {["about", "features", "integrations"].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsMenuOpen(false);
+                    const el = document.getElementById(item);
+                    if (el) {
+                      el.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
+                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left capitalize ${
+                    activeSection === item
+                      ? "bg-[rgba(26,21,18,0.06)] text-[#1A1512] font-semibold"
+                      : "text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)]"
+                  }`}
+                >
+                  {item}
+                </a>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* ─── HERO ─── */}
@@ -806,15 +883,14 @@ export default function App() {
         {/* Background */}
         <motion.div
           className="absolute inset-0 w-full h-full overflow-hidden"
-          initial={reducedMotion ? { opacity: 1, scale: 1 } : { scale: 1.05, opacity: 0 }}
-          animate={{ scale: 1.0, opacity: 1 }}
-          transition={reducedMotion ? { duration: 0.01 } : { duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          initial={reducedMotion ? { opacity: 1 } : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={reducedMotion ? { duration: 0.01 } : { duration: 0.5, ease: "easeOut" }}
         >
           <ImageWithFallback
             src={heroBg}
             alt="Person standing in a digital field beneath a binary-data sky"
-            className="w-full h-full object-cover"
-            style={{ objectPosition: "center 15%" }}
+            className="w-full h-full object-cover object-[68%_15%] lg:object-[center_15%]"
           />
         </motion.div>
 
@@ -852,7 +928,7 @@ export default function App() {
             <motion.p
               custom={reducedMotion}
               variants={itemVariants}
-              className="text-sm"
+              className="text-sm mobile-shift-desc lg:mt-0"
               style={{
                 color: "#1A1512",
                 lineHeight: 1.7,
@@ -879,15 +955,15 @@ export default function App() {
               {!activeKey && (
                 <motion.p
                   key="right-wing-desc"
-                  initial={{ opacity: 1, height: "auto", marginBottom: "1rem" }}
-                  animate={{ opacity: 1, height: "auto", marginBottom: "1rem" }}
-                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  initial={{ opacity: 1, height: "auto" }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
                   transition={
                     reducedMotion
                       ? { duration: 0.01 }
                       : { ease: [0.16, 1, 0.3, 1], duration: 0.6 }
                   }
-                  className="text-sm overflow-hidden text-center lg:text-left"
+                  className="text-sm overflow-hidden text-center lg:text-left mb-4 lg:mb-0"
                   style={{
                     color: "#1A1512",
                     lineHeight: 1.7,
@@ -901,13 +977,10 @@ export default function App() {
             {/* Unified glassmorphic card */}
             <motion.div
               layout
-              className="rounded-2xl p-4"
+              className="rounded-2xl p-4 border border-[rgba(26,21,18,0.08)] shadow-[0_8px_32px_0_rgba(26,21,18,0.06)] bg-white/90 md:bg-white/45"
               style={{
-                background: "rgba(255, 255, 255, 0.45)",
                 backdropFilter: "blur(20px) saturate(120%)",
                 WebkitBackdropFilter: "blur(20px) saturate(120%)",
-                border: "1px solid rgba(26, 21, 18, 0.08)",
-                boxShadow: "0 8px 32px 0 rgba(26, 21, 18, 0.06)",
               }}
               transition={
                 reducedMotion
@@ -927,7 +1000,7 @@ export default function App() {
                     value={inputVal}
                     onChange={(e) => setInputVal(e.target.value)}
                     placeholder={(isListening || isSpeechActive) ? "Listening... say 'revenue'…" : "revenue, team, product, growth…"}
-                    className="w-full bg-transparent text-sm outline-none placeholder-[#A8A4A0] pr-8 text-[#1A1512]"
+                    className="w-full bg-transparent text-sm outline-none placeholder-[#6B7280] md:placeholder-[#A8A4A0] pr-8 text-[#1A1512]"
                     style={{ fontFamily: "'Inter', sans-serif" }}
                   />
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center">
@@ -1068,7 +1141,7 @@ export default function App() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="mt-3 text-[10px] text-[#A8A4A0]"
+                      className="mt-3 text-[10px] text-[#5A5550]"
                       style={{
                         color: (isListening || isSpeechActive) ? "#10B981" : undefined,
                       }}
@@ -1301,9 +1374,9 @@ export default function App() {
               className="w-full h-full object-cover"
             />
             
-            {/* Polka dots grid */}
+            {/* Desktop Polka dots grid */}
             <div 
-              className="absolute inset-4 md:inset-8 grid justify-items-center items-center pointer-events-none"
+              className="hidden md:grid absolute inset-4 md:inset-8 justify-items-center items-center pointer-events-none"
               style={{
                 gridTemplateColumns: "repeat(20, minmax(0, 1fr))",
                 gridTemplateRows: "repeat(7, minmax(0, 1fr))",
@@ -1314,12 +1387,41 @@ export default function App() {
                 const r = Math.floor(i / 20);
                 const c = i % 20;
                 const isCenterArea = r >= 2 && r <= 4 && c >= 4 && c <= 15;
-                return isCenterArea ? (
+                // Put back 4 dots on the left and 4 dots on the right of the text
+                const isPutBackDot = 
+                  ((r === 2 || r === 4) && (c === 4 || c === 5)) ||
+                  ((r === 2 || r === 4) && (c === 14 || c === 15));
+                const hasDot = !isCenterArea || isPutBackDot;
+                return !hasDot ? (
                   <div key={i} className="w-1.5 h-1.5 md:w-2 h-2" />
                 ) : (
                   <div 
                     key={i} 
                     className="w-1.5 h-1.5 md:w-2 h-2 rounded-full bg-white/95 shadow-[0_1px_2px_rgba(0,0,0,0.15)]" 
+                  />
+                );
+              })}
+            </div>
+
+            {/* Mobile Polka dots grid - Less congested, spaced out */}
+            <div 
+              className="grid md:hidden absolute inset-3 justify-items-center items-center pointer-events-none"
+              style={{
+                gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
+                gridTemplateRows: "repeat(5, minmax(0, 1fr))",
+                gap: "6px",
+              }}
+            >
+              {Array.from({ length: 12 * 5 }).map((_, i) => {
+                const r = Math.floor(i / 12);
+                const c = i % 12;
+                const isCenterArea = r >= 1 && r <= 3 && c >= 2 && c <= 9;
+                return isCenterArea ? (
+                  <div key={i} className="w-1.5 h-1.5" />
+                ) : (
+                  <div 
+                    key={i} 
+                    className="w-1.5 h-1.5 rounded-full bg-white/95 shadow-[0_1px_2px_rgba(0,0,0,0.15)]" 
                   />
                 );
               })}
