@@ -528,7 +528,7 @@ export default function App() {
         const nextIndex = (keys.indexOf(prev) + 1) % keys.length;
         return keys[nextIndex];
       });
-    }, 5000);
+    }, 4100);
     return () => clearInterval(interval);
   }, []);
 
@@ -766,6 +766,11 @@ export default function App() {
     };
   }, [isListening, isSpeechActive]);
 
+  const isHeroFold = activeSection === "about";
+  const activeColor = isHeroFold ? "#FBF9F6" : "#1A1512";
+  const inactiveColor = isHeroFold ? "rgba(251, 249, 246, 0.65)" : "#5A5550";
+  const hoverColor = isHeroFold ? "#FFFFFF" : "#1A1512";
+
   return (
     <div
       className="min-h-screen w-full"
@@ -813,7 +818,7 @@ export default function App() {
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                className="w-5 h-5 text-[#1A1512]"
+                className={`w-5 h-5 ${isHeroFold ? "text-[#FBF9F6]" : "text-[#1A1512]"}`}
                 strokeWidth="2.2"
               >
                 {isMenuOpen ? (
@@ -829,6 +834,9 @@ export default function App() {
               {navItems.map((item) => {
                 const isActive = activeSection === item.id;
                 const showPill = hoveredNav === item.id || (hoveredNav === null && isActive);
+                const textColor = isActive 
+                  ? activeColor 
+                  : (hoveredNav === item.id ? hoverColor : inactiveColor);
                 return (
                   <a
                     key={item.id}
@@ -849,9 +857,9 @@ export default function App() {
                         }
                       }, 800);
                     }}
-                    className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 hover:text-[#1A1512] whitespace-nowrap"
+                    className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
                     style={{
-                      color: (isActive || hoveredNav === item.id) ? "#1A1512" : "#5A5550",
+                      color: textColor,
                       fontWeight: isActive ? 600 : 400,
                       letterSpacing: "0.01em",
                     }}
@@ -859,7 +867,9 @@ export default function App() {
                     {showPill && (
                       <motion.div
                         layoutId="hover-pill"
-                        className="absolute inset-0 bg-[rgba(26,21,18,0.06)] rounded-full -z-10"
+                        className={`absolute inset-0 rounded-full -z-10 ${
+                          isHeroFold ? "bg-white/10" : "bg-[rgba(26,21,18,0.06)]"
+                        }`}
                         transition={
                           reducedMotion
                             ? { duration: 0.01 }
@@ -881,7 +891,7 @@ export default function App() {
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: "1.35rem",
-                color: "#1A1512",
+                color: isHeroFold ? "#FBF9F6" : "#1A1512",
               }}
             >
               Stash Live
@@ -953,7 +963,7 @@ export default function App() {
 
 
         {/* Content layer */}
-        <div className="relative z-10 min-h-screen lg:h-full flex flex-col lg:flex-row items-center justify-between px-6 md:px-16 lg:px-24 pt-28 pb-16 lg:py-0">
+        <div className="relative z-10 min-h-screen lg:h-full flex flex-col lg:flex-row items-center justify-between px-6 md:px-16 lg:px-24 pt-28 pb-16 lg:pt-32 lg:pb-16">
           {/* Left wing */}
           <motion.div
             className="w-full lg:w-[36%] pr-0 lg:pr-8 text-center lg:text-left mb-8 lg:mb-0"
@@ -968,14 +978,14 @@ export default function App() {
               className="mb-6"
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(2.2rem, 6vw, 4.5rem)",
+                fontSize: "clamp(2.0rem, 4.5vw, 3.6rem)",
                 fontWeight: 400,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.15,
                 color: "#FBF9F6",
               }}
             >
-              Project live data overlays the moment you speak.
+              Project live metrics, charts, and docs as you speak.
             </motion.h1>
             <motion.p
               custom={reducedMotion}
@@ -986,7 +996,7 @@ export default function App() {
                 lineHeight: 1.7,
               }}
             >
-              Stash Live integrates with Airtable, Notion, and Google Drive to automatically project context-aware metrics and charts directly onto your meeting feed in real time.
+              Stash Live listens to your voice during Zoom, Google Meet, or Teams calls and automatically projects real-time charts and data from Notion, Airtable, and Google Drive directly onto your camera feed — no screen sharing required.
             </motion.p>
           </motion.div>
 
@@ -1002,185 +1012,312 @@ export default function App() {
             custom={reducedMotion}
           >
             {/* Presenter Webcam HUD Card */}
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_24px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-[#1A1512]">
-              {/* Camera view grid / lines */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-stone-900/30 to-transparent pointer-events-none" />
-              
-              {/* Corner focus brackets */}
-              <div className="absolute top-4 left-4 w-3.5 h-3.5 border-t border-l border-white/20 pointer-events-none" />
-              <div className="absolute top-4 right-4 w-3.5 h-3.5 border-t border-r border-white/20 pointer-events-none" />
-              <div className="absolute bottom-4 left-4 w-3.5 h-3.5 border-b border-l border-white/20 pointer-events-none" />
-              <div className="absolute bottom-4 right-4 w-3.5 h-3.5 border-b border-r border-white/20 pointer-events-none" />
-              
-              {/* LIVE Badge */}
-              <div className="absolute top-6 left-6 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[8px] font-bold text-white tracking-widest">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#fb8500] animate-pulse" />
-                <span>LIVE HUD</span>
+            <div className="relative w-full aspect-[4/3] rounded-2xl shadow-[0_24px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-[#141210] p-2 flex flex-col gap-1.5 sm:gap-2">
+              {/* Meeting Header Bar (Simulating Zoom/Meet layout controls) */}
+              <div className="flex items-center justify-between px-2 py-1 bg-white/5 rounded-lg text-[7px] xs:text-[8px] font-mono text-white/60">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  <span>Stash Live Call (2)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[7px] px-1 py-0.5 rounded bg-red-500/20 text-red-400 font-bold uppercase tracking-wider">00:04:12</span>
+                </div>
               </div>
 
-              {/* Presenter silhouette SVG placeholder (reduced size and shifted left to prevent collisions on mobile, original size on desktop) */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.18] -translate-x-[15%] sm:-translate-x-[10%]">
-                <svg viewBox="0 0 100 100" className="w-16 h-16 sm:w-20 h-20 md:w-24 h-24 text-[#fb8500]">
-                  <circle cx="50" cy="35" r="18" fill="currentColor" />
-                  <path d="M50,58 C32,58 18,72 18,90 L82,90 C82,72 68,58 50,58 Z" fill="currentColor" />
-                </svg>
+              {/* Grid: 2 columns (Split Screen Meeting) */}
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-2 flex-grow h-0">
+                {/* Left Column: Presenter (YOU) */}
+                <div className="relative h-full rounded-xl overflow-hidden bg-[#1A1512] border border-white/5 flex items-center justify-center">
+                  {/* Camera view grid / lines */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-stone-900/30 to-transparent pointer-events-none" />
+                  
+                  {/* Corner focus brackets */}
+                  <div className="absolute top-2 left-2 w-1.5 h-1.5 border-t border-l border-white/20 pointer-events-none" />
+                  <div className="absolute top-2 right-2 w-1.5 h-1.5 border-t border-r border-white/20 pointer-events-none" />
+                  <div className="absolute bottom-2 left-2 w-1.5 h-1.5 border-b border-l border-white/20 pointer-events-none" />
+                  <div className="absolute bottom-2 right-2 w-1.5 h-1.5 border-b border-r border-white/20 pointer-events-none" />
+
+                  {/* LIVE Badge */}
+                  <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 text-[5.5px] xs:text-[6.5px] font-bold text-white tracking-widest">
+                    <span className="w-1 h-1 rounded-full bg-[#fb8500] animate-pulse" />
+                    <span>YOU (SPEAKER)</span>
+                  </div>
+
+                  {/* Silhouette */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.18]">
+                    <svg viewBox="0 0 100 100" className="w-10 h-10 xs:w-12 h-12 sm:w-14 h-14 md:w-16 h-16 text-[#fb8500]">
+                      <circle cx="50" cy="35" r="18" fill="currentColor" />
+                      <path d="M50,58 C32,58 18,72 18,90 L82,90 C82,72 68,58 50,58 Z" fill="currentColor" />
+                    </svg>
+                  </div>
+
+                  {/* Audio Waveform */}
+                  <div className="absolute bottom-2 left-2 flex items-center gap-0.5 bg-black/40 px-1 py-0.5 rounded-full border border-white/5">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className="w-0.5 bg-[#fb8500] rounded-full"
+                        animate={
+                          reducedMotion
+                            ? { height: 4 }
+                            : { height: [2, Math.random() * 8 + 3, 2] }
+                        }
+                        transition={
+                          reducedMotion
+                            ? { duration: 0.1 }
+                            : {
+                                duration: 0.6 + Math.random() * 0.4,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: i * 0.04,
+                              }
+                        }
+                        style={{ height: 2 }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Speech Caption bubble */}
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md border border-white/10 rounded-full px-1.5 py-0.5 flex items-center gap-1 text-white max-w-[85%] whitespace-nowrap">
+                    <span className="w-1 h-1 rounded-full bg-[#fb8500] animate-ping" />
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={mockupActiveKey}
+                        initial={{ opacity: 0, y: 2 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -2 }}
+                        transition={{ duration: 0.25 }}
+                        className="text-[5px] xs:text-[6px] font-mono text-white/90"
+                      >
+                        {mockupActiveKey === "revenue" && '"...our Q3 revenue..."'}
+                        {mockupActiveKey === "team" && '"...the active team size..."'}
+                        {mockupActiveKey === "product" && '"...product metrics..."'}
+                      </motion.span>
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                {/* Right Column: Participant (Aakanksha - Audience/Listener) */}
+                <div className="relative h-full rounded-xl overflow-hidden bg-[#1C1A18]/60 border border-white/5 flex items-center justify-center">
+                  {/* Silhouette of Listener */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.12]">
+                    <svg viewBox="0 0 100 100" className="w-10 h-10 xs:w-12 h-12 sm:w-14 h-14 md:w-16 h-16 text-white">
+                      <circle cx="50" cy="35" r="18" fill="currentColor" />
+                      <path d="M50,58 C32,58 18,72 18,90 L82,90 C82,72 68,58 50,58 Z" fill="currentColor" />
+                    </svg>
+                  </div>
+
+                  {/* Muted indicator in bottom-left */}
+                  <div className="absolute bottom-2 left-2 bg-red-500/20 px-1 py-0.5 rounded-md border border-red-500/20 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-2 h-2 text-red-400"
+                    >
+                      <line x1="1" x2="23" y1="1" y2="23" />
+                      <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
+                      <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
+                      <line x1="12" x2="12" y1="19" y2="22" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
-              {/* Rotating overlay cards floating near shoulder */}
-              <div className="absolute right-2 sm:right-4 top-6 bottom-16 flex items-start justify-end pointer-events-none">
+              {/* Floating Overlay Cards (placed outside speaker feed grid column to avoid clipping) */}
+              <div className="absolute inset-0 pointer-events-none z-30">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={mockupActiveKey}
-                    initial={reducedMotion ? { opacity: 0 } : { opacity: 0, x: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={reducedMotion ? { opacity: 0 } : { opacity: 0, x: -20, scale: 0.95 }}
+                    initial={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.65, left: "13%", top: "32%", filter: "blur(2px)" }}
+                    animate={reducedMotion ? { opacity: 1 } : {
+                      opacity: [0, 1, 1, 1],
+                      scale: [0.65, 0.65, 1.3, 1.3],
+                      left: ["13%", "13%", "48%", "48%"],
+                      top: ["32%", "32%", "-15%", "-15%"],
+                      filter: ["blur(2px)", "blur(0px)", "blur(0px)", "blur(0px)"]
+                    }}
+                    exit={
+                      reducedMotion
+                        ? { opacity: 0 }
+                        : {
+                            opacity: [1, 1, 0],
+                            scale: [1.3, 0.65, 0.65],
+                            left: ["48%", "13%", "13%"],
+                            top: ["-15%", "32%", "32%"],
+                            filter: ["blur(0px)", "blur(2px)", "blur(2px)"],
+                            transition: { duration: 0.5, times: [0, 0.6, 1.0], ease: "easeInOut" }
+                          }
+                    }
                     transition={
                       reducedMotion
                         ? { duration: 0.01 }
-                        : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
+                        : { duration: 3.6, times: [0, 0.083, 0.167, 1.0], ease: "easeInOut" }
                     }
-                    className="w-[125px] xs:w-[145px] sm:w-[170px] md:w-[185px] rounded-lg p-1.5 xs:p-2 sm:p-2.5 border border-white/20 shadow-2xl bg-white/10 backdrop-blur-md pointer-events-auto"
+                    className="absolute w-[140px] xs:w-[170px] sm:w-[210px] md:w-[240px] rounded-xl p-3 border border-[rgba(26,21,18,0.12)] shadow-2xl pointer-events-auto flex flex-col gap-1.5 sm:gap-2"
+                    style={{
+                      background: "rgba(255, 255, 255, 0.45)",
+                      backdropFilter: "blur(20px) saturate(130%)",
+                      WebkitBackdropFilter: "blur(20px) saturate(130%)",
+                    }}
                   >
                     {mockupActiveKey === "revenue" && (
-                      <div className="flex flex-col gap-0.5 xs:gap-1 text-white">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-[6px] xs:text-[7.5px] text-white/50 uppercase tracking-widest font-mono">REVENUE TELEMETRY</p>
-                            <p className="text-xs xs:text-sm sm:text-base font-bold text-white leading-tight">$2.4M Q3</p>
+                      <div className="flex flex-col gap-1.5 xs:gap-2 text-[#1A1512] w-full">
+                        {/* Header Grid */}
+                        <div className="grid grid-cols-3 gap-1">
+                          <div className="col-span-2">
+                            <p className="text-[4.5px] xs:text-[5.5px] sm:text-[7px] md:text-[8px] text-[#5A5550] uppercase tracking-wider font-mono font-semibold">REVENUE TELEMETRY</p>
+                            <p className="text-[9px] xs:text-[11px] sm:text-[14px] md:text-[16px] font-bold text-[#fb8500] leading-tight">$2.4M Q3</p>
                           </div>
-                          <span className="text-[6px] xs:text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono whitespace-nowrap">
-                            +34% YoY
-                          </span>
+                          <div className="text-right">
+                            <p className="text-[4.5px] xs:text-[5.5px] sm:text-[7px] md:text-[8px] text-[#5A5550] uppercase tracking-wider font-mono font-semibold">GROWTH</p>
+                            <p className="text-[5.5px] xs:text-[7px] sm:text-[9px] md:text-[11px] font-bold text-emerald-600 leading-tight">+34% YoY</p>
+                            <p className="text-[4px] xs:text-[5px] sm:text-[6.5px] md:text-[7.5px] text-[#5A5550]/70 font-mono">1.8% churn</p>
+                          </div>
                         </div>
-                        <div className="h-6 xs:h-8 w-full mt-0.5 overflow-hidden relative">
-                          <svg viewBox="0 0 150 32" className="w-full h-full overflow-visible">
+
+                        {/* Beautiful SVG Sparkline Chart */}
+                        <div className="relative w-full h-8 xs:h-10 sm:h-12 md:h-14 bg-[#1A1512]/5 rounded-lg p-1 border border-[rgba(26,21,18,0.04)] overflow-hidden">
+                          <svg viewBox="0 0 200 60" className="w-full h-full overflow-visible">
                             <defs>
-                              <linearGradient id="hud-orange-grad" x1="0" y1="0" x2="0" y2="1">
+                              <linearGradient id="hud-revenue-grad" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0%" stopColor="#fb8500" stopOpacity="0.25" />
                                 <stop offset="100%" stopColor="#fb8500" stopOpacity="0" />
                               </linearGradient>
                             </defs>
-                            <path
-                              d="M 5,28 C 35,25 50,12 80,18 C 110,24 125,5 145,3"
+                            {/* Grid lines */}
+                            <line x1="5" y1="15" x2="195" y2="15" stroke="rgba(26,21,18,0.06)" strokeDasharray="2,2" />
+                            <line x1="5" y1="30" x2="195" y2="30" stroke="rgba(26,21,18,0.06)" strokeDasharray="2,2" />
+                            <line x1="5" y1="45" x2="195" y2="45" stroke="rgba(26,21,18,0.06)" strokeDasharray="2,2" />
+
+                            {/* Area Fill */}
+                            <motion.path
+                              d="M 5,50 C 40,45 60,15 95,30 C 130,45 155,10 195,5 L 195, 58 L 5, 58 Z"
+                              fill="url(#hud-revenue-grad)"
+                              stroke="none"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.5, delay: 0.2 }}
+                            />
+
+                            {/* Line Path */}
+                            <motion.path
+                              d="M 5,50 C 40,45 60,15 95,30 C 130,45 155,10 195,5"
                               fill="none"
                               stroke="#fb8500"
-                              strokeWidth="1.5"
+                              strokeWidth="1.75"
                               strokeLinecap="round"
+                              initial={{ pathLength: 0 }}
+                              animate={{ pathLength: 1 }}
+                              transition={{ duration: 0.8, ease: "easeOut" }}
                             />
-                            <path
-                              d="M 5,28 C 35,25 50,12 80,18 C 110,24 125,5 145,3 L 145,32 L 5,32 Z"
-                              fill="url(#hud-orange-grad)"
-                              stroke="none"
-                            />
-                            <circle cx="145" cy="3" r="2" fill="#fb8500" />
+                            
+                            {/* End dot */}
+                            <circle cx="195" cy="5" r="2" fill="#fb8500" />
                           </svg>
                         </div>
-                        <p className="text-[5.5px] xs:text-[7px] text-white/60 font-mono">cloud workspace synchronized</p>
                       </div>
                     )}
-
                     {mockupActiveKey === "team" && (
-                      <div className="flex flex-col gap-0.5 xs:gap-1 text-white">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-[6px] xs:text-[7.5px] text-white/50 uppercase tracking-widest font-mono">TEAM ENGAGEMENT</p>
-                            <p className="text-xs xs:text-sm sm:text-base font-bold text-white leading-tight">142 Active</p>
+                      <div className="flex flex-col gap-1.5 xs:gap-2 text-[#1A1512] w-full">
+                        {/* Header Grid */}
+                        <div className="grid grid-cols-3 gap-1">
+                          <div className="col-span-2">
+                            <p className="text-[4.5px] xs:text-[5.5px] sm:text-[7px] md:text-[8px] text-[#5A5550] uppercase tracking-wider font-mono font-semibold">TEAM ENGAGEMENT</p>
+                            <p className="text-[9px] xs:text-[11px] sm:text-[14px] md:text-[16px] font-bold text-[#fb8500] leading-tight">142 Active</p>
                           </div>
-                          <span className="text-[6px] xs:text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono whitespace-nowrap">
-                            78 NPS
-                          </span>
+                          <div className="text-right">
+                            <p className="text-[4.5px] xs:text-[5.5px] sm:text-[7px] md:text-[8px] text-[#5A5550] uppercase tracking-wider font-mono font-semibold">PERFORMANCE</p>
+                            <p className="text-[5.5px] xs:text-[7px] sm:text-[9px] md:text-[11px] font-bold text-emerald-600 leading-tight">78 NPS</p>
+                            <p className="text-[4px] xs:text-[5px] sm:text-[6.5px] md:text-[7.5px] text-[#5A5550]/70 font-mono">12 open roles</p>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-0.5 xs:gap-1 my-0.5 flex-wrap">
-                          {["JD", "AM", "SR", "WT"].map((init, i) => (
-                            <div key={i} className="w-3.5 h-3.5 xs:w-4 xs:h-4 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[5.5px] xs:text-[7px] font-bold text-white font-mono">
-                              {init}
+
+                        {/* Avatars List */}
+                        <div className="flex items-center gap-1 my-0.5">
+                          {[
+                            { init: "JD" },
+                            { init: "AM" },
+                            { init: "SR" },
+                            { init: "LK" },
+                            { init: "WT" }
+                          ].map((member, i) => (
+                            <div key={i} className="relative">
+                              <div className="w-4 h-4 xs:w-5 h-5 sm:w-5.5 h-5.5 md:w-6 h-6 rounded-full flex items-center justify-center text-[4px] xs:text-[5px] sm:text-[6px] md:text-[7px] font-bold bg-[#1A1512]/10 text-[#1A1512] shadow-sm">
+                                {member.init}
+                              </div>
+                              <span className="absolute bottom-0 right-0 w-1 h-1 rounded-full border border-white bg-emerald-500" />
                             </div>
                           ))}
-                          <span className="text-[5.5px] xs:text-[7px] text-[#fb8500] font-bold font-mono ml-0.5 animate-pulse">●</span>
-                          <span className="text-[5.5px] xs:text-[7px] text-white/70 font-mono">Sync...</span>
+                          <div className="w-4 h-4 xs:w-5 h-5 sm:w-5.5 h-5.5 md:w-6 h-6 rounded-full flex items-center justify-center text-[4px] xs:text-[5px] sm:text-[6px] md:text-[7px] font-bold bg-[#fb8500]/10 text-[#fb8500] border border-dashed border-[#fb8500]/30">
+                            +8
+                          </div>
                         </div>
-                        <div className="border-t border-white/5 pt-1 text-[5.5px] xs:text-[7px] text-white/60 font-mono space-y-0.5">
-                          <div>✔ Notion API: connected</div>
-                          <div>✔ Slack: 4 channels logged</div>
+
+                        {/* Activity Log */}
+                        <div className="bg-[#1A1512]/5 rounded-lg p-1.5 border border-[rgba(26,21,18,0.04)]">
+                          <p className="text-[4px] xs:text-[5px] sm:text-[6px] md:text-[7px] uppercase text-[#5A5550] mb-0.5 tracking-wider font-semibold">
+                            STREAM ACTIVITY
+                          </p>
+                          <div className="space-y-0.5 text-[3.5px] xs:text-[4.5px] sm:text-[5.5px] md:text-[6.5px] text-[#2D2520] font-mono leading-tight">
+                            <div className="flex items-center gap-1">
+                              <span className="text-[#fb8500]">✔</span>
+                              <span>Notion API: jane.doe connected</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[#fb8500]">✔</span>
+                              <span>Slack: 4 channels integrated</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
-
                     {mockupActiveKey === "product" && (
-                      <div className="flex flex-col gap-0.5 xs:gap-1 text-white">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-[6px] xs:text-[7.5px] text-white/50 uppercase tracking-widest font-mono">PRODUCT METRICS</p>
-                            <p className="text-xs xs:text-sm sm:text-base font-bold text-white leading-tight">48.2K DAU</p>
+                      <div className="flex flex-col gap-1.5 xs:gap-2 text-[#1A1512] w-full">
+                        {/* Header Grid */}
+                        <div className="grid grid-cols-3 gap-1">
+                          <div className="col-span-2">
+                            <p className="text-[4.5px] xs:text-[5.5px] sm:text-[7px] md:text-[8px] text-[#5A5550] uppercase tracking-wider font-mono font-semibold">PRODUCT METRICS</p>
+                            <p className="text-[9px] xs:text-[11px] sm:text-[14px] md:text-[16px] font-bold text-[#fb8500] leading-tight">48.2K DAU</p>
                           </div>
-                          <span className="text-[6px] xs:text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono whitespace-nowrap">
-                            18ms
-                          </span>
+                          <div className="text-right">
+                            <p className="text-[4.5px] xs:text-[5.5px] sm:text-[7px] md:text-[8px] text-[#5A5550] uppercase tracking-wider font-mono font-semibold">LATENCY</p>
+                            <p className="text-[5.5px] xs:text-[7px] sm:text-[9px] md:text-[11px] font-bold text-emerald-600 leading-tight">18ms</p>
+                            <p className="text-[4px] xs:text-[5px] sm:text-[6.5px] md:text-[7.5px] text-[#5A5550]/70 font-mono">99.97% uptime</p>
+                          </div>
                         </div>
-                        <div className="h-6 xs:h-8 w-full mt-0.5 overflow-hidden relative">
-                          <svg viewBox="0 0 150 32" className="w-full h-full overflow-visible">
-                            <path
-                              d="M 5,16 C 25,20 45,8 65,14 C 85,22 105,4 125,10 C 135,12 140,6 145,8"
+
+                        {/* Latency Wave Chart */}
+                        <div className="relative w-full h-8 xs:h-10 sm:h-12 md:h-14 bg-[#1A1512]/5 rounded-lg p-1 border border-[rgba(26,21,18,0.04)] overflow-hidden">
+                          <svg viewBox="0 0 200 60" className="w-full h-full overflow-visible">
+                            {/* Grid lines */}
+                            <line x1="5" y1="15" x2="195" y2="15" stroke="rgba(26,21,18,0.06)" strokeDasharray="2,2" />
+                            <line x1="5" y1="30" x2="195" y2="30" stroke="rgba(26,21,18,0.06)" strokeDasharray="2,2" />
+                            <line x1="5" y1="45" x2="195" y2="45" stroke="rgba(26,21,18,0.06)" strokeDasharray="2,2" />
+
+                            {/* Wave Path */}
+                            <motion.path
+                              d="M 5,30 C 25,10 45,50 65,30 C 85,10 105,50 125,30 C 145,10 165,50 185,30 L 195,30"
                               fill="none"
                               stroke="#fb8500"
-                              strokeWidth="1.5"
+                              strokeWidth="1.75"
                               strokeLinecap="round"
+                              initial={{ pathLength: 0 }}
+                              animate={{ pathLength: 1 }}
+                              transition={{ duration: 0.8, ease: "easeOut" }}
                             />
-                            <circle cx="145" cy="8" r="2" fill="#fb8500" />
+                            
+                            {/* Pulsing Dot */}
+                            <circle cx="185" cy="30" r="2" fill="#fb8500" />
                           </svg>
                         </div>
-                        <p className="text-[5.5px] xs:text-[7px] text-white/60 font-mono">uptime reliability: 99.97%</p>
                       </div>
                     )}
                   </motion.div>
-                </AnimatePresence>
-              </div>
-
-              {/* Audio waveform / telemetry at bottom-left */}
-              <div className="absolute bottom-6 left-6 flex items-center gap-0.5">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="w-0.5 bg-[#fb8500] rounded-full"
-                    animate={
-                      reducedMotion
-                        ? { height: 6 }
-                        : {
-                            height: [3, Math.random() * 12 + 4, 3],
-                          }
-                    }
-                    transition={
-                      reducedMotion
-                        ? { duration: 0.1 }
-                        : {
-                            duration: 0.6 + Math.random() * 0.4,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: i * 0.04,
-                          }
-                    }
-                    style={{ height: 3 }}
-                  />
-                ))}
-              </div>
-
-              {/* Speech-caption bubble at bottom-center */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md border border-white/10 rounded-full px-2 py-0.5 xs:px-2.5 xs:py-0.5 flex items-center gap-1 text-white max-w-[90%] whitespace-nowrap">
-                <span className="w-1 h-1 rounded-full bg-[#fb8500] animate-ping" />
-                <span className="font-mono text-white/40 text-[6px] xs:text-[7px] tracking-wider uppercase">AUDIO</span>
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={mockupActiveKey}
-                    initial={{ opacity: 0, y: 3 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -3 }}
-                    transition={{ duration: 0.25 }}
-                    className="text-[7px] xs:text-[8px] font-mono text-white/90"
-                  >
-                    {mockupActiveKey === "revenue" && '"...our Q3 revenue increased..."'}
-                    {mockupActiveKey === "team" && '"...the active team size..."'}
-                    {mockupActiveKey === "product" && '"...product metrics DAU..."'}
-                  </motion.span>
                 </AnimatePresence>
               </div>
             </div>
@@ -1191,8 +1328,7 @@ export default function App() {
       {/* ─── VIDEO DEMO SECTION ─── */}
       <section
         id="demo"
-        className="w-full grid md:grid-cols-2 items-stretch"
-        style={{ minHeight: "80vh" }}
+        className="w-full min-h-screen lg:h-screen lg:overflow-hidden grid lg:grid-cols-2 items-stretch"
       >
         {/* Left — video on top of a background image */}
         <div className="relative overflow-hidden min-h-[350px] md:min-h-[500px] flex items-center justify-center">
@@ -1207,7 +1343,7 @@ export default function App() {
             style={{ background: "rgba(26,21,18,0.18)" }}
           />
           {/* Center the video player */}
-          <div className="relative z-10 w-full max-w-md px-4 sm:px-6">
+          <div className="relative z-10 w-full max-w-md px-4 sm:px-6 lg:scale-[0.85] xl:scale-[0.80] origin-center">
             {/* Unified glassmorphic card */}
             <motion.div
               layout
@@ -1234,7 +1370,7 @@ export default function App() {
                     value={inputVal}
                     onChange={(e) => setInputVal(e.target.value)}
                     placeholder={(isListening || isSpeechActive) ? "Listening... say 'revenue'…" : "revenue, team, product, growth…"}
-                    className="w-full bg-transparent text-sm outline-none placeholder-[#6B7280] md:placeholder-[#A8A4A0] pr-8 text-[#1A1512]"
+                    className="w-full bg-transparent text-sm outline-none placeholder-[#4A4540] md:placeholder-[#4A4540] pr-8 text-[#1A1512]"
                     style={{ fontFamily: "'Inter', sans-serif" }}
                   />
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center">
@@ -1463,63 +1599,65 @@ export default function App() {
 
         {/* Right — copy explaining data and setup */}
         <div
-          className="flex flex-col justify-center px-6 py-16 sm:px-12 md:py-20 lg:px-20"
+          className="flex flex-col justify-center px-6 py-8 sm:px-12 lg:py-8 lg:px-20"
           style={{ background: "#FBF9F6" }}
         >
-          <p
-            className="text-xs uppercase tracking-widest mb-6"
-            style={{ color: "#fb8500" }}
-          >
-            How it works
-          </p>
-          <h2
-            className="mb-6 leading-tight"
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2rem, 3.5vw, 3rem)",
-              fontWeight: 300,
-              letterSpacing: "-0.02em",
-              color: "#1A1512",
-            }}
-          >
-            Real-time data overlays, powered by your voice.
-          </h2>
-          <div className="space-y-6" style={{ color: "#5A5550", fontSize: "0.9rem", lineHeight: 1.8 }}>
-            <div>
-              <h3 className="text-sm font-semibold text-[#1A1512] uppercase tracking-wider mb-2">Types of Overlay Data</h3>
-              <p>
-                Stash Live reads your spoken cues and projects beautifully designed glassmorphic cards right onto your video stream. This includes live <span className="font-semibold text-[#1A1512]">Financial Metrics</span> (such as Q2 Revenue of $240,000 and YoY Growth of +40%), <span className="font-semibold text-[#1A1512]">Team Analytics</span> (active headcount of 142 and NPS score of 78), and <span className="font-semibold text-[#1A1512]">Product Performance</span> (DAU of 48.2K and latency of 18ms).
-              </p>
+          <div className="w-full lg:scale-[0.85] xl:scale-[0.80] origin-center">
+            <p
+              className="text-xs uppercase tracking-widest mb-3 font-semibold"
+              style={{ color: "#fb8500" }}
+            >
+              How it works
+            </p>
+            <h2
+              className="mb-4 leading-tight"
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "clamp(2rem, 3.5vw, 3rem)",
+                fontWeight: 300,
+                letterSpacing: "-0.02em",
+                color: "#1A1512",
+              }}
+            >
+              Real-time data overlays, powered by your voice.
+            </h2>
+            <div className="space-y-4" style={{ color: "#5A5550", fontSize: "0.85rem", lineHeight: 1.75 }}>
+              <div>
+                <h3 className="text-xs font-semibold text-[#1A1512] uppercase tracking-wider mb-1.5">Types of Overlay Data</h3>
+                <p>
+                  Stash Live reads your spoken cues and projects beautifully designed glassmorphic cards right onto your video stream. This includes live <span className="font-semibold text-[#1A1512]">Financial Metrics</span> (such as Q2 Revenue of $240,000 and YoY Growth of +40%), <span className="font-semibold text-[#1A1512]">Team Analytics</span> (active headcount of 142 and NPS score of 78), and <span className="font-semibold text-[#1A1512]">Product Performance</span> (Daily Active Users of 48.2K and latency of 18ms).
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-xs font-semibold text-[#1A1512] uppercase tracking-wider mb-1.5">How to Setup</h3>
+                <p>
+                  Getting started takes less than 60 seconds:
+                </p>
+                <ol className="list-decimal pl-4 mt-1.5 space-y-1">
+                  <li>Connect your workspaces (Notion, Airtable, or Google Drive) inside the Stash Dashboard.</li>
+                  <li>Configure your custom voice triggers and link them to specific metrics or charts.</li>
+                  <li>Select Stash Live Virtual Camera as your video input in Zoom, Teams, or Google Meet.</li>
+                </ol>
+              </div>
             </div>
             
-            <div>
-              <h3 className="text-sm font-semibold text-[#1A1512] uppercase tracking-wider mb-2">How to Setup</h3>
-              <p>
-                Getting started takes less than 60 seconds:
-              </p>
-              <ol className="list-decimal pl-5 mt-2 space-y-1">
-                <li>Connect your workspaces (Notion, Airtable, or Google Drive) inside the Stash Dashboard.</li>
-                <li>Configure your custom voice triggers and link them to specific metrics or charts.</li>
-                <li>Select Stash Live Virtual Camera as your video input in Zoom, Teams, or Google Meet.</li>
-              </ol>
+            <div className="mt-6 flex items-center gap-6">
+              <button
+                className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
+                style={{ background: "#1A1512", color: "#FBF9F6" }}
+              >
+                Start Setup
+              </button>
+              <a
+                href="#"
+                className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
+                style={{ color: "#5A5550" }}
+              >
+                View Documentation
+                <span>→</span>
+              </a>
             </div>
-          </div>
-          
-          <div className="mt-10 flex items-center gap-6">
-            <button
-              className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
-              style={{ background: "#1A1512", color: "#FBF9F6" }}
-            >
-              Start Setup
-            </button>
-            <a
-              href="#"
-              className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
-              style={{ color: "#5A5550" }}
-            >
-              View Documentation
-              <span>→</span>
-            </a>
           </div>
         </div>
       </section>
@@ -1527,63 +1665,64 @@ export default function App() {
       {/* ─── VALUE SECTION ─── */}
       <section
         id="features"
-        className="w-full grid md:grid-cols-2 items-stretch"
-        style={{ minHeight: "80vh" }}
+        className="w-full min-h-screen lg:h-screen lg:overflow-hidden grid lg:grid-cols-2 items-stretch"
       >
         {/* Left — copy */}
         <div
           className="flex flex-col justify-center px-6 py-16 sm:px-12 md:py-20 lg:px-20 order-2 md:order-1"
           style={{ background: "#FBF9F6" }}
         >
-          <p
-            className="text-xs uppercase tracking-widest mb-6"
-            style={{ color: "#fb8500" }}
-          >
-            The Engagement Gap
-          </p>
-          <h2
-            className="mb-6 leading-tight"
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2rem, 3.5vw, 3rem)",
-              fontWeight: 300,
-              letterSpacing: "-0.02em",
-              color: "#1A1512",
-            }}
-          >
-            What virtual meetings cost you is hiding in plain sight.
-          </h2>
-          <div className="space-y-5" style={{ color: "#5A5550", fontSize: "0.9rem", lineHeight: 1.8 }}>
-            <p>
-              Every time a presenter minimizes their face to share a screen, the audience loses the
-              human signal they subconsciously rely on — micro-expressions, eye contact, natural
-              emphasis. Engagement plummets in the first 90 seconds.
-            </p>
-            <p>
-              Stash Live resolves this asymmetry. The engine listens locally on your device,
-              identifies the keywords in your flow, and automatically projects clean, context-aware
-              data cards directly beside your shoulder in the video frame.
-            </p>
-            <p>
-              You maintain direct eye contact. Your audience stays present. The data appears exactly
-              when it&apos;s relevant — never a beat too early or too late.
-            </p>
-          </div>
-          <div className="mt-10 flex items-center gap-6">
-            <button
-              className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
-              style={{ background: "#1A1512", color: "#FBF9F6" }}
+          <div className="w-full lg:scale-[0.85] xl:scale-[0.80] origin-center">
+            <p
+              className="text-xs uppercase tracking-widest mb-6 font-semibold"
+              style={{ color: "#fb8500" }}
             >
-              Book Live Demo
-            </button>
-            <a
-              href="#"
-              className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
-              style={{ color: "#5A5550" }}
+              The Engagement Gap
+            </p>
+            <h2
+              className="mb-6 leading-tight"
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "clamp(2rem, 3.5vw, 3rem)",
+                fontWeight: 300,
+                letterSpacing: "-0.02em",
+                color: "#1A1512",
+              }}
             >
-              How it works
-              <span>→</span>
-            </a>
+              What virtual meetings cost you is hiding in plain sight.
+            </h2>
+            <div className="space-y-5" style={{ color: "#5A5550", fontSize: "0.9rem", lineHeight: 1.8 }}>
+              <p>
+                Every time a presenter minimizes their face to share a screen, the audience loses the
+                human signal they subconsciously rely on — micro-expressions, eye contact, natural
+                emphasis. Engagement plummets in the first 90 seconds.
+              </p>
+              <p>
+                Stash Live resolves this asymmetry. The engine listens locally on your device,
+                identifies the keywords in your flow, and automatically projects clean, context-aware
+                data cards directly beside your shoulder in the video frame.
+              </p>
+              <p>
+                You maintain direct eye contact. Your audience stays present. The data appears exactly
+                when it&apos;s relevant — never a beat too early or too late.
+              </p>
+            </div>
+            <div className="mt-10 flex items-center gap-6">
+              <button
+                className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
+                style={{ background: "#1A1512", color: "#FBF9F6" }}
+              >
+                Book Live Demo
+              </button>
+              <a
+                href="#"
+                className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
+                style={{ color: "#5A5550" }}
+              >
+                How it works
+                <span>→</span>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -1602,7 +1741,7 @@ export default function App() {
 
           {/* Glass chart card */}
           <div
-            className="absolute inset-0 flex items-center justify-center p-4 sm:p-8"
+            className="absolute inset-0 flex items-center justify-center p-4 sm:p-8 lg:scale-[0.85] xl:scale-[0.80] origin-center"
           >
             <div
               className="w-full max-w-sm rounded-2xl p-6"
@@ -1806,163 +1945,165 @@ export default function App() {
       {/* ─── INTEGRATIONS SECTION ─── */}
       <section
         id="integrations"
-        className="pt-20 pb-10 px-6 md:px-16 lg:px-24"
+        className="w-full min-h-screen lg:h-screen lg:overflow-hidden flex flex-col justify-center px-6 md:px-16 lg:px-24"
         style={{ background: "#FBF9F6", borderBottom: "1px solid rgba(26,21,18,0.06)" }}
       >
-        <div className="max-w-5xl mx-auto text-center mb-16">
-          <p
-            className="text-xs uppercase tracking-widest mb-6 font-semibold"
-            style={{ color: "#fb8500" }}
-          >
-            Integrations
-          </p>
-          <h2
-            className="mb-6 leading-tight"
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2rem, 3.5vw, 3rem)",
-              fontWeight: 300,
-              letterSpacing: "-0.02em",
-              color: "#1A1512",
-            }}
-          >
-            Connect your entire workflow in seconds.
-          </h2>
-          <p
-            className="max-w-xl mx-auto text-sm"
-            style={{ color: "#5A5550", lineHeight: 1.7 }}
-          >
-            Stash Live connects directly to your favorite tools to project real-time metrics, documents, and logs without leaving your video feed.
-          </p>
-        </div>
+        <div className="max-w-5xl mx-auto w-full lg:scale-[0.85] xl:scale-[0.80] origin-center flex flex-col justify-center">
+          <div className="text-center mb-8 md:mb-12">
+            <p
+              className="text-xs uppercase tracking-widest mb-6 font-semibold"
+              style={{ color: "#fb8500" }}
+            >
+              Integrations
+            </p>
+            <h2
+              className="mb-6 leading-tight"
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "clamp(2rem, 3.5vw, 3rem)",
+                fontWeight: 300,
+                letterSpacing: "-0.02em",
+                color: "#1A1512",
+              }}
+            >
+              Connect your entire workflow in seconds.
+            </h2>
+            <p
+              className="max-w-xl mx-auto text-sm"
+              style={{ color: "#5A5550", lineHeight: 1.7 }}
+            >
+              Stash Live connects directly to your favorite tools to project real-time metrics, documents, and logs without leaving your video feed.
+            </p>
+          </div>
 
-        {/* 3-Column Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 max-w-5xl mx-auto">
-          {[
-            {
-              id: "notion",
-              name: "Notion",
-              description: "Sync database records and active workspace tables.",
-              buttonStyle: "gray",
-              extraInfo: "*requires workspace access",
-              icon: (
-                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M4.6 2h14.8c1.4 0 2.6 1.2 2.6 2.6v14.8c0 1.4-1.2 2.6-2.6 2.6H4.6C3.2 22 2 20.8 2 19.4V4.6C2 3.2 3.2 2 4.6 2zm1.6 3.6v12.8h2.3V7.2l5.6 9.2h2.3V5.6h-2.3v9.2L8.5 5.6H6.2z"/>
-                </svg>
-              ),
-            },
-            {
-              id: "airtable",
-              name: "Airtable",
-              description: "Pull live inventory databases and customer records.",
-              buttonStyle: "black",
-              extraInfo: "",
-              icon: (
-                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12.5 2.23l9 4.88a1 1 0 0 1 .5.87v8.08a1 1 0 0 1-.5.87l-9 4.88a1 1 0 0 1-1 0l-9-4.88a1 1 0 0 1-.5-.87V7.98a1 1 0 0 1 .5-.87l9-4.88a1 1 0 0 1 1 0zM12 4.14L4.85 8 12 11.86 19.15 8 12 4.14zM3.5 10.05v5.82L10.5 19.7v-5.83l-7-3.82zm17 0l-7 3.82v5.83l7-3.83v-5.82z"/>
-                </svg>
-              ),
-            },
-            {
-              id: "google-drive",
-              name: "Google Drive",
-              description: "Embed presentation slides and active spreadsheet charts.",
-              buttonStyle: "gray",
-              extraInfo: "",
-              icon: (
-                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M15.2 2H8.8L2 13.8L5.2 19.3L12 7.5L18.8 19.3H22L15.2 2ZM9.4 14.8L6 20.8H18L21.4 14.8H9.4ZM3 13.8L8.2 20.8L11.6 14.8L6.4 7.8L3 13.8Z" />
-                </svg>
-              ),
-            },
-            {
-              id: "hubspot",
-              name: "HubSpot",
-              description: "Project pipeline metrics, deal statuses, and sales logs.",
-              buttonStyle: "black",
-              extraInfo: "*requires enterprise edition",
-              icon: (
-                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.88 12.35a3.86 3.86 0 0 0-3.13-2.14V7.58a3.11 3.11 0 1 0-1.5 0v2.63a3.86 3.86 0 0 0-2.31 1.7L7.33 9.47A3.11 3.11 0 1 0 6 10.74l4.63 2.45a3.86 3.86 0 1 0 6.64.91l4.08.77a1.55 1.55 0 1 0 .28-1.47zm-11.88-2.6a1.56 1.56 0 1 1 0-3.11 1.56 1.56 0 0 1 0 3.11zm7.75-5a1.56 1.56 0 1 1 0 3.11 1.56 1.56 0 0 1 0-3.11zm-2.75 9.75a2.31 2.31 0 1 1 2.31-2.31 2.31 2.31 0 0 1-2.31 2.31z"/>
-                </svg>
-              ),
-            },
-            {
-              id: "salesforce",
-              name: "Salesforce",
-              description: "Display live sales dashboards and customer growth stats.",
-              buttonStyle: "gray",
-              extraInfo: "",
-              icon: (
-                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19.14 9.87A6.49 6.49 0 0 0 7.4 8.7a4.67 4.67 0 0 0-3.69 4.56 4.78 4.78 0 0 0 .19 1.34 4.19 4.19 0 0 0-1.6 3.32 4.29 4.29 0 0 0 4.29 4.29h12a3.81 3.81 0 0 0 .5-7.59 4 4 0 0 0 .35-4.75z"/>
-                </svg>
-              ),
-            },
-            {
-              id: "slack",
-              name: "Slack",
-              description: "Stream workspace channel alerts and live notifications.",
-              buttonStyle: "black",
-              extraInfo: "*requires workspace admin access",
-              icon: (
-                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M5.04 15.12a2.52 2.52 0 1 1-2.52-2.52h2.52zm1.26 0a2.52 2.52 0 0 1 5.04 0v5.04a2.52 2.52 0 1 1-5.04 0zM8.88 5.04a2.52 2.52 0 1 1 2.52-2.52v2.52zm0 1.26a2.52 2.52 0 0 1 0 5.04H3.84a2.52 2.52 0 1 1 0-5.04zM18.96 8.88a2.52 2.52 0 1 1 2.52 2.52h-2.52zm-1.26 0a2.52 2.52 0 0 1-5.04 0V3.84a2.52 2.52 0 1 1 5.04 0zM15.12 18.96a2.52 2.52 0 1 1-2.52 2.52v-2.52zm0-1.26a2.52 2.52 0 0 1 0-5.04h5.04a2.52 2.52 0 1 1 0 5.04z"/>
-                </svg>
-              ),
-            },
-          ].map((app) => {
-            const isConnected = !!connectedApps[app.id];
-            return (
-              <div
-                key={app.id}
-                className="flex items-start gap-4 pb-8 border-b border-[rgba(26,21,18,0.06)]"
-              >
-                {/* Icon wrapper */}
+          {/* 3-Column Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 md:gap-y-8 w-full">
+            {[
+              {
+                id: "notion",
+                name: "Notion",
+                description: "Sync database records and active workspace tables.",
+                buttonStyle: "gray",
+                extraInfo: "*requires workspace access",
+                icon: (
+                  <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4.6 2h14.8c1.4 0 2.6 1.2 2.6 2.6v14.8c0 1.4-1.2 2.6-2.6 2.6H4.6C3.2 22 2 20.8 2 19.4V4.6C2 3.2 3.2 2 4.6 2zm1.6 3.6v12.8h2.3V7.2l5.6 9.2h2.3V5.6h-2.3v9.2L8.5 5.6H6.2z"/>
+                  </svg>
+                ),
+              },
+              {
+                id: "airtable",
+                name: "Airtable",
+                description: "Pull live inventory databases and customer records.",
+                buttonStyle: "black",
+                extraInfo: "",
+                icon: (
+                  <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.5 2.23l9 4.88a1 1 0 0 1 .5.87v8.08a1 1 0 0 1-.5.87l-9 4.88a1 1 0 0 1-1 0l-9-4.88a1 1 0 0 1-.5-.87V7.98a1 1 0 0 1 .5-.87l9-4.88a1 1 0 0 1 1 0zM12 4.14L4.85 8 12 11.86 19.15 8 12 4.14zM3.5 10.05v5.82L10.5 19.7v-5.83l-7-3.82zm17 0l-7 3.82v5.83l7-3.83v-5.82z"/>
+                  </svg>
+                ),
+              },
+              {
+                id: "google-drive",
+                name: "Google Drive",
+                description: "Embed presentation slides and active spreadsheet charts.",
+                buttonStyle: "gray",
+                extraInfo: "",
+                icon: (
+                  <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15.2 2H8.8L2 13.8L5.2 19.3L12 7.5L18.8 19.3H22L15.2 2ZM9.4 14.8L6 20.8H18L21.4 14.8H9.4ZM3 13.8L8.2 20.8L11.6 14.8L6.4 7.8L3 13.8Z" />
+                  </svg>
+                ),
+              },
+              {
+                id: "hubspot",
+                name: "HubSpot",
+                description: "Project pipeline metrics, deal statuses, and sales logs.",
+                buttonStyle: "black",
+                extraInfo: "*requires enterprise edition",
+                icon: (
+                  <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.88 12.35a3.86 3.86 0 0 0-3.13-2.14V7.58a3.11 3.11 0 1 0-1.5 0v2.63a3.86 3.86 0 0 0-2.31 1.7L7.33 9.47A3.11 3.11 0 1 0 6 10.74l4.63 2.45a3.86 3.86 0 1 0 6.64.91l4.08.77a1.55 1.55 0 1 0 .28-1.47zm-11.88-2.6a1.56 1.56 0 1 1 0-3.11 1.56 1.56 0 0 1 0 3.11zm7.75-5a1.56 1.56 0 1 1 0 3.11 1.56 1.56 0 0 1 0-3.11zm-2.75 9.75a2.31 2.31 0 1 1 2.31-2.31 2.31 2.31 0 0 1-2.31 2.31z"/>
+                  </svg>
+                ),
+              },
+              {
+                id: "salesforce",
+                name: "Salesforce",
+                description: "Display live sales dashboards and customer growth stats.",
+                buttonStyle: "gray",
+                extraInfo: "",
+                icon: (
+                  <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.14 9.87A6.49 6.49 0 0 0 7.4 8.7a4.67 4.67 0 0 0-3.69 4.56 4.78 4.78 0 0 0 .19 1.34 4.19 4.19 0 0 0-1.6 3.32 4.29 4.29 0 0 0 4.29 4.29h12a3.81 3.81 0 0 0 .5-7.59 4 4 0 0 0 .35-4.75z"/>
+                  </svg>
+                ),
+              },
+              {
+                id: "slack",
+                name: "Slack",
+                description: "Stream workspace channel alerts and live notifications.",
+                buttonStyle: "black",
+                extraInfo: "*requires workspace admin access",
+                icon: (
+                  <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M5.04 15.12a2.52 2.52 0 1 1-2.52-2.52h2.52zm1.26 0a2.52 2.52 0 0 1 5.04 0v5.04a2.52 2.52 0 1 1-5.04 0zM8.88 5.04a2.52 2.52 0 1 1 2.52-2.52v2.52zm0 1.26a2.52 2.52 0 0 1 0 5.04H3.84a2.52 2.52 0 1 1 0-5.04zM18.96 8.88a2.52 2.52 0 1 1 2.52 2.52h-2.52zm-1.26 0a2.52 2.52 0 0 1-5.04 0V3.84a2.52 2.52 0 1 1 5.04 0zM15.12 18.96a2.52 2.52 0 1 1-2.52 2.52v-2.52zm0-1.26a2.52 2.52 0 0 1 0-5.04h5.04a2.52 2.52 0 1 1 0 5.04z"/>
+                  </svg>
+                ),
+              },
+            ].map((app) => {
+              const isConnected = !!connectedApps[app.id];
+              return (
                 <div
-                  className="flex items-center justify-center w-14 h-14 rounded-2xl bg-white border border-[rgba(26,21,18,0.06)] shadow-[0_4px_12px_rgba(26,21,18,0.02)] flex-shrink-0"
+                  key={app.id}
+                  className="flex items-start gap-4 pb-6 border-b border-[rgba(26,21,18,0.06)]"
                 >
-                  {app.icon}
-                </div>
+                  {/* Icon wrapper */}
+                  <div
+                    className="flex items-center justify-center w-12 h-12 rounded-xl bg-white border border-[rgba(26,21,18,0.06)] shadow-[0_4px_12px_rgba(26,21,18,0.02)] flex-shrink-0"
+                  >
+                    {app.icon}
+                  </div>
 
-                {/* Content info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm text-[#1A1512] leading-tight">
-                    {app.name}
-                  </h3>
-                  <p className="text-xs text-[#5A5550] mt-1 mb-3.5 leading-relaxed">
-                    {app.description}
-                  </p>
-                  
-                  {/* Button + Extra Info */}
-                  <div className="flex items-center flex-wrap gap-2.5">
-                    <button
-                      onClick={() =>
-                        setConnectedApps((prev) => ({
-                          ...prev,
-                          [app.id]: !prev[app.id],
-                        }))
-                      }
-                      className={`text-[9px] uppercase font-bold tracking-wider px-4 py-2 rounded-full transition-all duration-200 select-none ${
-                        isConnected
-                          ? "bg-[#fb8500] text-white border border-transparent shadow-[0_2px_8px_rgba(251,133,0,0.2)]"
-                          : app.buttonStyle === "black"
-                          ? "bg-[#1A1512] text-[#FBF9F6] border border-transparent hover:opacity-90"
-                          : "bg-[#F3F3F5] text-[#1A1512] border border-[rgba(26,21,18,0.1)] hover:bg-[#E4E4E6]"
-                      }`}
-                    >
-                      {isConnected ? "✓ Connected" : "Connect"}
-                    </button>
-                    {app.extraInfo && (
-                      <span className="text-[10px] text-[#A8A4A0] italic">
-                        {app.extraInfo}
-                      </span>
-                    )}
+                  {/* Content info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm text-[#1A1512] leading-tight">
+                      {app.name}
+                    </h3>
+                    <p className="text-xs text-[#5A5550] mt-1 mb-2.5 leading-relaxed">
+                      {app.description}
+                    </p>
+                    
+                    {/* Button + Extra Info */}
+                    <div className="flex items-center flex-wrap gap-2.5">
+                      <button
+                        onClick={() =>
+                          setConnectedApps((prev) => ({
+                            ...prev,
+                            [app.id]: !prev[app.id],
+                          }))
+                        }
+                        className={`text-[9px] uppercase font-bold tracking-wider px-4 py-2 rounded-full transition-all duration-200 select-none ${
+                          isConnected
+                            ? "bg-[#fb8500] text-white border border-transparent shadow-[0_2px_8px_rgba(251,133,0,0.2)]"
+                            : app.buttonStyle === "black"
+                            ? "bg-[#1A1512] text-[#FBF9F6] border border-transparent hover:opacity-90"
+                            : "bg-[#F3F3F5] text-[#1A1512] border border-[rgba(26,21,18,0.1)] hover:bg-[#E4E4E6]"
+                        }`}
+                      >
+                        {isConnected ? "✓ Connected" : "Connect"}
+                      </button>
+                      {app.extraInfo && (
+                        <span className="text-[10px] text-[#A8A4A0] italic">
+                          {app.extraInfo}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
