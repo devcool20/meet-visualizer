@@ -135,16 +135,16 @@ export function RevenuePreviewCard({ reducedMotion }: { reducedMotion: boolean }
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">Q2 REVENUE</p>
-          <p className="text-2xl font-bold text-[#fb8500]">$240,000</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#fb8500]">$240,000</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">GROWTH</p>
-          <p className="text-sm font-semibold text-[#fb8500]">+40% YoY</p>
+          <p className="text-xs sm:text-sm font-semibold text-[#fb8500]">+40% YoY</p>
           <p className="text-[9px] text-gray-600">Churn: 1.8%</p>
         </div>
       </div>
 
-      <div className="relative w-full h-24 bg-[#1A1512]/5 rounded-xl p-2 border border-[rgba(26,21,18,0.04)] overflow-hidden">
+      <div className="relative w-full h-20 sm:h-24 bg-[#1A1512]/5 rounded-xl p-2 border border-[rgba(26,21,18,0.04)] overflow-hidden">
         <svg viewBox="0 0 300 100" className="w-full h-full overflow-visible">
           <defs>
             <linearGradient id="green-grad" x1="0" y1="0" x2="0" y2="1">
@@ -234,11 +234,11 @@ export function TeamPreviewCard() {
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">HEADCOUNT</p>
-          <p className="text-2xl font-bold text-[#fb8500]">142 Active</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#fb8500]">142 Active</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">PERFORMANCE</p>
-          <p className="text-sm font-semibold text-[#fb8500]">78 NPS</p>
+          <p className="text-xs sm:text-sm font-semibold text-[#fb8500]">78 NPS</p>
           <p className="text-[9px] text-gray-600">12 Open Roles</p>
         </div>
       </div>
@@ -247,11 +247,11 @@ export function TeamPreviewCard() {
       <div className="grid grid-cols-6 gap-2 my-1">
         {members.map((member, i) => (
           <div key={i} className="relative flex items-center justify-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${member.bg} shadow-sm`}>
+            <div className={`w-7 h-7 sm:w-8 h-8 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold ${member.bg} shadow-sm`}>
               {member.initials}
             </div>
             <span
-              className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-white ${
+              className={`absolute bottom-0 right-0 w-2 h-2 sm:w-2.5 h-2.5 rounded-full border border-white ${
                 member.status === "active" ? "bg-[#fb8500]" : "bg-gray-400"
               }`}
             />
@@ -264,7 +264,7 @@ export function TeamPreviewCard() {
         <p className="text-[10px] uppercase text-gray-500 mb-1.5 tracking-wider font-semibold">
           ACTIVITY LOG
         </p>
-        <div className="space-y-1 text-[10px] text-[#2D2520] font-normal leading-relaxed">
+        <div className="space-y-1 text-[9px] sm:text-[10px] text-[#2D2520] font-normal leading-relaxed">
           <div className="flex items-center gap-1.5">
             <span className="text-[#fb8500]">✔</span>
             <span>Notion API: jane.doe connected</span>
@@ -289,16 +289,16 @@ export function ProductPreviewCard({ reducedMotion }: { reducedMotion: boolean }
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">DAILY ACTIVE USERS</p>
-          <p className="text-2xl font-bold text-[#fb8500]">48.2K</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#fb8500]">48.2K</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">LATENCY</p>
-          <p className="text-sm font-semibold text-[#fb8500]">18ms</p>
+          <p className="text-xs sm:text-sm font-semibold text-[#fb8500]">18ms</p>
           <p className="text-[9px] text-gray-600">Uptime: 99.97%</p>
         </div>
       </div>
 
-      <div className="relative w-full h-24 bg-[#1A1512]/5 rounded-xl p-2 border border-[rgba(26,21,18,0.04)] overflow-hidden">
+      <div className="relative w-full h-20 sm:h-24 bg-[#1A1512]/5 rounded-xl p-2 border border-[rgba(26,21,18,0.04)] overflow-hidden">
         <div className="absolute top-2 left-3 flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#fb8500] animate-ping" />
           <span className="text-[9px] text-gray-500 uppercase font-normal tracking-wider">
@@ -385,16 +385,16 @@ export function GrowthPreviewCard({ reducedMotion }: { reducedMotion: boolean })
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">MONTHLY RECURRING REVENUE</p>
-          <p className="text-2xl font-bold text-[#fb8500]">$180K</p>
+          <p className="text-xl sm:text-2xl font-bold text-[#fb8500]">$180K</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">CONVERSION</p>
-          <p className="text-sm font-semibold text-[#fb8500]">4.7%</p>
+          <p className="text-xs sm:text-sm font-semibold text-[#fb8500]">4.7%</p>
           <p className="text-[9px] text-gray-600">CAC: $124</p>
         </div>
       </div>
 
-      <div className="relative w-full h-24 bg-[#1A1512]/5 rounded-xl p-2 border border-[rgba(26,21,18,0.04)] overflow-hidden">
+      <div className="relative w-full h-20 sm:h-24 bg-[#1A1512]/5 rounded-xl p-2 border border-[rgba(26,21,18,0.04)] overflow-hidden">
         <svg viewBox="0 0 300 100" className="w-full h-full overflow-visible">
           <defs>
             <linearGradient id="growth-grad" x1="0" y1="0" x2="0" y2="1">
@@ -931,7 +931,7 @@ export default function App() {
       </motion.header>
 
       {/* ─── HERO ─── */}
-      <section id="about" className="relative w-full min-h-screen lg:h-screen overflow-y-auto lg:overflow-hidden">
+      <section id="about" className="relative w-full min-h-screen lg:h-screen overflow-x-hidden lg:overflow-hidden">
         {/* Background */}
         <motion.div
           className="absolute inset-0 w-full h-full overflow-hidden"
@@ -953,7 +953,7 @@ export default function App() {
 
 
         {/* Content layer */}
-        <div className="relative z-10 min-h-screen lg:h-full flex flex-col lg:flex-row items-center justify-center lg:justify-between px-6 md:px-16 lg:px-24 py-28 lg:py-0">
+        <div className="relative z-10 min-h-screen lg:h-full flex flex-col lg:flex-row items-center justify-between px-6 md:px-16 lg:px-24 pt-28 pb-16 lg:py-0">
           {/* Left wing */}
           <motion.div
             className="w-full lg:w-[36%] pr-0 lg:pr-8 text-center lg:text-left mb-8 lg:mb-0"
@@ -968,7 +968,7 @@ export default function App() {
               className="mb-6"
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(2.8rem, 5.5vw, 4.5rem)",
+                fontSize: "clamp(2.2rem, 6vw, 4.5rem)",
                 fontWeight: 400,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.15,
@@ -995,7 +995,7 @@ export default function App() {
 
           {/* Right wing */}
           <motion.div
-            className="w-[90%] lg:w-[38%] pl-0 lg:pl-10 lg:translate-x-4 flex flex-col gap-4 self-center mx-auto lg:mx-0"
+            className="w-[90%] lg:w-[38%] pl-0 lg:pl-10 lg:translate-x-4 flex flex-col gap-4 self-center mx-auto lg:mx-0 mt-12 lg:mt-0"
             initial="hidden"
             animate="visible"
             variants={rightWingVariants}
@@ -1018,16 +1018,16 @@ export default function App() {
                 <span>LIVE HUD</span>
               </div>
 
-              {/* Presenter silhouette SVG placeholder (reduced size and shifted left to prevent collisions) */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.18] -translate-x-[10%]">
-                <svg viewBox="0 0 100 100" className="w-24 h-24 text-[#fb8500]">
+              {/* Presenter silhouette SVG placeholder (reduced size and shifted left to prevent collisions on mobile, original size on desktop) */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.18] -translate-x-[15%] sm:-translate-x-[10%]">
+                <svg viewBox="0 0 100 100" className="w-16 h-16 sm:w-20 h-20 md:w-24 h-24 text-[#fb8500]">
                   <circle cx="50" cy="35" r="18" fill="currentColor" />
                   <path d="M50,58 C32,58 18,72 18,90 L82,90 C82,72 68,58 50,58 Z" fill="currentColor" />
                 </svg>
               </div>
 
               {/* Rotating overlay cards floating near shoulder */}
-              <div className="absolute right-4 top-6 bottom-16 flex items-start justify-end pointer-events-none">
+              <div className="absolute right-2 sm:right-4 top-6 bottom-16 flex items-start justify-end pointer-events-none">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={mockupActiveKey}
@@ -1039,20 +1039,20 @@ export default function App() {
                         ? { duration: 0.01 }
                         : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
                     }
-                    className="w-[170px] sm:w-[185px] rounded-lg p-2.5 border border-white/20 shadow-2xl bg-white/10 backdrop-blur-md pointer-events-auto"
+                    className="w-[125px] xs:w-[145px] sm:w-[170px] md:w-[185px] rounded-lg p-1.5 xs:p-2 sm:p-2.5 border border-white/20 shadow-2xl bg-white/10 backdrop-blur-md pointer-events-auto"
                   >
                     {mockupActiveKey === "revenue" && (
-                      <div className="flex flex-col gap-1 text-white">
+                      <div className="flex flex-col gap-0.5 xs:gap-1 text-white">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="text-[7.5px] text-white/50 uppercase tracking-widest font-mono">REVENUE TELEMETRY</p>
-                            <p className="text-base font-bold text-white leading-tight">$2.4M Q3</p>
+                            <p className="text-[6px] xs:text-[7.5px] text-white/50 uppercase tracking-widest font-mono">REVENUE TELEMETRY</p>
+                            <p className="text-xs xs:text-sm sm:text-base font-bold text-white leading-tight">$2.4M Q3</p>
                           </div>
-                          <span className="text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono">
+                          <span className="text-[6px] xs:text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono whitespace-nowrap">
                             +34% YoY
                           </span>
                         </div>
-                        <div className="h-8 w-full mt-0.5 overflow-hidden relative">
+                        <div className="h-6 xs:h-8 w-full mt-0.5 overflow-hidden relative">
                           <svg viewBox="0 0 150 32" className="w-full h-full overflow-visible">
                             <defs>
                               <linearGradient id="hud-orange-grad" x1="0" y1="0" x2="0" y2="1">
@@ -1075,31 +1075,31 @@ export default function App() {
                             <circle cx="145" cy="3" r="2" fill="#fb8500" />
                           </svg>
                         </div>
-                        <p className="text-[7px] text-white/60 font-mono">cloud workspace synchronized</p>
+                        <p className="text-[5.5px] xs:text-[7px] text-white/60 font-mono">cloud workspace synchronized</p>
                       </div>
                     )}
 
                     {mockupActiveKey === "team" && (
-                      <div className="flex flex-col gap-1 text-white">
+                      <div className="flex flex-col gap-0.5 xs:gap-1 text-white">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="text-[7.5px] text-white/50 uppercase tracking-widest font-mono">TEAM ENGAGEMENT</p>
-                            <p className="text-base font-bold text-white leading-tight">142 Active</p>
+                            <p className="text-[6px] xs:text-[7.5px] text-white/50 uppercase tracking-widest font-mono">TEAM ENGAGEMENT</p>
+                            <p className="text-xs xs:text-sm sm:text-base font-bold text-white leading-tight">142 Active</p>
                           </div>
-                          <span className="text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono">
+                          <span className="text-[6px] xs:text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono whitespace-nowrap">
                             78 NPS
                           </span>
                         </div>
-                        <div className="flex items-center gap-1 my-0.5">
+                        <div className="flex items-center gap-0.5 xs:gap-1 my-0.5 flex-wrap">
                           {["JD", "AM", "SR", "WT"].map((init, i) => (
-                            <div key={i} className="w-4 h-4 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[7px] font-bold text-white font-mono">
+                            <div key={i} className="w-3.5 h-3.5 xs:w-4 xs:h-4 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[5.5px] xs:text-[7px] font-bold text-white font-mono">
                               {init}
                             </div>
                           ))}
-                          <span className="text-[7px] text-[#fb8500] font-bold font-mono ml-0.5 animate-pulse">●</span>
-                          <span className="text-[7px] text-white/70 font-mono">Syncing...</span>
+                          <span className="text-[5.5px] xs:text-[7px] text-[#fb8500] font-bold font-mono ml-0.5 animate-pulse">●</span>
+                          <span className="text-[5.5px] xs:text-[7px] text-white/70 font-mono">Sync...</span>
                         </div>
-                        <div className="border-t border-white/5 pt-1 text-[7px] text-white/60 font-mono space-y-0.5">
+                        <div className="border-t border-white/5 pt-1 text-[5.5px] xs:text-[7px] text-white/60 font-mono space-y-0.5">
                           <div>✔ Notion API: connected</div>
                           <div>✔ Slack: 4 channels logged</div>
                         </div>
@@ -1107,17 +1107,17 @@ export default function App() {
                     )}
 
                     {mockupActiveKey === "product" && (
-                      <div className="flex flex-col gap-1 text-white">
+                      <div className="flex flex-col gap-0.5 xs:gap-1 text-white">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="text-[7.5px] text-white/50 uppercase tracking-widest font-mono">PRODUCT METRICS</p>
-                            <p className="text-base font-bold text-white leading-tight">48.2K DAU</p>
+                            <p className="text-[6px] xs:text-[7.5px] text-white/50 uppercase tracking-widest font-mono">PRODUCT METRICS</p>
+                            <p className="text-xs xs:text-sm sm:text-base font-bold text-white leading-tight">48.2K DAU</p>
                           </div>
-                          <span className="text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono">
+                          <span className="text-[6px] xs:text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono whitespace-nowrap">
                             18ms
                           </span>
                         </div>
-                        <div className="h-8 w-full mt-0.5 overflow-hidden relative">
+                        <div className="h-6 xs:h-8 w-full mt-0.5 overflow-hidden relative">
                           <svg viewBox="0 0 150 32" className="w-full h-full overflow-visible">
                             <path
                               d="M 5,16 C 25,20 45,8 65,14 C 85,22 105,4 125,10 C 135,12 140,6 145,8"
@@ -1129,7 +1129,7 @@ export default function App() {
                             <circle cx="145" cy="8" r="2" fill="#fb8500" />
                           </svg>
                         </div>
-                        <p className="text-[7px] text-white/60 font-mono">uptime reliability: 99.97%</p>
+                        <p className="text-[5.5px] xs:text-[7px] text-white/60 font-mono">uptime reliability: 99.97%</p>
                       </div>
                     )}
                   </motion.div>
@@ -1165,9 +1165,9 @@ export default function App() {
               </div>
 
               {/* Speech-caption bubble at bottom-center */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-0.5 flex items-center gap-1 text-white max-w-[85%] whitespace-nowrap">
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md border border-white/10 rounded-full px-2 py-0.5 xs:px-2.5 xs:py-0.5 flex items-center gap-1 text-white max-w-[90%] whitespace-nowrap">
                 <span className="w-1 h-1 rounded-full bg-[#fb8500] animate-ping" />
-                <span className="font-mono text-white/40 text-[7px] tracking-wider uppercase">AUDIO</span>
+                <span className="font-mono text-white/40 text-[6px] xs:text-[7px] tracking-wider uppercase">AUDIO</span>
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={mockupActiveKey}
@@ -1175,7 +1175,7 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -3 }}
                     transition={{ duration: 0.25 }}
-                    className="text-[8px] font-mono text-white/90"
+                    className="text-[7px] xs:text-[8px] font-mono text-white/90"
                   >
                     {mockupActiveKey === "revenue" && '"...our Q3 revenue increased..."'}
                     {mockupActiveKey === "team" && '"...the active team size..."'}
@@ -1348,19 +1348,19 @@ export default function App() {
                           animate="visible"
                           exit="exit"
                           variants={cardVariants}
-                          className="rounded-xl p-3 text-center"
+                          className="rounded-xl p-2 sm:p-3 text-center"
                           style={{
                             background: "rgba(255,255,255,0.7)",
                             border: "1px solid rgba(26,21,18,0.07)",
                           }}
                         >
                           <p
-                            className="text-lg font-semibold leading-none mb-1"
+                            className="text-sm sm:text-base md:text-lg font-semibold leading-none mb-1"
                             style={{ color: card.color }}
                           >
                             {card.value}
                           </p>
-                          <p className="text-[10px] text-[#5A5550]">
+                          <p className="text-[8px] sm:text-[10px] text-[#5A5550]">
                             {card.label}
                           </p>
                         </motion.div>
@@ -1673,7 +1673,7 @@ export default function App() {
       {/* ─── BANNER STRIP ─── */}
       <section className="py-12 bg-[#FBF9F6] flex justify-center items-center">
         <div className="relative w-full max-w-5xl mx-auto px-4 md:px-8">
-          <div className="relative w-full aspect-[21/9] sm:aspect-[21/8] md:aspect-[21/6] rounded-[32px] overflow-hidden border border-[rgba(26,21,18,0.06)] shadow-sm bg-[#FFFBF7]">
+          <div className="relative w-full aspect-[16/8] sm:aspect-[21/8] md:aspect-[21/6] rounded-[20px] sm:rounded-[32px] overflow-hidden border border-[rgba(26,21,18,0.06)] shadow-sm bg-[#FFFBF7]">
             <ImageWithFallback
               src={orangeTexture}
               alt="Abstract orange cloud texture"
@@ -1789,7 +1789,7 @@ export default function App() {
             {/* Center text overlay */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <h3 
-                className="text-xl md:text-3xl font-light text-white tracking-wide text-center"
+                className="text-base xs:text-lg sm:text-xl md:text-3xl font-light text-white tracking-wide text-center"
                 style={{ 
                   fontFamily: "'Cormorant Garamond', serif",
                   textShadow: "0 2px 12px rgba(0,0,0,0.2)"
