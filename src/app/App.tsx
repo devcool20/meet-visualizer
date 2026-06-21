@@ -5,7 +5,7 @@ import heroBg from "@/imports/hero.jpg";
 import orangeTexture from "@/imports/orange.jpg";
 import cardBg from "@/imports/card-bg.jpg";
 import videoBg from "@/imports/video-bg.jpg";
-import videoFile from "@/imports/Business_man_speaking_in_video_202606202029.mp4";
+import footerBg from "@/imports/footer.jpg";
 
 
 const TRIGGER_MAP: Record<string, { label: string; value: string; color: string }[]> = {
@@ -493,8 +493,9 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const isScrollingToRef = useRef<string | null>(null);
   const [displayedBannerText, setDisplayedBannerText] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [mockupActiveKey, setMockupActiveKey] = useState<"revenue" | "team" | "product">("revenue");
+  const [hideNavbar, setHideNavbar] = useState(false);
+  const footerRef = useRef<HTMLElement>(null);
 
   const desktopDotsConfig = useMemo(() => {
     return Array.from({ length: 20 * 7 }).map(() => {
@@ -521,48 +522,34 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    const keys: ("revenue" | "team" | "product")[] = ["revenue", "team", "product"];
+    const interval = setInterval(() => {
+      setMockupActiveKey((prev) => {
+        const nextIndex = (keys.indexOf(prev) + 1) % keys.length;
+        return keys[nextIndex];
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          video.play().then(() => {
-            setIsPlaying(true);
-          }).catch((err) => {
-            console.log("Autoplay prevented:", err);
-          });
-        } else {
-          video.pause();
-          setIsPlaying(false);
-        }
+        setHideNavbar(entry.isIntersecting);
       },
       {
-        threshold: 0.3, // play when 30% of the video is visible
+        threshold: 0.05, // trigger when 5% of the footer is visible
       }
     );
 
-    observer.observe(video);
+    observer.observe(footer);
     return () => {
-      if (video) observer.unobserve(video);
+      if (footer) observer.unobserve(footer);
     };
   }, []);
-
-  const handleVideoClick = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isPlaying) {
-      video.pause();
-      setIsPlaying(false);
-    } else {
-      video.play().then(() => {
-        setIsPlaying(true);
-      }).catch((err) => {
-        console.error("Play failed:", err);
-      });
-    }
-  };
 
 
   // Banner Typewriter Effect Loop (4-second cycle per tagline)
@@ -789,7 +776,17 @@ export default function App() {
       }}
     >
       {/* ─── HEADER ─── */}
-      <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl rounded-full z-50 px-4 py-2.5 md:px-8 md:py-3.5">
+      <motion.header 
+        className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl rounded-full z-50 px-4 py-2.5 md:px-8 md:py-3.5"
+        animate={{
+          y: hideNavbar ? -120 : 0,
+          opacity: hideNavbar ? 0 : 1,
+        }}
+        transition={reducedMotion ? { duration: 0.01 } : { duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          pointerEvents: hideNavbar ? "none" : "auto",
+        }}
+      >
         {/* Glass background with hardware accelerated clipping */}
         <div 
           className="absolute inset-0 rounded-full -z-10 overflow-hidden border border-[rgba(26,21,18,0.06)]"
@@ -931,7 +928,7 @@ export default function App() {
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
+      </motion.header>
 
       {/* ─── HERO ─── */}
       <section id="about" className="relative w-full min-h-screen lg:h-screen overflow-y-auto lg:overflow-hidden">
@@ -998,37 +995,219 @@ export default function App() {
 
           {/* Right wing */}
           <motion.div
-            className={`w-full lg:w-[33%] pl-0 lg:pl-8 flex flex-col gap-3 self-center lg:self-start ${
-              reducedMotion ? "" : "transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-            } ${activeKey ? "pt-2 lg:pt-[7.5rem]" : "pt-6 lg:pt-[9rem]"}`}
+            className="w-[90%] lg:w-[38%] pl-0 lg:pl-10 lg:translate-x-4 flex flex-col gap-4 self-center mx-auto lg:mx-0"
             initial="hidden"
             animate="visible"
             variants={rightWingVariants}
             custom={reducedMotion}
           >
-            <AnimatePresence>
-              {!activeKey && (
-                <motion.p
-                  key="right-wing-desc"
-                  initial={{ opacity: 1, height: "auto" }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={
-                    reducedMotion
-                      ? { duration: 0.01 }
-                      : { ease: [0.16, 1, 0.3, 1], duration: 0.6 }
-                  }
-                  className="text-sm overflow-hidden text-center lg:text-left mb-4 lg:mb-0"
-                  style={{
-                    color: "rgba(251, 249, 246, 0.85)",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  Our real-time cloud engine listens to your stream, matches spoken topics with your connected tools, and projects responsive data overlays directly into your meeting feed.
-                </motion.p>
-              )}
-            </AnimatePresence>
- 
+            {/* Presenter Webcam HUD Card */}
+            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_24px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-[#1A1512]">
+              {/* Camera view grid / lines */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-stone-900/30 to-transparent pointer-events-none" />
+              
+              {/* Corner focus brackets */}
+              <div className="absolute top-4 left-4 w-3.5 h-3.5 border-t border-l border-white/20 pointer-events-none" />
+              <div className="absolute top-4 right-4 w-3.5 h-3.5 border-t border-r border-white/20 pointer-events-none" />
+              <div className="absolute bottom-4 left-4 w-3.5 h-3.5 border-b border-l border-white/20 pointer-events-none" />
+              <div className="absolute bottom-4 right-4 w-3.5 h-3.5 border-b border-r border-white/20 pointer-events-none" />
+              
+              {/* LIVE Badge */}
+              <div className="absolute top-6 left-6 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[8px] font-bold text-white tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#fb8500] animate-pulse" />
+                <span>LIVE HUD</span>
+              </div>
+
+              {/* Presenter silhouette SVG placeholder (reduced size and shifted left to prevent collisions) */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.18] -translate-x-[10%]">
+                <svg viewBox="0 0 100 100" className="w-24 h-24 text-[#fb8500]">
+                  <circle cx="50" cy="35" r="18" fill="currentColor" />
+                  <path d="M50,58 C32,58 18,72 18,90 L82,90 C82,72 68,58 50,58 Z" fill="currentColor" />
+                </svg>
+              </div>
+
+              {/* Rotating overlay cards floating near shoulder */}
+              <div className="absolute right-4 top-6 bottom-16 flex items-start justify-end pointer-events-none">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={mockupActiveKey}
+                    initial={reducedMotion ? { opacity: 0 } : { opacity: 0, x: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={reducedMotion ? { opacity: 0 } : { opacity: 0, x: -20, scale: 0.95 }}
+                    transition={
+                      reducedMotion
+                        ? { duration: 0.01 }
+                        : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
+                    }
+                    className="w-[170px] sm:w-[185px] rounded-lg p-2.5 border border-white/20 shadow-2xl bg-white/10 backdrop-blur-md pointer-events-auto"
+                  >
+                    {mockupActiveKey === "revenue" && (
+                      <div className="flex flex-col gap-1 text-white">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-[7.5px] text-white/50 uppercase tracking-widest font-mono">REVENUE TELEMETRY</p>
+                            <p className="text-base font-bold text-white leading-tight">$2.4M Q3</p>
+                          </div>
+                          <span className="text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono">
+                            +34% YoY
+                          </span>
+                        </div>
+                        <div className="h-8 w-full mt-0.5 overflow-hidden relative">
+                          <svg viewBox="0 0 150 32" className="w-full h-full overflow-visible">
+                            <defs>
+                              <linearGradient id="hud-orange-grad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#fb8500" stopOpacity="0.25" />
+                                <stop offset="100%" stopColor="#fb8500" stopOpacity="0" />
+                              </linearGradient>
+                            </defs>
+                            <path
+                              d="M 5,28 C 35,25 50,12 80,18 C 110,24 125,5 145,3"
+                              fill="none"
+                              stroke="#fb8500"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M 5,28 C 35,25 50,12 80,18 C 110,24 125,5 145,3 L 145,32 L 5,32 Z"
+                              fill="url(#hud-orange-grad)"
+                              stroke="none"
+                            />
+                            <circle cx="145" cy="3" r="2" fill="#fb8500" />
+                          </svg>
+                        </div>
+                        <p className="text-[7px] text-white/60 font-mono">cloud workspace synchronized</p>
+                      </div>
+                    )}
+
+                    {mockupActiveKey === "team" && (
+                      <div className="flex flex-col gap-1 text-white">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-[7.5px] text-white/50 uppercase tracking-widest font-mono">TEAM ENGAGEMENT</p>
+                            <p className="text-base font-bold text-white leading-tight">142 Active</p>
+                          </div>
+                          <span className="text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono">
+                            78 NPS
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 my-0.5">
+                          {["JD", "AM", "SR", "WT"].map((init, i) => (
+                            <div key={i} className="w-4 h-4 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[7px] font-bold text-white font-mono">
+                              {init}
+                            </div>
+                          ))}
+                          <span className="text-[7px] text-[#fb8500] font-bold font-mono ml-0.5 animate-pulse">●</span>
+                          <span className="text-[7px] text-white/70 font-mono">Syncing...</span>
+                        </div>
+                        <div className="border-t border-white/5 pt-1 text-[7px] text-white/60 font-mono space-y-0.5">
+                          <div>✔ Notion API: connected</div>
+                          <div>✔ Slack: 4 channels logged</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {mockupActiveKey === "product" && (
+                      <div className="flex flex-col gap-1 text-white">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-[7.5px] text-white/50 uppercase tracking-widest font-mono">PRODUCT METRICS</p>
+                            <p className="text-base font-bold text-white leading-tight">48.2K DAU</p>
+                          </div>
+                          <span className="text-[7.5px] px-1 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-bold font-mono">
+                            18ms
+                          </span>
+                        </div>
+                        <div className="h-8 w-full mt-0.5 overflow-hidden relative">
+                          <svg viewBox="0 0 150 32" className="w-full h-full overflow-visible">
+                            <path
+                              d="M 5,16 C 25,20 45,8 65,14 C 85,22 105,4 125,10 C 135,12 140,6 145,8"
+                              fill="none"
+                              stroke="#fb8500"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                            />
+                            <circle cx="145" cy="8" r="2" fill="#fb8500" />
+                          </svg>
+                        </div>
+                        <p className="text-[7px] text-white/60 font-mono">uptime reliability: 99.97%</p>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Audio waveform / telemetry at bottom-left */}
+              <div className="absolute bottom-6 left-6 flex items-center gap-0.5">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="w-0.5 bg-[#fb8500] rounded-full"
+                    animate={
+                      reducedMotion
+                        ? { height: 6 }
+                        : {
+                            height: [3, Math.random() * 12 + 4, 3],
+                          }
+                    }
+                    transition={
+                      reducedMotion
+                        ? { duration: 0.1 }
+                        : {
+                            duration: 0.6 + Math.random() * 0.4,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: i * 0.04,
+                          }
+                    }
+                    style={{ height: 3 }}
+                  />
+                ))}
+              </div>
+
+              {/* Speech-caption bubble at bottom-center */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-0.5 flex items-center gap-1 text-white max-w-[85%] whitespace-nowrap">
+                <span className="w-1 h-1 rounded-full bg-[#fb8500] animate-ping" />
+                <span className="font-mono text-white/40 text-[7px] tracking-wider uppercase">AUDIO</span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={mockupActiveKey}
+                    initial={{ opacity: 0, y: 3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -3 }}
+                    transition={{ duration: 0.25 }}
+                    className="text-[8px] font-mono text-white/90"
+                  >
+                    {mockupActiveKey === "revenue" && '"...our Q3 revenue increased..."'}
+                    {mockupActiveKey === "team" && '"...the active team size..."'}
+                    {mockupActiveKey === "product" && '"...product metrics DAU..."'}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── VIDEO DEMO SECTION ─── */}
+      <section
+        id="demo"
+        className="w-full grid md:grid-cols-2 items-stretch"
+        style={{ minHeight: "80vh" }}
+      >
+        {/* Left — video on top of a background image */}
+        <div className="relative overflow-hidden min-h-[350px] md:min-h-[500px] flex items-center justify-center">
+          <ImageWithFallback
+            src={videoBg}
+            alt="Video background texture"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Dark overlay for contrast */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "rgba(26,21,18,0.18)" }}
+          />
+          {/* Center the video player */}
+          <div className="relative z-10 w-full max-w-md px-4 sm:px-6">
             {/* Unified glassmorphic card */}
             <motion.div
               layout
@@ -1268,61 +1447,17 @@ export default function App() {
                 )}
               </AnimatePresence>
             </motion.div>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* ─── VIDEO DEMO SECTION ─── */}
-      <section
-        id="demo"
-        className="w-full grid md:grid-cols-2 items-stretch"
-        style={{ minHeight: "80vh" }}
-      >
-        {/* Left — video on top of a background image */}
-        <div className="relative overflow-hidden min-h-[350px] md:min-h-[500px] flex items-center justify-center">
-          <ImageWithFallback
-            src={videoBg}
-            alt="Video background texture"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          {/* Dark overlay for contrast */}
-          <div
-            className="absolute inset-0"
-            style={{ background: "rgba(26,21,18,0.18)" }}
-          />
-          {/* Center the video player */}
-          <div className="relative z-10 w-full max-w-md px-4 sm:px-6">
-            <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black relative group cursor-pointer">
-              <video
-                ref={videoRef}
-                src={videoFile}
-                className="w-full h-full object-cover scale-[1.0]"
-                playsInline
-                loop
-                muted
-                onClick={handleVideoClick}
-              />
-              {/* Play/Pause overlay indicator */}
-              <div 
-                className={`absolute inset-0 flex items-center justify-center bg-black/35 transition-opacity duration-300 pointer-events-none ${
-                  isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
-                }`}
-              >
-                <div className="w-14 h-14 rounded-full bg-white/95 shadow-lg flex items-center justify-center text-[#1A1512] transition-transform duration-300 scale-95 group-hover:scale-100">
-                  {isPlaying ? (
-                    // Pause Icon
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                      <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    // Play Icon
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 ml-0.5">
-                      <path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 20.03c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-            </div>
+            {/* Relocated description text, styled light-colored for dark background */}
+            <p
+              className="text-sm text-center mt-6"
+              style={{
+                color: "rgba(251, 249, 246, 0.85)",
+                lineHeight: 1.7,
+              }}
+            >
+              Our real-time cloud engine listens to your stream, matches spoken topics with your connected tools, and projects responsive data overlays directly into your meeting feed.
+            </p>
           </div>
         </div>
 
@@ -1671,7 +1806,7 @@ export default function App() {
       {/* ─── INTEGRATIONS SECTION ─── */}
       <section
         id="integrations"
-        className="py-20 px-6 md:px-16 lg:px-24"
+        className="pt-20 pb-10 px-6 md:px-16 lg:px-24"
         style={{ background: "#FBF9F6", borderBottom: "1px solid rgba(26,21,18,0.06)" }}
       >
         <div className="max-w-5xl mx-auto text-center mb-16">
@@ -1832,53 +1967,40 @@ export default function App() {
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer className="px-6 md:px-14 pt-14 pb-10" style={{ background: "#FBF9F6" }}>
-        {/* Stars */}
-        <div className="flex flex-col items-center mb-10">
-          <div className="flex gap-1 mb-2">
-            {[...Array(5)].map((_, i) => (
-              <span key={i} style={{ color: "#1A1512", fontSize: "0.85rem" }}>★</span>
-            ))}
-          </div>
-          <p className="text-xs text-center" style={{ color: "#5A5550", fontFamily: "'Inter', sans-serif" }}>
-            Helped over 100+ businesses scale live engagement.
-          </p>
-        </div>
-
-        {/* Footer nav row */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 pb-8" style={{ borderBottom: "1px solid rgba(26,21,18,0.08)" }}>
-          <nav className="flex flex-wrap items-center justify-center gap-6">
-            {navItems.map((item) => (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  const el = document.getElementById(item.id);
-                  if (el) {
-                    el.scrollIntoView({ behavior: "smooth" });
-                  }
-                }}
-                className="text-sm transition-opacity hover:opacity-60 capitalize"
-                style={{ color: "#5A5550" }}
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
-
-          <span
-            className="text-xl tracking-tight"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, color: "#1A1512" }}
+      <footer 
+        ref={footerRef}
+        className="relative px-6 md:px-14 pt-[3.5rem] md:pt-[6.5rem] pb-20 md:pb-28 w-full" 
+        style={{ 
+          backgroundColor: "#FBF9F6",
+          backgroundImage: `url(${footerBg})`,
+          backgroundSize: "100% auto",
+          backgroundPosition: "bottom center",
+          backgroundRepeat: "no-repeat"
+        }}
+      >
+        {/* Call to Action Block */}
+        <div className="max-w-3xl mx-auto text-center mb-16 md:mb-20 flex flex-col items-center gap-6 relative z-10">
+          <h2 
+            className="leading-tight"
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)",
+              fontWeight: 300,
+              letterSpacing: "-0.02em",
+              color: "#1A1512"
+            }}
           >
-            Stash Live
-          </span>
-
-          <button
-            className="px-5 py-2.5 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
-            style={{ background: "#1A1512", color: "#FBF9F6" }}
+            Ready to integrate this into your team meetings?
+          </h2>
+          <button 
+            className="px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 select-none hover:opacity-90 shadow-sm"
+            style={{
+              background: "#1A1512",
+              color: "#FBF9F6",
+              fontFamily: "'Inter', sans-serif"
+            }}
           >
-            Book a free call
+            Book a Call
           </button>
         </div>
 
