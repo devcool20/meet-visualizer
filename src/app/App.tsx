@@ -1,31 +1,32 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
-import heroBg from "@/imports/HLKJ3SzbkAAfbgT.jpg";
+import heroBg from "@/imports/hero.jpg";
 import orangeTexture from "@/imports/orange.jpg";
+import cardBg from "@/imports/card-bg.jpg";
 import videoBg from "@/imports/video-bg.jpg";
 import videoFile from "@/imports/Business_man_speaking_in_video_202606202029.mp4";
 
 
 const TRIGGER_MAP: Record<string, { label: string; value: string; color: string }[]> = {
   revenue: [
-    { label: "Q2 Revenue", value: "$240,000", color: "#10B981" },
-    { label: "YoY Growth", value: "+40%", color: "#10B981" },
+    { label: "Q2 Revenue", value: "$240,000", color: "#fb8500" },
+    { label: "YoY Growth", value: "+40%", color: "#fb8500" },
     { label: "Churn Rate", value: "1.8%", color: "#5A5550" },
   ],
   team: [
-    { label: "Headcount", value: "142", color: "#10B981" },
+    { label: "Headcount", value: "142", color: "#fb8500" },
     { label: "Open Roles", value: "12", color: "#5A5550" },
-    { label: "NPS Score", value: "78", color: "#10B981" },
+    { label: "NPS Score", value: "78", color: "#fb8500" },
   ],
   product: [
-    { label: "DAU", value: "48.2K", color: "#10B981" },
-    { label: "Uptime", value: "99.97%", color: "#10B981" },
+    { label: "DAU", value: "48.2K", color: "#fb8500" },
+    { label: "Uptime", value: "99.97%", color: "#fb8500" },
     { label: "Latency", value: "18ms", color: "#5A5550" },
   ],
   growth: [
-    { label: "MRR", value: "$180K", color: "#10B981" },
-    { label: "Conversion", value: "4.7%", color: "#10B981" },
+    { label: "MRR", value: "$180K", color: "#fb8500" },
+    { label: "Conversion", value: "4.7%", color: "#fb8500" },
     { label: "CAC", value: "$124", color: "#5A5550" },
   ],
 };
@@ -134,11 +135,11 @@ export function RevenuePreviewCard({ reducedMotion }: { reducedMotion: boolean }
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">Q2 REVENUE</p>
-          <p className="text-2xl font-bold text-[#10B981]">$240,000</p>
+          <p className="text-2xl font-bold text-[#fb8500]">$240,000</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">GROWTH</p>
-          <p className="text-sm font-semibold text-[#10B981]">+40% YoY</p>
+          <p className="text-sm font-semibold text-[#fb8500]">+40% YoY</p>
           <p className="text-[9px] text-gray-600">Churn: 1.8%</p>
         </div>
       </div>
@@ -147,8 +148,8 @@ export function RevenuePreviewCard({ reducedMotion }: { reducedMotion: boolean }
         <svg viewBox="0 0 300 100" className="w-full h-full overflow-visible">
           <defs>
             <linearGradient id="green-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+              <stop offset="0%" stopColor="#fb8500" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#fb8500" stopOpacity="0" />
             </linearGradient>
           </defs>
 
@@ -175,7 +176,7 @@ export function RevenuePreviewCard({ reducedMotion }: { reducedMotion: boolean }
           <motion.path
             d="M 10,85 C 60,80 80,30 130,50 C 180,70 220,15 290,10"
             fill="none"
-            stroke="#10B981"
+            stroke="#fb8500"
             strokeWidth="2.5"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -193,7 +194,7 @@ export function RevenuePreviewCard({ reducedMotion }: { reducedMotion: boolean }
               cx="290"
               cy="10"
               r="5"
-              fill="#10B981"
+              fill="#fb8500"
               initial={{ scale: 1, opacity: 0.8 }}
               animate={
                 reducedMotion
@@ -210,7 +211,7 @@ export function RevenuePreviewCard({ reducedMotion }: { reducedMotion: boolean }
                     }
               }
             />
-            <circle cx="290" cy="10" r="3" fill="#10B981" />
+            <circle cx="290" cy="10" r="3" fill="#fb8500" />
           </g>
         </svg>
       </div>
@@ -220,7 +221,7 @@ export function RevenuePreviewCard({ reducedMotion }: { reducedMotion: boolean }
 
 export function TeamPreviewCard() {
   const members = [
-    { name: "Jane Doe", initials: "JD", status: "active", bg: "bg-emerald-100 text-emerald-800" },
+    { name: "Jane Doe", initials: "JD", status: "active", bg: "bg-[#fb8500]/10 text-[#fb8500]" },
     { name: "Alex Miller", initials: "AM", status: "active", bg: "bg-amber-100 text-amber-800" },
     { name: "Sarah Reed", initials: "SR", status: "active", bg: "bg-blue-100 text-blue-800" },
     { name: "Liam King", initials: "LK", status: "active", bg: "bg-purple-100 text-purple-800" },
@@ -233,11 +234,11 @@ export function TeamPreviewCard() {
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">HEADCOUNT</p>
-          <p className="text-2xl font-bold text-[#10B981]">142 Active</p>
+          <p className="text-2xl font-bold text-[#fb8500]">142 Active</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">PERFORMANCE</p>
-          <p className="text-sm font-semibold text-[#10B981]">78 NPS</p>
+          <p className="text-sm font-semibold text-[#fb8500]">78 NPS</p>
           <p className="text-[9px] text-gray-600">12 Open Roles</p>
         </div>
       </div>
@@ -251,7 +252,7 @@ export function TeamPreviewCard() {
             </div>
             <span
               className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-white ${
-                member.status === "active" ? "bg-emerald-500" : "bg-gray-400"
+                member.status === "active" ? "bg-[#fb8500]" : "bg-gray-400"
               }`}
             />
           </div>
@@ -265,15 +266,15 @@ export function TeamPreviewCard() {
         </p>
         <div className="space-y-1 text-[10px] text-[#2D2520] font-normal leading-relaxed">
           <div className="flex items-center gap-1.5">
-            <span className="text-[#10B981]">✔</span>
+            <span className="text-[#fb8500]">✔</span>
             <span>Notion API: jane.doe connected</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[#10B981]">✔</span>
+            <span className="text-[#fb8500]">✔</span>
             <span>Slack: 4 channels integrated</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[#10B981]">✔</span>
+            <span className="text-[#fb8500]">✔</span>
             <span>GitHub: main branch parsed</span>
           </div>
         </div>
@@ -288,18 +289,18 @@ export function ProductPreviewCard({ reducedMotion }: { reducedMotion: boolean }
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">DAILY ACTIVE USERS</p>
-          <p className="text-2xl font-bold text-[#10B981]">48.2K</p>
+          <p className="text-2xl font-bold text-[#fb8500]">48.2K</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">LATENCY</p>
-          <p className="text-sm font-semibold text-[#10B981]">18ms</p>
+          <p className="text-sm font-semibold text-[#fb8500]">18ms</p>
           <p className="text-[9px] text-gray-600">Uptime: 99.97%</p>
         </div>
       </div>
 
       <div className="relative w-full h-24 bg-[#1A1512]/5 rounded-xl p-2 border border-[rgba(26,21,18,0.04)] overflow-hidden">
         <div className="absolute top-2 left-3 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-ping" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#fb8500] animate-ping" />
           <span className="text-[9px] text-gray-500 uppercase font-normal tracking-wider">
             Real-time Latency Monitor
           </span>
@@ -307,8 +308,8 @@ export function ProductPreviewCard({ reducedMotion }: { reducedMotion: boolean }
         <svg viewBox="0 0 300 100" className="w-full h-full overflow-visible pt-4">
           <defs>
             <linearGradient id="blue-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10B981" stopOpacity="0.15" />
-              <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+              <stop offset="0%" stopColor="#fb8500" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#fb8500" stopOpacity="0" />
             </linearGradient>
           </defs>
 
@@ -335,7 +336,7 @@ export function ProductPreviewCard({ reducedMotion }: { reducedMotion: boolean }
           <motion.path
             d="M 10,65 C 40,70 60,35 80,45 C 100,55 120,75 140,60 C 160,45 180,30 200,70 C 220,95 240,40 260,35 C 280,30 285,55 290,50"
             fill="none"
-            stroke="#10B981"
+            stroke="#fb8500"
             strokeWidth="2"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -353,7 +354,7 @@ export function ProductPreviewCard({ reducedMotion }: { reducedMotion: boolean }
               cx="290"
               cy="50"
               r="5"
-              fill="#10B981"
+              fill="#fb8500"
               initial={{ scale: 1, opacity: 0.8 }}
               animate={
                 reducedMotion
@@ -370,7 +371,7 @@ export function ProductPreviewCard({ reducedMotion }: { reducedMotion: boolean }
                     }
               }
             />
-            <circle cx="290" cy="50" r="3" fill="#10B981" />
+            <circle cx="290" cy="50" r="3" fill="#fb8500" />
           </g>
         </svg>
       </div>
@@ -384,11 +385,11 @@ export function GrowthPreviewCard({ reducedMotion }: { reducedMotion: boolean })
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">MONTHLY RECURRING REVENUE</p>
-          <p className="text-2xl font-bold text-[#10B981]">$180K</p>
+          <p className="text-2xl font-bold text-[#fb8500]">$180K</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider">CONVERSION</p>
-          <p className="text-sm font-semibold text-[#10B981]">4.7%</p>
+          <p className="text-sm font-semibold text-[#fb8500]">4.7%</p>
           <p className="text-[9px] text-gray-600">CAC: $124</p>
         </div>
       </div>
@@ -397,8 +398,8 @@ export function GrowthPreviewCard({ reducedMotion }: { reducedMotion: boolean })
         <svg viewBox="0 0 300 100" className="w-full h-full overflow-visible">
           <defs>
             <linearGradient id="growth-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+              <stop offset="0%" stopColor="#fb8500" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#fb8500" stopOpacity="0" />
             </linearGradient>
           </defs>
 
@@ -425,7 +426,7 @@ export function GrowthPreviewCard({ reducedMotion }: { reducedMotion: boolean })
           <motion.path
             d="M 10,90 C 70,75 100,60 150,40 C 200,20 240,15 290,8"
             fill="none"
-            stroke="#10B981"
+            stroke="#fb8500"
             strokeWidth="2.5"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -443,7 +444,7 @@ export function GrowthPreviewCard({ reducedMotion }: { reducedMotion: boolean })
               cx="290"
               cy="8"
               r="5"
-              fill="#10B981"
+              fill="#fb8500"
               initial={{ scale: 1, opacity: 0.8 }}
               animate={
                 reducedMotion
@@ -460,7 +461,7 @@ export function GrowthPreviewCard({ reducedMotion }: { reducedMotion: boolean })
                     }
               }
             />
-            <circle cx="290" cy="8" r="3" fill="#10B981" />
+            <circle cx="290" cy="8" r="3" fill="#fb8500" />
           </g>
         </svg>
       </div>
@@ -468,10 +469,18 @@ export function GrowthPreviewCard({ reducedMotion }: { reducedMotion: boolean })
   );
 }
 
+const navItems = [
+  { id: "about", label: "about" },
+  { id: "demo", label: "how it works" },
+  { id: "features", label: "engagement gap" },
+  { id: "integrations", label: "integrations" },
+];
+
 export default function App() {
   const [inputVal, setInputVal] = useState("");
   const [activeCards, setActiveCards] = useState<typeof TRIGGER_MAP[string] | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [connectedApps, setConnectedApps] = useState<Record<string, boolean>>({});
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -486,6 +495,30 @@ export default function App() {
   const [displayedBannerText, setDisplayedBannerText] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const desktopDotsConfig = useMemo(() => {
+    return Array.from({ length: 20 * 7 }).map(() => {
+      const driftX = [0, Math.random() * 8 - 4, Math.random() * 8 - 4, 0];
+      const driftY = [0, Math.random() * 8 - 4, Math.random() * 8 - 4, 0];
+      const driftDuration = 8 + Math.random() * 12;
+      const collapseDelay = Math.random() * 10;
+      const collapseDuration = 2 + Math.random() * 2;
+      const repeatDelay = 3 + Math.random() * 5;
+      return { driftX, driftY, driftDuration, collapseDelay, collapseDuration, repeatDelay };
+    });
+  }, []);
+
+  const mobileDotsConfig = useMemo(() => {
+    return Array.from({ length: 12 * 5 }).map(() => {
+      const driftX = [0, Math.random() * 6 - 3, Math.random() * 6 - 3, 0];
+      const driftY = [0, Math.random() * 6 - 3, Math.random() * 6 - 3, 0];
+      const driftDuration = 6 + Math.random() * 10;
+      const collapseDelay = Math.random() * 8;
+      const collapseDuration = 2 + Math.random() * 2;
+      const repeatDelay = 2 + Math.random() * 4;
+      return { driftX, driftY, driftDuration, collapseDelay, collapseDuration, repeatDelay };
+    });
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -532,13 +565,19 @@ export default function App() {
   };
 
 
-  // Banner Typewriter Effect Loop (3-second cycle)
+  // Banner Typewriter Effect Loop (4-second cycle per tagline)
   useEffect(() => {
-    const fullText = "Visualize what you speak.";
+    const taglines = [
+      "Visualize what you speak.",
+      "Speak your metrics into view.",
+      "Present with pure presence."
+    ];
+    let currentIdx = 0;
     let typeTimer: ReturnType<typeof setInterval>;
     let loopTimer: ReturnType<typeof setInterval>;
 
     const runTypewriter = () => {
+      const fullText = taglines[currentIdx];
       setDisplayedBannerText("");
       let i = 0;
       clearInterval(typeTimer);
@@ -550,13 +589,14 @@ export default function App() {
           clearInterval(typeTimer);
         }
       }, 40); // ~1.0s typing duration
+      currentIdx = (currentIdx + 1) % taglines.length;
     };
 
     if (reducedMotion) {
-      setDisplayedBannerText(fullText);
+      setDisplayedBannerText(taglines[0]);
     } else {
       runTypewriter();
-      loopTimer = setInterval(runTypewriter, 3000);
+      loopTimer = setInterval(runTypewriter, 4000);
     }
 
     return () => {
@@ -577,7 +617,7 @@ export default function App() {
 
   // Scroll-Spy observer
   useEffect(() => {
-    const sections = ["about", "features", "integrations"];
+    const sections = ["about", "demo", "features", "integrations"];
     const observers = sections.map((id) => {
       const el = document.getElementById(id);
       if (!el) return null;
@@ -762,9 +802,9 @@ export default function App() {
             WebkitTransform: "translateZ(0)",
           }}
         />
-        <div className="flex md:grid md:grid-cols-3 items-center justify-between w-full relative">
-          {/* Left Column (Desktop: Nav links, Mobile: Hamburger + Logo) */}
-          <div className="flex items-center gap-3 md:col-span-1">
+        <div className="flex items-center justify-between w-full relative">
+          {/* Left Column (Desktop: Nav links, Mobile: Hamburger button) */}
+          <div className="flex items-center gap-3">
             {/* Hamburger Button (visible only on mobile) */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -787,48 +827,34 @@ export default function App() {
               </svg>
             </button>
 
-            {/* Mobile-only Logo: Stash Live, shifted to the right of the hamburger icon */}
-            <div className="md:hidden flex items-center pl-1">
-              <span
-                className="text-lg font-medium tracking-tight select-none"
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "1.35rem",
-                  color: "#1A1512",
-                }}
-              >
-                Stash Live
-              </span>
-            </div>
-
             {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center gap-8 relative">
-              {["about", "features", "integrations"].map((item) => {
-                const isActive = activeSection === item;
-                const showPill = hoveredNav === item || (hoveredNav === null && isActive);
+              {navItems.map((item) => {
+                const isActive = activeSection === item.id;
+                const showPill = hoveredNav === item.id || (hoveredNav === null && isActive);
                 return (
                   <a
-                    key={item}
-                    href={`#${item}`}
-                    onMouseEnter={() => setHoveredNav(item)}
+                    key={item.id}
+                    href={`#${item.id}`}
+                    onMouseEnter={() => setHoveredNav(item.id)}
                     onMouseLeave={() => setHoveredNav(null)}
                     onClick={(e) => {
                       e.preventDefault();
-                      isScrollingToRef.current = item;
-                      setActiveSection(item);
-                      const el = document.getElementById(item);
+                      isScrollingToRef.current = item.id;
+                      setActiveSection(item.id);
+                      const el = document.getElementById(item.id);
                       if (el) {
                         el.scrollIntoView({ behavior: "smooth" });
                       }
                       setTimeout(() => {
-                        if (isScrollingToRef.current === item) {
+                        if (isScrollingToRef.current === item.id) {
                           isScrollingToRef.current = null;
                         }
                       }, 800);
                     }}
-                    className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 hover:text-[#1A1512]"
+                    className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 hover:text-[#1A1512] whitespace-nowrap"
                     style={{
-                      color: (isActive || hoveredNav === item) ? "#1A1512" : "#5A5550",
+                      color: (isActive || hoveredNav === item.id) ? "#1A1512" : "#5A5550",
                       fontWeight: isActive ? 600 : 400,
                       letterSpacing: "0.01em",
                     }}
@@ -844,17 +870,17 @@ export default function App() {
                         }
                       />
                     )}
-                    <span className="relative z-10">{item}</span>
+                    <span className="relative z-10 capitalize">{item.label}</span>
                   </a>
                 );
               })}
             </nav>
           </div>
 
-          {/* Center Column (Desktop-only Logo) */}
-          <div className="hidden md:block text-center">
+          {/* Right Column: Stash Branding (visible on both mobile and desktop) */}
+          <div className="flex items-center pr-2 select-none">
             <span
-              className="text-lg font-medium tracking-tight select-none"
+              className="text-lg font-medium tracking-tight"
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: "1.35rem",
@@ -863,27 +889,6 @@ export default function App() {
             >
               Stash Live
             </span>
-          </div>
-
-          {/* Right Column */}
-          <div className="flex items-center justify-end gap-3 md:gap-6">
-            <a
-              href="#"
-              className="hidden md:inline text-sm font-medium transition-opacity hover:opacity-60"
-              style={{ color: "#5A5550", letterSpacing: "0.01em" }}
-            >
-              Download Client
-            </a>
-            <button
-              className="px-3.5 py-2 md:px-5 md:py-2.5 text-xs md:text-sm font-medium rounded-full transition-opacity hover:opacity-80"
-              style={{
-                background: "#1A1512",
-                color: "#FBF9F6",
-                letterSpacing: "0.01em",
-              }}
-            >
-              Book Live Demo
-            </button>
           </div>
         </div>
 
@@ -897,30 +902,30 @@ export default function App() {
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="absolute top-[calc(100%+0.5rem)] left-0 right-0 rounded-2xl border border-[rgba(26,21,18,0.06)] shadow-[0_8px_32px_0_rgba(26, 21, 18, 0.03)] p-4 flex flex-col gap-2 md:hidden"
               style={{
-                background: "rgba(255, 255, 255, 0.55)",
+                background: "rgba(255, 255, 255, 0.45)",
                 backdropFilter: "blur(20px) saturate(120%)",
                 WebkitBackdropFilter: "blur(20px) saturate(120%)",
               }}
             >
-              {["about", "features", "integrations"].map((item) => (
+              {navItems.map((item) => (
                 <a
-                  key={item}
-                  href={`#${item}`}
+                  key={item.id}
+                  href={`#${item.id}`}
                   onClick={(e) => {
                     e.preventDefault();
                     setIsMenuOpen(false);
-                    const el = document.getElementById(item);
+                    const el = document.getElementById(item.id);
                     if (el) {
                       el.scrollIntoView({ behavior: "smooth" });
                     }
                   }}
                   className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left capitalize ${
-                    activeSection === item
+                    activeSection === item.id
                       ? "bg-[rgba(26,21,18,0.06)] text-[#1A1512] font-semibold"
                       : "text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)]"
                   }`}
                 >
-                  {item}
+                  {item.label}
                 </a>
               ))}
             </motion.div>
@@ -939,8 +944,8 @@ export default function App() {
         >
           <ImageWithFallback
             src={heroBg}
-            alt="Person standing in a digital field beneath a binary-data sky"
-            className="w-full h-full object-cover object-[68%_15%] lg:object-[center_15%]"
+            alt="Person standing at the threshold of a glowing orange portal"
+            className="w-full h-full object-cover object-center"
           />
         </motion.div>
 
@@ -967,10 +972,10 @@ export default function App() {
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: "clamp(2.8rem, 5.5vw, 4.5rem)",
-                fontWeight: 300,
+                fontWeight: 400,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.15,
-                color: "#1A1512",
+                color: "#FBF9F6",
               }}
             >
               Project live data overlays the moment you speak.
@@ -980,7 +985,7 @@ export default function App() {
               variants={itemVariants}
               className="text-sm mobile-shift-desc lg:mt-0"
               style={{
-                color: "#1A1512",
+                color: "rgba(251, 249, 246, 0.85)",
                 lineHeight: 1.7,
               }}
             >
@@ -1015,7 +1020,7 @@ export default function App() {
                   }
                   className="text-sm overflow-hidden text-center lg:text-left mb-4 lg:mb-0"
                   style={{
-                    color: "#1A1512",
+                    color: "rgba(251, 249, 246, 0.85)",
                     lineHeight: 1.7,
                   }}
                 >
@@ -1057,7 +1062,7 @@ export default function App() {
                     {(isListening || isSpeechActive) && (
                       <>
                         <motion.div
-                          className="absolute w-8 h-8 rounded-full bg-[#10B981]/25 pointer-events-none"
+                          className="absolute w-8 h-8 rounded-full bg-[#fb8500]/25 pointer-events-none"
                           animate={
                             reducedMotion
                               ? { scale: 1.2, opacity: 0.4 }
@@ -1078,7 +1083,7 @@ export default function App() {
                         />
                         {!reducedMotion && (
                           <motion.div
-                            className="absolute w-8 h-8 rounded-full bg-[#10B981]/25 pointer-events-none"
+                            className="absolute w-8 h-8 rounded-full bg-[#fb8500]/25 pointer-events-none"
                             animate={{
                               scale: [1, 2.2],
                               opacity: [0.8, 0],
@@ -1096,7 +1101,7 @@ export default function App() {
                     <button
                       onClick={toggleListening}
                       className="p-1 rounded-full hover:bg-[rgba(26,21,18,0.06)] transition-colors focus:outline-none z-10 flex items-center justify-center"
-                      style={{ color: (isListening || isSpeechActive) ? "#10B981" : "#5A5550" }}
+                      style={{ color: (isListening || isSpeechActive) ? "#fb8500" : "#5A5550" }}
                       title={(isListening || isSpeechActive) ? "Stop listening" : "Start listening"}
                     >
                       {(isListening || isSpeechActive) ? (
@@ -1108,7 +1113,7 @@ export default function App() {
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="w-4.5 h-4.5 animate-pulse text-[#10B981]"
+                          className="w-4.5 h-4.5 animate-pulse text-[#fb8500]"
                         >
                           <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
                           <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -1193,7 +1198,7 @@ export default function App() {
                       transition={{ duration: 0.2 }}
                       className="mt-3 text-[10px] text-[#5A5550]"
                       style={{
-                        color: (isListening || isSpeechActive) ? "#10B981" : undefined,
+                        color: (isListening || isSpeechActive) ? "#fb8500" : undefined,
                       }}
                     >
                       {isSpeechActive
@@ -1242,7 +1247,7 @@ export default function App() {
                       <span className="text-[10px] tracking-widest font-bold text-[#5A5550] uppercase">
                         STREAM OVERLAY PREVIEW
                       </span>
-                      <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-semibold">
+                      <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-[#fb8500]/10 text-[#fb8500] font-semibold">
                         ● live in meeting
                       </span>
                     </div>
@@ -1279,7 +1284,6 @@ export default function App() {
             src={videoBg}
             alt="Video background texture"
             className="absolute inset-0 w-full h-full object-cover"
-            style={{ filter: "grayscale(100%) contrast(110%)" }}
           />
           {/* Dark overlay for contrast */}
           <div
@@ -1292,7 +1296,7 @@ export default function App() {
               <video
                 ref={videoRef}
                 src={videoFile}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover scale-[1.0]"
                 playsInline
                 loop
                 muted
@@ -1329,7 +1333,7 @@ export default function App() {
         >
           <p
             className="text-xs uppercase tracking-widest mb-6"
-            style={{ color: "#10B981" }}
+            style={{ color: "#fb8500" }}
           >
             How it works
           </p>
@@ -1398,7 +1402,7 @@ export default function App() {
         >
           <p
             className="text-xs uppercase tracking-widest mb-6"
-            style={{ color: "#10B981" }}
+            style={{ color: "#fb8500" }}
           >
             The Engagement Gap
           </p>
@@ -1451,10 +1455,9 @@ export default function App() {
         {/* Right — grayscale texture + glassmorphic chart */}
         <div className="relative overflow-hidden min-h-[350px] md:min-h-[500px] order-1 md:order-2">
           <ImageWithFallback
-            src={orangeTexture}
-            alt="Abstract orange cloud texture rendered in monochrome"
+            src={cardBg}
+            alt="Abstract card background texture"
             className="absolute inset-0 w-full h-full object-cover"
-            style={{ filter: "grayscale(100%) contrast(110%)" }}
           />
           {/* Dark overlay for legibility */}
           <div
@@ -1483,14 +1486,14 @@ export default function App() {
                     Engagement Index
                   </p>
                   <p
-                    className="text-2xl font-semibold mt-0.5 text-[#10B981]"
+                    className="text-2xl font-semibold mt-0.5 text-[#fb8500]"
                   >
                     91 <span className="text-sm font-normal text-[#5A5550]">/ 100</span>
                   </p>
                 </div>
                 <span
-                  className="text-xs px-3 py-1.5 rounded-full text-[#10B981]"
-                  style={{ background: "rgba(16,185,129,0.12)" }}
+                  className="text-xs px-3 py-1.5 rounded-full text-[#fb8500]"
+                  style={{ background: "rgba(251,133,0,0.12)" }}
                 >
                   ● live
                 </span>
@@ -1525,7 +1528,7 @@ export default function App() {
                 style={{ borderTop: "1px solid rgba(26,21,18,0.08)" }}
               >
                 <span>real-time · cloud connected</span>
-                <span className="text-[#10B981]">↑ +18 pts this quarter</span>
+                <span className="text-[#fb8500]">↑ +18 pts this quarter</span>
               </div>
             </div>
           </div>
@@ -1555,17 +1558,41 @@ export default function App() {
                 const r = Math.floor(i / 20);
                 const c = i % 20;
                 const isCenterArea = r >= 2 && r <= 4 && c >= 4 && c <= 15;
-                // Put back 4 dots on the left and 4 dots on the right of the text
+                // Put back dots on both sides of the text (including the middle row)
                 const isPutBackDot = 
-                  ((r === 2 || r === 4) && (c === 4 || c === 5)) ||
-                  ((r === 2 || r === 4) && (c === 14 || c === 15));
+                  ((r >= 2 && r <= 4) && (c === 4 || c === 5)) ||
+                  ((r >= 2 && r <= 4) && (c === 14 || c === 15));
                 const hasDot = !isCenterArea || isPutBackDot;
                 return !hasDot ? (
                   <div key={i} className="w-1.5 h-1.5 md:w-2 h-2" />
                 ) : (
-                  <div 
+                  <motion.div 
                     key={i} 
                     className="w-1.5 h-1.5 md:w-2 h-2 rounded-full bg-white/95 shadow-[0_1px_2px_rgba(0,0,0,0.15)]" 
+                    animate={reducedMotion ? {} : {
+                      x: desktopDotsConfig[i].driftX,
+                      y: desktopDotsConfig[i].driftY,
+                      scale: [1, 1, 0, 1, 1],
+                      opacity: [1, 1, 0, 1, 1],
+                    }}
+                    transition={reducedMotion ? {} : {
+                      x: { duration: desktopDotsConfig[i].driftDuration, repeat: Infinity, ease: "easeInOut" },
+                      y: { duration: desktopDotsConfig[i].driftDuration, repeat: Infinity, ease: "easeInOut" },
+                      scale: {
+                        duration: desktopDotsConfig[i].collapseDuration,
+                        repeat: Infinity,
+                        repeatDelay: desktopDotsConfig[i].repeatDelay,
+                        delay: desktopDotsConfig[i].collapseDelay,
+                        ease: "easeInOut"
+                      },
+                      opacity: {
+                        duration: desktopDotsConfig[i].collapseDuration,
+                        repeat: Infinity,
+                        repeatDelay: desktopDotsConfig[i].repeatDelay,
+                        delay: desktopDotsConfig[i].collapseDelay,
+                        ease: "easeInOut"
+                      }
+                    }}
                   />
                 );
               })}
@@ -1584,12 +1611,41 @@ export default function App() {
                 const r = Math.floor(i / 12);
                 const c = i % 12;
                 const isCenterArea = r >= 1 && r <= 3 && c >= 2 && c <= 9;
-                return isCenterArea ? (
+                // Put back dots on both sides of the text (including the middle row)
+                const isPutBackDot = 
+                  ((r >= 1 && r <= 3) && (c === 2)) ||
+                  ((r >= 1 && r <= 3) && (c === 9));
+                const hasDot = !isCenterArea || isPutBackDot;
+                return !hasDot ? (
                   <div key={i} className="w-1.5 h-1.5" />
                 ) : (
-                  <div 
+                  <motion.div 
                     key={i} 
                     className="w-1.5 h-1.5 rounded-full bg-white/95 shadow-[0_1px_2px_rgba(0,0,0,0.15)]" 
+                    animate={reducedMotion ? {} : {
+                      x: mobileDotsConfig[i].driftX,
+                      y: mobileDotsConfig[i].driftY,
+                      scale: [1, 1, 0, 1, 1],
+                      opacity: [1, 1, 0, 1, 1],
+                    }}
+                    transition={reducedMotion ? {} : {
+                      x: { duration: mobileDotsConfig[i].driftDuration, repeat: Infinity, ease: "easeInOut" },
+                      y: { duration: mobileDotsConfig[i].driftDuration, repeat: Infinity, ease: "easeInOut" },
+                      scale: {
+                        duration: mobileDotsConfig[i].collapseDuration,
+                        repeat: Infinity,
+                        repeatDelay: mobileDotsConfig[i].repeatDelay,
+                        delay: mobileDotsConfig[i].collapseDelay,
+                        ease: "easeInOut"
+                      },
+                      opacity: {
+                        duration: mobileDotsConfig[i].collapseDuration,
+                        repeat: Infinity,
+                        repeatDelay: mobileDotsConfig[i].repeatDelay,
+                        delay: mobileDotsConfig[i].collapseDelay,
+                        ease: "easeInOut"
+                      }
+                    }}
                   />
                 );
               })}
@@ -1612,36 +1668,167 @@ export default function App() {
         </div>
       </section>
 
-      {/* ─── LOGO STRIP ─── */}
+      {/* ─── INTEGRATIONS SECTION ─── */}
       <section
         id="integrations"
-        className="py-8 px-6 md:py-12 md:px-8 flex flex-wrap items-center justify-center gap-6 md:gap-12"
-        style={{ borderBottom: "1px solid rgba(26,21,18,0.06)" }}
+        className="py-20 px-6 md:px-16 lg:px-24"
+        style={{ background: "#FBF9F6", borderBottom: "1px solid rgba(26,21,18,0.06)" }}
       >
-        {/* Notion */}
-        <svg className="w-7 h-7 transition-opacity duration-200 opacity-40 hover:opacity-85" viewBox="0 0 24 24" fill="currentColor" style={{ filter: "grayscale(100%)", transition: "opacity 0.2s" }}>
-          <path d="M4.6 2h14.8c1.4 0 2.6 1.2 2.6 2.6v14.8c0 1.4-1.2 2.6-2.6 2.6H4.6C3.2 22 2 20.8 2 19.4V4.6C2 3.2 3.2 2 4.6 2zm1.6 3.6v12.8h2.3V7.2l5.6 9.2h2.3V5.6h-2.3v9.2L8.5 5.6H6.2z"/>
-        </svg>
-        {/* Airtable */}
-        <svg className="w-7 h-7 transition-opacity duration-200 opacity-40 hover:opacity-85" viewBox="0 0 24 24" fill="currentColor" style={{ filter: "grayscale(100%)", transition: "opacity 0.2s" }}>
-          <path d="M12.5 2.23l9 4.88a1 1 0 0 1 .5.87v8.08a1 1 0 0 1-.5.87l-9 4.88a1 1 0 0 1-1 0l-9-4.88a1 1 0 0 1-.5-.87V7.98a1 1 0 0 1 .5-.87l9-4.88a1 1 0 0 1 1 0zM12 4.14L4.85 8 12 11.86 19.15 8 12 4.14zM3.5 10.05v5.82L10.5 19.7v-5.83l-7-3.82zm17 0l-7 3.82v5.83l7-3.83v-5.82z"/>
-        </svg>
-        {/* Google Drive */}
-        <svg className="w-7 h-7 transition-opacity duration-200 opacity-40 hover:opacity-85" viewBox="0 0 24 24" fill="currentColor" style={{ filter: "grayscale(100%)", transition: "opacity 0.2s" }}>
-          <path d="M15.2 2H8.8L2 13.8L5.2 19.3L12 7.5L18.8 19.3H22L15.2 2ZM9.4 14.8L6 20.8H18L21.4 14.8H9.4ZM3 13.8L8.2 20.8L11.6 14.8L6.4 7.8L3 13.8Z" />
-        </svg>
-        {/* HubSpot */}
-        <svg className="w-7 h-7 transition-opacity duration-200 opacity-40 hover:opacity-85" viewBox="0 0 24 24" fill="currentColor" style={{ filter: "grayscale(100%)", transition: "opacity 0.2s" }}>
-          <path d="M18.88 12.35a3.86 3.86 0 0 0-3.13-2.14V7.58a3.11 3.11 0 1 0-1.5 0v2.63a3.86 3.86 0 0 0-2.31 1.7L7.33 9.47A3.11 3.11 0 1 0 6 10.74l4.63 2.45a3.86 3.86 0 1 0 6.64.91l4.08.77a1.55 1.55 0 1 0 .28-1.47zm-11.88-2.6a1.56 1.56 0 1 1 0-3.11 1.56 1.56 0 0 1 0 3.11zm7.75-5a1.56 1.56 0 1 1 0 3.11 1.56 1.56 0 0 1 0-3.11zm-2.75 9.75a2.31 2.31 0 1 1 2.31-2.31 2.31 2.31 0 0 1-2.31 2.31z"/>
-        </svg>
-        {/* Salesforce */}
-        <svg className="w-7 h-7 transition-opacity duration-200 opacity-40 hover:opacity-85" viewBox="0 0 24 24" fill="currentColor" style={{ filter: "grayscale(100%)", transition: "opacity 0.2s" }}>
-          <path d="M19.14 9.87A6.49 6.49 0 0 0 7.4 8.7a4.67 4.67 0 0 0-3.69 4.56 4.78 4.78 0 0 0 .19 1.34 4.19 4.19 0 0 0-1.6 3.32 4.29 4.29 0 0 0 4.29 4.29h12a3.81 3.81 0 0 0 .5-7.59 4 4 0 0 0 .35-4.75z"/>
-        </svg>
-        {/* Slack */}
-        <svg className="w-7 h-7 transition-opacity duration-200 opacity-40 hover:opacity-85" viewBox="0 0 24 24" fill="currentColor" style={{ filter: "grayscale(100%)", transition: "opacity 0.2s" }}>
-          <path d="M5.04 15.12a2.52 2.52 0 1 1-2.52-2.52h2.52zm1.26 0a2.52 2.52 0 0 1 5.04 0v5.04a2.52 2.52 0 1 1-5.04 0zM8.88 5.04a2.52 2.52 0 1 1 2.52-2.52v2.52zm0 1.26a2.52 2.52 0 0 1 0 5.04H3.84a2.52 2.52 0 1 1 0-5.04zM18.96 8.88a2.52 2.52 0 1 1 2.52 2.52h-2.52zm-1.26 0a2.52 2.52 0 0 1-5.04 0V3.84a2.52 2.52 0 1 1 5.04 0zM15.12 18.96a2.52 2.52 0 1 1-2.52 2.52v-2.52zm0-1.26a2.52 2.52 0 0 1 0-5.04h5.04a2.52 2.52 0 1 1 0 5.04z"/>
-        </svg>
+        <div className="max-w-5xl mx-auto text-center mb-16">
+          <p
+            className="text-xs uppercase tracking-widest mb-6 font-semibold"
+            style={{ color: "#fb8500" }}
+          >
+            Integrations
+          </p>
+          <h2
+            className="mb-6 leading-tight"
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "clamp(2rem, 3.5vw, 3rem)",
+              fontWeight: 300,
+              letterSpacing: "-0.02em",
+              color: "#1A1512",
+            }}
+          >
+            Connect your entire workflow in seconds.
+          </h2>
+          <p
+            className="max-w-xl mx-auto text-sm"
+            style={{ color: "#5A5550", lineHeight: 1.7 }}
+          >
+            Stash Live connects directly to your favorite tools to project real-time metrics, documents, and logs without leaving your video feed.
+          </p>
+        </div>
+
+        {/* 3-Column Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 max-w-5xl mx-auto">
+          {[
+            {
+              id: "notion",
+              name: "Notion",
+              description: "Sync database records and active workspace tables.",
+              buttonStyle: "gray",
+              extraInfo: "*requires workspace access",
+              icon: (
+                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4.6 2h14.8c1.4 0 2.6 1.2 2.6 2.6v14.8c0 1.4-1.2 2.6-2.6 2.6H4.6C3.2 22 2 20.8 2 19.4V4.6C2 3.2 3.2 2 4.6 2zm1.6 3.6v12.8h2.3V7.2l5.6 9.2h2.3V5.6h-2.3v9.2L8.5 5.6H6.2z"/>
+                </svg>
+              ),
+            },
+            {
+              id: "airtable",
+              name: "Airtable",
+              description: "Pull live inventory databases and customer records.",
+              buttonStyle: "black",
+              extraInfo: "",
+              icon: (
+                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.5 2.23l9 4.88a1 1 0 0 1 .5.87v8.08a1 1 0 0 1-.5.87l-9 4.88a1 1 0 0 1-1 0l-9-4.88a1 1 0 0 1-.5-.87V7.98a1 1 0 0 1 .5-.87l9-4.88a1 1 0 0 1 1 0zM12 4.14L4.85 8 12 11.86 19.15 8 12 4.14zM3.5 10.05v5.82L10.5 19.7v-5.83l-7-3.82zm17 0l-7 3.82v5.83l7-3.83v-5.82z"/>
+                </svg>
+              ),
+            },
+            {
+              id: "google-drive",
+              name: "Google Drive",
+              description: "Embed presentation slides and active spreadsheet charts.",
+              buttonStyle: "gray",
+              extraInfo: "",
+              icon: (
+                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M15.2 2H8.8L2 13.8L5.2 19.3L12 7.5L18.8 19.3H22L15.2 2ZM9.4 14.8L6 20.8H18L21.4 14.8H9.4ZM3 13.8L8.2 20.8L11.6 14.8L6.4 7.8L3 13.8Z" />
+                </svg>
+              ),
+            },
+            {
+              id: "hubspot",
+              name: "HubSpot",
+              description: "Project pipeline metrics, deal statuses, and sales logs.",
+              buttonStyle: "black",
+              extraInfo: "*requires enterprise edition",
+              icon: (
+                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.88 12.35a3.86 3.86 0 0 0-3.13-2.14V7.58a3.11 3.11 0 1 0-1.5 0v2.63a3.86 3.86 0 0 0-2.31 1.7L7.33 9.47A3.11 3.11 0 1 0 6 10.74l4.63 2.45a3.86 3.86 0 1 0 6.64.91l4.08.77a1.55 1.55 0 1 0 .28-1.47zm-11.88-2.6a1.56 1.56 0 1 1 0-3.11 1.56 1.56 0 0 1 0 3.11zm7.75-5a1.56 1.56 0 1 1 0 3.11 1.56 1.56 0 0 1 0-3.11zm-2.75 9.75a2.31 2.31 0 1 1 2.31-2.31 2.31 2.31 0 0 1-2.31 2.31z"/>
+                </svg>
+              ),
+            },
+            {
+              id: "salesforce",
+              name: "Salesforce",
+              description: "Display live sales dashboards and customer growth stats.",
+              buttonStyle: "gray",
+              extraInfo: "",
+              icon: (
+                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.14 9.87A6.49 6.49 0 0 0 7.4 8.7a4.67 4.67 0 0 0-3.69 4.56 4.78 4.78 0 0 0 .19 1.34 4.19 4.19 0 0 0-1.6 3.32 4.29 4.29 0 0 0 4.29 4.29h12a3.81 3.81 0 0 0 .5-7.59 4 4 0 0 0 .35-4.75z"/>
+                </svg>
+              ),
+            },
+            {
+              id: "slack",
+              name: "Slack",
+              description: "Stream workspace channel alerts and live notifications.",
+              buttonStyle: "black",
+              extraInfo: "*requires workspace admin access",
+              icon: (
+                <svg className="w-6 h-6 text-[#1A1512]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5.04 15.12a2.52 2.52 0 1 1-2.52-2.52h2.52zm1.26 0a2.52 2.52 0 0 1 5.04 0v5.04a2.52 2.52 0 1 1-5.04 0zM8.88 5.04a2.52 2.52 0 1 1 2.52-2.52v2.52zm0 1.26a2.52 2.52 0 0 1 0 5.04H3.84a2.52 2.52 0 1 1 0-5.04zM18.96 8.88a2.52 2.52 0 1 1 2.52 2.52h-2.52zm-1.26 0a2.52 2.52 0 0 1-5.04 0V3.84a2.52 2.52 0 1 1 5.04 0zM15.12 18.96a2.52 2.52 0 1 1-2.52 2.52v-2.52zm0-1.26a2.52 2.52 0 0 1 0-5.04h5.04a2.52 2.52 0 1 1 0 5.04z"/>
+                </svg>
+              ),
+            },
+          ].map((app) => {
+            const isConnected = !!connectedApps[app.id];
+            return (
+              <div
+                key={app.id}
+                className="flex items-start gap-4 pb-8 border-b border-[rgba(26,21,18,0.06)]"
+              >
+                {/* Icon wrapper */}
+                <div
+                  className="flex items-center justify-center w-14 h-14 rounded-2xl bg-white border border-[rgba(26,21,18,0.06)] shadow-[0_4px_12px_rgba(26,21,18,0.02)] flex-shrink-0"
+                >
+                  {app.icon}
+                </div>
+
+                {/* Content info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm text-[#1A1512] leading-tight">
+                    {app.name}
+                  </h3>
+                  <p className="text-xs text-[#5A5550] mt-1 mb-3.5 leading-relaxed">
+                    {app.description}
+                  </p>
+                  
+                  {/* Button + Extra Info */}
+                  <div className="flex items-center flex-wrap gap-2.5">
+                    <button
+                      onClick={() =>
+                        setConnectedApps((prev) => ({
+                          ...prev,
+                          [app.id]: !prev[app.id],
+                        }))
+                      }
+                      className={`text-[9px] uppercase font-bold tracking-wider px-4 py-2 rounded-full transition-all duration-200 select-none ${
+                        isConnected
+                          ? "bg-[#fb8500] text-white border border-transparent shadow-[0_2px_8px_rgba(251,133,0,0.2)]"
+                          : app.buttonStyle === "black"
+                          ? "bg-[#1A1512] text-[#FBF9F6] border border-transparent hover:opacity-90"
+                          : "bg-[#F3F3F5] text-[#1A1512] border border-[rgba(26,21,18,0.1)] hover:bg-[#E4E4E6]"
+                      }`}
+                    >
+                      {isConnected ? "✓ Connected" : "Connect"}
+                    </button>
+                    {app.extraInfo && (
+                      <span className="text-[10px] text-[#A8A4A0] italic">
+                        {app.extraInfo}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* ─── FOOTER ─── */}
@@ -1660,15 +1847,22 @@ export default function App() {
 
         {/* Footer nav row */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 pb-8" style={{ borderBottom: "1px solid rgba(26,21,18,0.08)" }}>
-          <nav className="flex items-center gap-6">
-            {["about", "case studies"].map((item) => (
+          <nav className="flex flex-wrap items-center justify-center gap-6">
+            {navItems.map((item) => (
               <a
-                key={item}
-                href="#"
-                className="text-sm transition-opacity hover:opacity-60"
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = document.getElementById(item.id);
+                  if (el) {
+                    el.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+                className="text-sm transition-opacity hover:opacity-60 capitalize"
                 style={{ color: "#5A5550" }}
               >
-                {item}
+                {item.label}
               </a>
             ))}
           </nav>
@@ -1720,9 +1914,9 @@ export default function App() {
                   <div className="flex items-center gap-2">
                     <span
                       className="inline-block w-2 h-2 rounded-full"
-                      style={{ background: "#10B981" }}
+                      style={{ background: "#fb8500" }}
                     />
-                    <span className="text-sm text-[#10B981]">
+                    <span className="text-sm text-[#fb8500]">
                       system operational
                     </span>
                   </div>
@@ -1769,17 +1963,37 @@ export default function App() {
                 </div>
               ) : (
                 <ul className="space-y-2.5">
-                  {col.links.map((link) => (
-                    <li key={link}>
-                      <a
-                        href="#"
-                        className="text-sm transition-opacity hover:opacity-60"
-                        style={{ color: "#5A5550" }}
-                      >
-                        {link}
-                      </a>
-                    </li>
-                  ))}
+                  {col.links.map((link) => {
+                    const navItem = navItems.find((item) => item.label === link || item.id === link);
+                    return (
+                      <li key={link}>
+                        {navItem ? (
+                          <a
+                            href={`#${navItem.id}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const el = document.getElementById(navItem.id);
+                              if (el) {
+                                el.scrollIntoView({ behavior: "smooth" });
+                              }
+                            }}
+                            className="text-sm transition-opacity hover:opacity-60 capitalize"
+                            style={{ color: "#5A5550" }}
+                          >
+                            {navItem.label}
+                          </a>
+                        ) : (
+                          <a
+                            href="#"
+                            className="text-sm transition-opacity hover:opacity-60 capitalize"
+                            style={{ color: "#5A5550" }}
+                          >
+                            {link}
+                          </a>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

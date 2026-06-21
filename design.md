@@ -13,7 +13,7 @@
 * [cite_start]**Canvas Base Background:** `#FBF9F6` (Warm Alabaster / Antique Cream)[cite: 209].
 * [cite_start]**Primary Text & Solids:** `#1A1512` (Deep Espresso / Carbon Charcoal)[cite: 209].
 * [cite_start]**Overlay Glass Containers:** Semi-transparent Frosted Ivory Glass.
-* [cite_start]**System Success Accent:** `#10B981` (Pale Mint for telemetry and active logs)[cite: 171].
+* [cite_start]**System Success Accent:** `#fb8500` (Orange for telemetry and active logs)[cite: 171].
 
 ### 1.2 Typography Spectrum
 * [cite_start]**Display & Key Sections:** High-end display serif font (e.g., *Editorial New*, *Garamond*) with tight letter-spacing to establish a premium tone[cite: 210].
@@ -70,7 +70,7 @@ Interaction State: Micro-gestures act as active controller triggers—flicking a
 |  ===================================  |
 |  • Localized Encryption Architecture  | <--- Monospaced System Typography [cite: 126]
 |  • Active Node Syncing                |
-|  [ 94% Retention Boost ]              | <--- Pale Mint Accent Highlight [cite: 171]
+|  [ 94% Retention Boost ]              | <--- Orange Accent Highlight [cite: 171]
 +---------------------------------------+
 4. Modern Trend Additions & Guardrails
 
