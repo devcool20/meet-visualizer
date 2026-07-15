@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { Link } from "react-router";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import heroBg from "@/imports/hero.jpg";
 import orangeTexture from "@/imports/orange.jpg";
@@ -881,6 +882,32 @@ export default function App() {
                   </a>
                 );
               })}
+              {/* Docs route link — navigates to /docs instead of scrolling */}
+              <Link
+                to="/docs"
+                onMouseEnter={() => setHoveredNav("docs")}
+                onMouseLeave={() => setHoveredNav(null)}
+                className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
+                style={{
+                  color: hoveredNav === "docs" ? hoverColor : inactiveColor,
+                  letterSpacing: "0.01em",
+                }}
+              >
+                {hoveredNav === "docs" && (
+                  <motion.div
+                    layoutId="hover-pill"
+                    className={`absolute inset-0 rounded-full -z-10 ${
+                      isHeroFold ? "bg-white/10" : "bg-[rgba(26,21,18,0.06)]"
+                    }`}
+                    transition={
+                      reducedMotion
+                        ? { duration: 0.01 }
+                        : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
+                    }
+                  />
+                )}
+                <span className="relative z-10">docs</span>
+              </Link>
             </nav>
           </div>
 
@@ -935,6 +962,13 @@ export default function App() {
                   {item.label}
                 </a>
               ))}
+              <Link
+                to="/docs"
+                onClick={() => setIsMenuOpen(false)}
+                className="px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)]"
+              >
+                docs
+              </Link>
             </motion.div>
           )}
         </AnimatePresence>
