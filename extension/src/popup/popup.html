@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Stash Live</title>
+    <style>
+      body {
+        width: 280px;
+        margin: 0;
+        padding: 16px;
+        font-family: 'Inter', system-ui, sans-serif;
+        color: #1a1512;
+        background: #fbf9f6;
+      }
+      h1 {
+        font-size: 15px;
+        margin: 0 0 12px;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        font-size: 13px;
+      }
+      .pill {
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .pill.ok {
+        background: #05966922;
+        color: #059669;
+      }
+      .pill.warn {
+        background: #b4530922;
+        color: #b45309;
+      }
+      .pill.err {
+        background: #b91c1c22;
+        color: #b91c1c;
+      }
+      a.button,
+      button {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 8px 0;
+        border-radius: 8px;
+        border: none;
+        background: #1a1512;
+        color: #fff;
+        text-decoration: none;
+        font-size: 13px;
+        cursor: pointer;
+        margin-top: 8px;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Stash Live</h1>
+    <div id="signed-out" hidden>
+      <p style="font-size: 13px">Sign in to connect the extension to your account.</p>
+      <a class="button" id="sign-in-link" href="#" target="_blank" rel="noopener">Sign in</a>
+    </div>
+    <div id="signed-in" hidden>
+      <div class="row"><span>Connection</span><span id="conn-pill" class="pill"></span></div>
+      <div class="row"><span>Microphone</span><span id="mic-pill" class="pill"></span></div>
+      <div class="row"><span>Active cards</span><span id="card-count">0</span></div>
+      <div class="row">
+        <span>Enabled</span>
+        <input type="checkbox" id="master-toggle" checked />
+      </div>
+      <a class="button" id="dashboard-link" href="#" target="_blank" rel="noopener">Open dashboard</a>
+    </div>
+    <script type="module" src="./popup.ts"></script>
+  </body>
+</html>
