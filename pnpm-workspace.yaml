@@ -1,8 +1,12 @@
+# NOTE: npm workspaces (the "workspaces" field in package.json) is the
+# authoritative workspace manifest for this repo — it is what package-lock.json
+# and CI use. This file is kept only because Figma Make tooling reads
+# supportedArchitectures from it. Keep the package globs in sync with
+# package.json if you change either.
 packages:
   - '.'
   - 'packages/*'
   - 'engine'
-  - 'extension'
 supportedArchitectures:
   os:
     - linux

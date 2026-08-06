@@ -36,14 +36,18 @@ export const TYPE = {
   initials: { size: 15, weight: 600, lineHeight: 15 },
 } as const;
 
-// Every text style must survive 4:2:0 subsampling at 720p.
-for (const [name, style] of Object.entries(TYPE)) {
-  if (style.size < LEGIBILITY.MIN_EFFECTIVE_FONT_PX) {
-    throw new Error(
-      `Type style "${name}" is ${style.size}px, below the ${LEGIBILITY.MIN_EFFECTIVE_FONT_PX}px ` +
-        `compression floor. See tokens.ts LEGIBILITY.`,
-    );
-  }
+/**
+ * Every text style must survive 4:2:0 subsampling at 720p.
+ *
+ * This is checked by a unit test, deliberately NOT by a module-level throw:
+ * this module is evaluated in the MAIN world of the Meet page, and a throw at
+ * script-eval time there would take down the compositor that owns the user's
+ * outbound camera. A token regression must fail CI, never a live call (§3.7).
+ */
+export function findIllegibleTypeStyles(): string[] {
+  return Object.entries(TYPE)
+    .filter(([, style]) => style.size < LEGIBILITY.MIN_EFFECTIVE_FONT_PX)
+    .map(([name, style]) => `${name} (${style.size}px)`);
 }
 
 export const CHART = {
@@ -98,7 +102,13 @@ export const contentWidth = CARD.width - CARD.paddingX * 2;
  */
 export type TextMeasurer = (text: string, fontSize: number, weight: number, mono?: boolean) => number;
 
-/** Rough fallback used when no real measurer is available (tests, SSR). */
+/**
+ * Coarse width estimate for tests and SSR.
+ *
+ * Never used as a default: `blockHeight` and `layoutCard` require an explicit
+ * measurer so a renderer that forgets to pass its real one is a type error
+ * rather than a silent parity break between DOM and canvas text metrics.
+ */
 export const approximateMeasurer: TextMeasurer = (text, fontSize, _weight, mono) =>
   text.length * fontSize * (mono ? 0.6 : 0.52);
 
@@ -127,9 +137,62 @@ export function wrapText(
   return lines;
 }
 
+/** A single wrapped line with its y offset relative to the block's top. */
+export interface TextLine {
+  text: string;
+  y: number;
+}
+
+/**
+ * Lay out a stack of wrapped text runs (bullets or paragraphs).
+ *
+ * Both renderers call this rather than reimplementing the wrap-and-gap loop.
+ * The inter-run gap is applied BEFORE every run except the first; duplicating
+ * that conditional in two renderers is exactly the off-by-one that golden
+ * fixtures catch late and expensively.
+ */
+export function layoutTextRuns(
+  runs: string[],
+  width: number,
+  measure: TextMeasurer,
+  opts: { fontSize: number; weight: number; lineHeight: number; runGap: number; mono?: boolean },
+): { lines: TextLine[]; height: number } {
+  const lines: TextLine[] = [];
+  let y = 0;
+  runs.forEach((run, i) => {
+    if (i > 0) y += opts.runGap;
+    const wrapped = wrapText(run, width, opts.fontSize, opts.weight, measure, opts.mono);
+    for (const text of wrapped.length ? wrapped : ['']) {
+      lines.push({ text, y });
+      y += opts.lineHeight;
+    }
+  });
+  return { lines, height: y };
+}
+
+/** Bullet rows, indented past the bullet dot. */
+export function layoutBullets(items: string[], width: number, measure: TextMeasurer) {
+  return layoutTextRuns(items, width - BULLETS.dotGap, measure, {
+    fontSize: TYPE.body.size,
+    weight: TYPE.body.weight,
+    lineHeight: TYPE.body.lineHeight,
+    runGap: BULLETS.rowGap,
+  });
+}
+
+/** Body paragraphs at full content width. */
+export function layoutParagraphs(paragraphs: string[], width: number, measure: TextMeasurer) {
+  return layoutTextRuns(paragraphs, width, measure, {
+    fontSize: TYPE.body.size,
+    weight: TYPE.body.weight,
+    lineHeight: TYPE.body.lineHeight,
+    runGap: BULLETS.rowGap,
+  });
+}
+
 export function blockHeight(
   block: CardBlock,
-  measure: TextMeasurer = approximateMeasurer,
+  measure: TextMeasurer,
   width = contentWidth,
 ): number {
   switch (block.kind) {
@@ -150,25 +213,10 @@ export function blockHeight(
     }
     case 'status_list':
       return block.rows.length * STATUS_LIST.rowHeight;
-    case 'bullets': {
-      const textWidth = width - BULLETS.dotGap;
-      let h = 0;
-      block.items.forEach((item, i) => {
-        const lines = wrapText(item, textWidth, TYPE.body.size, TYPE.body.weight, measure);
-        h += Math.max(1, lines.length) * TYPE.body.lineHeight;
-        if (i > 0) h += BULLETS.rowGap;
-      });
-      return h;
-    }
-    case 'text': {
-      let h = 0;
-      block.paragraphs.forEach((p, i) => {
-        const lines = wrapText(p, width, TYPE.body.size, TYPE.body.weight, measure);
-        h += Math.max(1, lines.length) * TYPE.body.lineHeight;
-        if (i > 0) h += BULLETS.rowGap;
-      });
-      return h;
-    }
+    case 'bullets':
+      return layoutBullets(block.items, width, measure).height;
+    case 'text':
+      return layoutParagraphs(block.paragraphs, width, measure).height;
     case 'image': {
       const aspect = block.aspect ?? IMAGE.defaultAspect;
       return Math.min(width / aspect, IMAGE.maxHeight);
@@ -190,7 +238,7 @@ export interface CardLayout {
 }
 
 /** Compute the full card geometry. Deterministic given the same measurer. */
-export function layoutCard(spec: CardSpec, measure: TextMeasurer = approximateMeasurer): CardLayout {
+export function layoutCard(spec: CardSpec, measure: TextMeasurer): CardLayout {
   const headerHeight =
     TYPE.title.lineHeight + (spec.subtitle ? TYPE.subtitle.lineHeight : 0);
 
