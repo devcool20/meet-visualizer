@@ -1,14 +1,31 @@
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import { config } from '../config.js';
 
+/**
+ * Cache abstraction (plan §2.9: "keep ICache, namespace every key").
+ *
+ * The prototype namespaced keys globally as `notion:<anchor>` — a cross-tenant
+ * leak, since any user's session could read any other user's cached data by
+ * guessing the anchor. Every key that flows through this module (or the
+ * higher-level helpers below) MUST be namespaced `u:<userId>:...`. The
+ * `userKey` helper is the single place that enforces the prefix so call sites
+ * cannot forget it.
+ */
 export interface ICache {
   get(key: string): Promise<string | null>;
   set(key: string, value: string, ttlSeconds?: number): Promise<void>;
   exists(key: string): Promise<boolean>;
+  del(key: string): Promise<void>;
   flush(): Promise<void>;
 }
 
-class InMemoryCache implements ICache {
+/** Every cache key used by the engine must be built through this. */
+export function userKey(userId: string, ...parts: string[]): string {
+  if (!userId) throw new Error('userKey() requires a non-empty userId');
+  return `u:${userId}:${parts.join(':')}`;
+}
+
+export class InMemoryCache implements ICache {
   private store = new Map<string, { value: string; expiry?: number }>();
 
   async get(key: string): Promise<string | null> {
@@ -30,17 +47,20 @@ class InMemoryCache implements ICache {
     return (await this.get(key)) !== null;
   }
 
+  async del(key: string): Promise<void> {
+    this.store.delete(key);
+  }
+
   async flush(): Promise<void> {
     this.store.clear();
   }
 }
 
-class RedisCache implements ICache {
+export class RedisCache implements ICache {
   private client: Redis;
 
   constructor(url: string) {
     this.client = new Redis(url);
-    console.log('[Cache] Redis Cache initialized.');
   }
 
   async get(key: string): Promise<string | null> {
@@ -60,15 +80,18 @@ class RedisCache implements ICache {
     return res === 1;
   }
 
+  async del(key: string): Promise<void> {
+    await this.client.del(key);
+  }
+
   async flush(): Promise<void> {
     await this.client.flushall();
   }
 }
 
-export const cacheService: ICache = config.redisUrl
-  ? new RedisCache(config.redisUrl)
-  : new InMemoryCache();
-
-if (!config.redisUrl) {
-  console.log('[Cache] In-memory fallback Cache initialized.');
+export function createCache(): ICache {
+  if (config.redisUrl) return new RedisCache(config.redisUrl);
+  return new InMemoryCache();
 }
+
+export const cacheService: ICache = createCache();
