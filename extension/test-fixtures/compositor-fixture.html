@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Stash Live compositor fixture</title>
+  </head>
+  <body>
+    <!--
+      Local fixture page for the Playwright smoke test (plan §5.2).
+
+      This is NOT meet.google.com — prior sessions established this
+      extension cannot be exercised headlessly against a real Meet call in
+      this sandbox (Meet requires a live signed-in Google account and its
+      own WebRTC signaling, neither of which is available/permitted here).
+
+      What this page DOES let us prove, with `--use-fake-device-for-media-stream`:
+        1. `getUserMedia({video:true})` returns a stream whose video track
+           comes from a canvas (`captureStream`), not from the raw fake
+           camera device — i.e. the monkeypatch actually intercepted the
+           call and produced a DIFFERENT stream object.
+        2. Compositing a synthetic "card" region into that canvas produces
+           pixels at the expected placement that the raw camera stream does
+           not have — i.e. "a card lands where expected."
+
+      What it does NOT prove: that this works inside the real meet.google.com
+      page (CSP, Meet's own WebRTC pipeline, Meet's own effects pipeline,
+      focus/permissions quirks of a live call are all untested here), or that
+      remote participants actually receive the composited frames.
+    -->
+    <video id="raw-preview" autoplay playsinline muted style="display: none"></video>
+    <video id="composited-preview" autoplay playsinline muted style="display: none"></video>
+    <script>
+      // Captured BEFORE the compositor module (loaded below) installs its
+      // getUserMedia monkeypatch, so the Playwright test has a genuine,
+      // unpatched baseline to diff the composited stream against.
+      window.__originalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    </script>
+    <script type="module" src="./fixture.ts"></script>
+  </body>
+</html>
