@@ -24,7 +24,7 @@ export const CARD = {
 
 export const TYPE = {
   title: { size: 17, weight: 600, lineHeight: 22 },
-  subtitle: { size: 13, weight: 400, lineHeight: 18 },
+  subtitle: { size: 14, weight: 400, lineHeight: 18 },
   metricLabel: { size: 14, weight: 500, lineHeight: 18, tracking: 0.6 },
   metricValue: { size: 26, weight: 700, lineHeight: 30 },
   metricValueSmall: { size: 19, weight: 600, lineHeight: 24 },
