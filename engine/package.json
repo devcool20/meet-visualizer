@@ -1,7 +1,7 @@
 {
   "name": "stash-live-engine",
   "version": "2.0.0",
-  "description": "Stash Live backend engine — WebSocket trigger pipeline, Notion sync, device pairing.",
+  "description": "Stash Live backend engine \u2014 WebSocket trigger pipeline, Notion sync, device pairing.",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^2.9.0",

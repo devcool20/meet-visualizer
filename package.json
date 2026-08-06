@@ -8,7 +8,10 @@
     "dev": "vite",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:all": "npm run test && npm run test --workspace engine && npm run test --workspace extension",
+    "typecheck:all": "npm run typecheck && npm run typecheck --workspace engine && npm run typecheck --workspace extension",
+    "verify": "npm run typecheck:all && npm run test:all && npm run build"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
