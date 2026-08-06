@@ -45,6 +45,7 @@
     "@stash/card-core": "*",
     "@stash/card-react": "*",
     "@stash/card-spec": "*",
+    "@supabase/supabase-js": "^2.109.0",
     "canvas-confetti": "1.9.4",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",

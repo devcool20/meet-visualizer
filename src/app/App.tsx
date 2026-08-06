@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useAuth } from "@/app/auth/AuthContext";
+import { CHROME_WEB_STORE_URL } from "@/lib/extension";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import heroBg from "@/imports/hero.jpg";
 import orangeTexture from "@/imports/orange.jpg";
@@ -478,6 +480,8 @@ const navItems = [
 ];
 
 export default function App() {
+  const { status } = useAuth();
+  const navigate = useNavigate();
   const [inputVal, setInputVal] = useState("");
   const [activeCards, setActiveCards] = useState<typeof TRIGGER_MAP[string] | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -908,6 +912,34 @@ export default function App() {
                 )}
                 <span className="relative z-10">docs</span>
               </Link>
+              {/* Dashboard nav item — only shown once signed in */}
+              {status === "signed-in" && (
+                <Link
+                  to="/dashboard"
+                  onMouseEnter={() => setHoveredNav("dashboard")}
+                  onMouseLeave={() => setHoveredNav(null)}
+                  className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
+                  style={{
+                    color: hoveredNav === "dashboard" ? hoverColor : inactiveColor,
+                    letterSpacing: "0.01em",
+                  }}
+                >
+                  {hoveredNav === "dashboard" && (
+                    <motion.div
+                      layoutId="hover-pill"
+                      className={`absolute inset-0 rounded-full -z-10 ${
+                        isHeroFold ? "bg-white/10" : "bg-[rgba(26,21,18,0.06)]"
+                      }`}
+                      transition={
+                        reducedMotion
+                          ? { duration: 0.01 }
+                          : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
+                      }
+                    />
+                  )}
+                  <span className="relative z-10">dashboard</span>
+                </Link>
+              )}
             </nav>
           </div>
 
@@ -969,6 +1001,15 @@ export default function App() {
               >
                 docs
               </Link>
+              {status === "signed-in" && (
+                <Link
+                  to="/dashboard"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)]"
+                >
+                  dashboard
+                </Link>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1678,19 +1719,20 @@ export default function App() {
             
             <div className="mt-6 flex items-center gap-6">
               <button
+                onClick={() => navigate(status === "signed-in" ? "/dashboard" : "/signup")}
                 className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
                 style={{ background: "#1A1512", color: "#FBF9F6" }}
               >
-                Start Setup
+                {status === "signed-in" ? "Go to Dashboard" : "Start Setup"}
               </button>
-              <a
-                href="#"
+              <Link
+                to="/docs"
                 className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
                 style={{ color: "#5A5550" }}
               >
                 View Documentation
                 <span>→</span>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -1742,12 +1784,15 @@ export default function App() {
               </p>
             </div>
             <div className="mt-10 flex items-center gap-6">
-              <button
+              <a
+                href={CHROME_WEB_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
                 style={{ background: "#1A1512", color: "#FBF9F6" }}
               >
-                Book Live Demo
-              </button>
+                Add to Chrome
+              </a>
               <a
                 href="#"
                 className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
@@ -2167,16 +2212,19 @@ export default function App() {
           >
             Ready to integrate this into your team meetings?
           </h2>
-          <button 
-            className="px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 select-none hover:opacity-90 shadow-sm"
+          <a
+            href={CHROME_WEB_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 select-none hover:opacity-90 shadow-sm inline-block"
             style={{
               background: "#1A1512",
               color: "#FBF9F6",
               fontFamily: "'Inter', sans-serif"
             }}
           >
-            Book a Call
-          </button>
+            Add to Chrome
+          </a>
         </div>
 
         {/* Link grid */}

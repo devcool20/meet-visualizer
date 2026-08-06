@@ -1,35 +1,32 @@
-import * as React from "react";
-import { useState, useEffect, useRef, useMemo } from "react";
-import { motion, AnimatePresence, useScroll, useSpring } from "motion/react";
-import { Link } from "react-router";
+import { useEffect } from "react";
+import {
+  Code,
+  CodeBlock,
+  Prose,
+  Card,
+  Callout,
+  DocSectionBlock,
+  DocsPageShell,
+  type DocSection,
+} from "./docs/shared";
 
 /**
- * Stash Live — Documentation page (/docs)
+ * Stash Live — Developer / self-host documentation (/docs).
  *
- * A standalone, route-level page. It intentionally does NOT reuse the landing
- * page's scroll-spy navbar (which keys off landing-only section ids); instead it
- * renders its own route-aware glass header with dark-on-light text that matches
- * the editorial light-mode design language (design.md).
+ * Rewritten for the v2 architecture (plan §4.4): the old content described
+ * a single local `engine/` process on `localhost:5000` with a Puppeteer
+ * compositor and manually-loaded extension. That process no longer exists.
+ * This describes the real system: Supabase auth, a nonce-based device
+ * pairing handshake, a hosted engine (Express + WS + Postgres via Prisma),
+ * and a Manifest V3 Chrome extension that runs its own in-page canvas
+ * compositor — not a server-side one.
  */
-
-const EASE = [0.16, 1, 0.3, 1] as const;
-
-const SERIF = "'Cormorant Garamond', serif";
-const MONO = "'JetBrains Mono', monospace";
-
-// Palette (single source of truth — mirrors design.md tokens)
-const FG = "#1A1512"; // primary text
-const MUTED = "#5A5550"; // secondary text (AA-compliant on the cream canvas)
-const ACCENT = "#fb8500"; // orange accent
-
-type DocSection = { id: string; label: string };
 
 const SECTIONS: DocSection[] = [
   { id: "overview", label: "overview" },
   { id: "architecture", label: "architecture" },
   { id: "setup", label: "setup" },
   { id: "configuration", label: "configuration" },
-  { id: "usage", label: "usage" },
   { id: "protocol", label: "websocket protocol" },
   { id: "extension", label: "extension" },
   { id: "frontend", label: "frontend" },
@@ -37,831 +34,305 @@ const SECTIONS: DocSection[] = [
   { id: "troubleshooting", label: "troubleshooting" },
 ];
 
-const GLASS: React.CSSProperties = {
-  background: "rgba(255, 255, 255, 0.45)",
-  backdropFilter: "blur(20px) saturate(120%)",
-  WebkitBackdropFilter: "blur(20px) saturate(120%)",
-  border: "1px solid rgba(26,21,18,0.06)",
-  boxShadow: "0 8px 32px 0 rgba(26, 21, 18, 0.03)",
-};
-
-/* ─────────────────────────  small building blocks  ───────────────────────── */
-
-function Code({ children }: { children: React.ReactNode }) {
-  return (
-    <code
-      className="px-1.5 py-0.5 rounded-md text-[0.85em] align-baseline"
-      style={{ fontFamily: MONO, background: "rgba(26,21,18,0.05)", color: "#1A1512" }}
-    >
-      {children}
-    </code>
-  );
-}
-
-function CodeBlock({ children, lang = "bash" }: { children: string; lang?: string }) {
-  const [copied, setCopied] = useState(false);
-  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (copyTimer.current) clearTimeout(copyTimer.current);
-  }, []);
-  const copy = () => {
-    navigator.clipboard?.writeText(children).then(
-      () => {
-        setCopied(true);
-        if (copyTimer.current) clearTimeout(copyTimer.current);
-        copyTimer.current = setTimeout(() => setCopied(false), 1600);
-      },
-      () => {},
-    );
-  };
-  return (
-    <div className="rounded-2xl overflow-hidden my-5" style={GLASS}>
-      <div
-        className="flex items-center justify-between px-4 py-2.5"
-        style={{ borderBottom: "1px solid rgba(26,21,18,0.06)" }}
-      >
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(251,133,0,0.6)" }} />
-          <span className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(26,21,18,0.14)" }} />
-          <span className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(26,21,18,0.08)" }} />
-          <span className="ml-2 text-[11px] uppercase tracking-widest" style={{ color: MUTED, fontFamily: MONO }}>
-            {lang}
-          </span>
-        </div>
-        <button
-          onClick={copy}
-          className="text-[11px] px-2 py-1 rounded-md transition-colors hover:bg-[rgba(26,21,18,0.05)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fb8500]"
-          style={{ color: copied ? ACCENT : MUTED, fontFamily: MONO }}
-          aria-label={copied ? "Copied" : "Copy code"}
-        >
-          {copied ? "copied ✓" : "copy"}
-        </button>
-      </div>
-      <pre className="p-5 overflow-x-auto text-sm leading-relaxed" style={{ fontFamily: MONO, color: "#1A1512" }}>
-        <code>{children}</code>
-      </pre>
-    </div>
-  );
-}
-
-function Prose({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="space-y-4" style={{ color: "#5A5550", fontSize: "0.95rem", lineHeight: 1.8 }}>
-      {children}
-    </div>
-  );
-}
-
-function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-2xl p-6 my-5 ${className}`} style={GLASS}>
-      {children}
-    </div>
-  );
-}
-
-function Callout({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="rounded-2xl p-5 my-5 text-sm flex gap-3"
-      style={{
-        background: "rgba(251,133,0,0.06)",
-        border: "1px solid rgba(251,133,0,0.18)",
-        color: "#5A5550",
-        lineHeight: 1.75,
-      }}
-    >
-      <span
-        className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold"
-        style={{ background: "rgba(251,133,0,0.15)", color: "#fb8500" }}
-        aria-hidden
-      >
-        !
-      </span>
-      <div>{children}</div>
-    </div>
-  );
-}
-
-/** Scroll-reveal wrapper — respects reduced motion. */
-function Reveal({
-  children,
-  reducedMotion,
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  reducedMotion: boolean;
-  delay?: number;
-}) {
-  if (reducedMotion) return <>{children}</>;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.6, ease: EASE, delay }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function DocSectionBlock({
-  index,
-  id,
-  eyebrow,
-  title,
-  reducedMotion,
-  children,
-}: {
-  index: number;
-  id: string;
-  eyebrow: string;
-  title: string;
-  reducedMotion: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className="mb-24 scroll-mt-32">
-      <Reveal reducedMotion={reducedMotion}>
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-3">
-            <span
-              className="text-xs font-semibold tabular-nums"
-              style={{ fontFamily: MONO, color: "#fb8500" }}
-            >
-              {String(index).padStart(2, "0")}
-            </span>
-            <span className="h-px flex-1 max-w-[40px]" style={{ background: "rgba(251,133,0,0.35)" }} />
-            <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#fb8500" }}>
-              {eyebrow}
-            </p>
-          </div>
-          <h2
-            style={{
-              fontFamily: SERIF,
-              fontSize: "clamp(1.9rem, 3vw, 2.6rem)",
-              fontWeight: 300,
-              letterSpacing: "-0.02em",
-              color: "#1A1512",
-              lineHeight: 1.15,
-            }}
-          >
-            {title}
-          </h2>
-        </div>
-      </Reveal>
-      <Reveal reducedMotion={reducedMotion} delay={0.05}>
-        <div>{children}</div>
-      </Reveal>
-    </section>
-  );
-}
-
-/* ─────────────────────────  ambient background  ───────────────────────── */
-
-function AmbientBackground({ reducedMotion }: { reducedMotion: boolean }) {
-  const blobs = useMemo(
-    () => [
-      { top: "-10%", left: "-8%", size: 520, color: "rgba(251,133,0,0.10)", dur: 22 },
-      { top: "30%", right: "-12%", size: 620, color: "rgba(251,133,0,0.06)", dur: 28 },
-      { bottom: "-15%", left: "20%", size: 560, color: "rgba(26,21,18,0.035)", dur: 25 },
-    ],
-    [],
-  );
-  return (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden>
-      {/* faint grid */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(26,21,18,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(26,21,18,0.025) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-          maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%)",
-          WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%)",
-        }}
-      />
-      {/* drifting light blobs */}
-      {blobs.map((b, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            top: b.top,
-            left: b.left,
-            right: b.right,
-            bottom: b.bottom,
-            width: b.size,
-            height: b.size,
-            background: `radial-gradient(circle, ${b.color} 0%, transparent 70%)`,
-            filter: "blur(20px)",
-          }}
-          animate={
-            reducedMotion
-              ? undefined
-              : { x: [0, 30, -20, 0], y: [0, -25, 15, 0] }
-          }
-          transition={reducedMotion ? undefined : { duration: b.dur, repeat: Infinity, ease: "easeInOut" }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────  page  ───────────────────────────────── */
-
 export default function DocsPage() {
-  const [activeSection, setActiveSection] = useState<string>("overview");
-  const [reducedMotion, setReducedMotion] = useState(
-    () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
-  );
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isScrollingToRef = useRef<string | null>(null);
-
-  // Reading-progress bar.
-  const { scrollYProgress } = useScroll();
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.4 });
-
   useEffect(() => {
-    window.scrollTo(0, 0);
+    document.title = "Docs — Stash Live";
   }, []);
-
-  // Scroll-spy for the sidebar active state.
-  useEffect(() => {
-    const observers = SECTIONS.map(({ id }) => {
-      const el = document.getElementById(id);
-      if (!el) return null;
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting && !isScrollingToRef.current) setActiveSection(id);
-        },
-        { rootMargin: "-25% 0px -65% 0px", threshold: 0 },
-      );
-      observer.observe(el);
-      return { observer, el };
-    });
-    return () => observers.forEach((o) => o && o.observer.unobserve(o.el));
-  }, []);
-
-  const scrollTo = (id: string) => {
-    isScrollingToRef.current = id;
-    setActiveSection(id);
-    setIsMenuOpen(false);
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
-    setTimeout(() => {
-      if (isScrollingToRef.current === id) isScrollingToRef.current = null;
-    }, 800);
-  };
 
   return (
-    <div
-      className="min-h-screen w-full relative"
-      style={{ backgroundColor: "#FBF9F6", fontFamily: "'Inter', sans-serif", color: "#1A1512" }}
+    <DocsPageShell
+      routeLabel="docs"
+      badgeLabel="Developer docs · self-host & contribute"
+      heroTitle="Build with Stash Live."
+      heroDescription={
+        <>
+          How the system actually works end-to-end: Supabase auth, device pairing, the card
+          contract, the WebSocket protocol, and how to run the engine and extension locally.
+          For "how do I use the product," see the{" "}
+          <a href="/help" className="underline hover:opacity-70">
+            Help
+          </a>{" "}
+          page instead.
+        </>
+      }
+      quickJumpIds={["setup", "protocol", "extension", "troubleshooting"]}
+      sections={SECTIONS}
     >
-      <AmbientBackground reducedMotion={reducedMotion} />
-
-      {/* Reading progress bar */}
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-0.5 z-[60] origin-left"
-        style={{ scaleX: progress, background: "linear-gradient(90deg, #fb8500, rgba(251,133,0,0.4))" }}
-        aria-hidden
-      />
-
-      {/* ─── HEADER (route-aware, dark-on-light) ─── */}
-      <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl rounded-full z-50 px-4 py-2.5 md:px-8 md:py-3.5">
-        <div className="absolute inset-0 rounded-full -z-10 overflow-hidden" style={GLASS} />
-        <div className="flex items-center justify-between w-full relative">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsMenuOpen((v) => !v)}
-              className="md:hidden p-1.5 rounded-full hover:bg-[rgba(26,21,18,0.06)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fb8500] flex items-center justify-center z-50"
-              aria-label="Toggle docs menu"
-              aria-expanded={isMenuOpen}
-              aria-controls="docs-mobile-menu"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                className="w-5 h-5 text-[#1A1512]"
-                strokeWidth="2.2"
-              >
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-
-            <Link
-              to="/"
-              className="hidden md:flex items-center gap-2 px-3.5 py-1.5 text-sm rounded-full transition-colors font-medium hover:bg-[rgba(26,21,18,0.06)] group"
-              style={{ color: "#5A5550", letterSpacing: "0.01em" }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                className="w-4 h-4 motion-safe:transition-transform motion-safe:group-hover:-translate-x-0.5"
-                strokeWidth="2"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-              back home
-            </Link>
-
-            <span
-              className="text-sm px-3 py-1 rounded-full font-medium hidden md:inline"
-              style={{ background: "rgba(26,21,18,0.06)", color: "#1A1512" }}
-            >
-              docs
-            </span>
-          </div>
-
-          <div className="flex items-center pr-2 select-none">
-            <Link to="/" className="text-lg font-medium tracking-tight" style={{ fontFamily: SERIF, fontSize: "1.35rem", color: "#1A1512" }}>
-              Stash Live
-            </Link>
-          </div>
+      {/* Overview */}
+      <DocSectionBlock index={1} id="overview" eyebrow="Overview" title="What Stash Live is" reducedMotion={false}>
+        <Prose>
+          <p>
+            Stash Live composites glassmorphic data cards into a presenter's outbound webcam video
+            during a Google Meet call, triggered by what they say. Speech is transcribed in the
+            browser, matched against the user's cards, and the matching card is rendered onto a
+            transparent canvas that the extension weaves into the outbound video track — no
+            server-side video compositing, no virtual camera driver.
+          </p>
+          <p>The repository holds four parts:</p>
+        </Prose>
+        <div className="grid sm:grid-cols-2 gap-4 mt-6">
+          {[
+            { t: "engine/", d: "Express + WebSocket backend: Supabase-verified auth, device pairing, card CRUD, Notion OAuth + sync, and the trigger pipeline (Tier 1 phrase match → Tier 2 embedding fallback)." },
+            { t: "extension/", d: "A Manifest V3 Chrome extension. Its content script runs on meet.google.com AND on the product origin (for rehearsal), holds the authenticated WebSocket, and paints matched cards onto a canvas layered over the real camera track." },
+            { t: "packages/", d: "The shared contract: card-spec (zod-validated CardSpec + WS protocol types), card-core (layout math, tokens, fixtures), card-react (the DOM renderer used here and in the dashboard), card-canvas (the extension's canvas renderer)." },
+            { t: "src/ (this site)", d: "The marketing site, onboarding funnel, and dashboard — this Vite + React app." },
+          ].map((c) => (
+            <div key={c.t} className="rounded-2xl p-5 motion-safe:transition-transform motion-safe:hover:-translate-y-1">
+              <p className="mb-2 font-semibold text-sm" style={{ fontFamily: "'JetBrains Mono', monospace", color: "#1A1512" }}>
+                {c.t}
+              </p>
+              <p className="text-sm" style={{ color: "#5A5550", lineHeight: 1.7 }}>
+                {c.d}
+              </p>
+            </div>
+          ))}
         </div>
+        <Callout>
+          <strong style={{ color: "#1A1512" }}>Local dev needs no cloud credentials.</strong> Set{" "}
+          <Code>STASH_LOCAL=1</Code> (engine) and <Code>VITE_STASH_MOCK=1</Code> (frontend) and every
+          external dependency — Supabase auth, the datastore, Notion, the embedding provider —
+          runs against an in-memory mock with a seeded local dev user.
+        </Callout>
+      </DocSectionBlock>
 
-        {/* Mobile dropdown: section jump list */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              id="docs-mobile-menu"
-              initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="absolute top-[calc(100%+0.5rem)] left-0 right-0 rounded-2xl p-4 flex flex-col gap-1 md:hidden max-h-[70vh] overflow-y-auto"
-              style={GLASS}
-            >
-              <Link
-                to="/"
-                className="px-4 py-3 rounded-xl text-sm font-medium text-left text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)] transition-colors"
-              >
-                ← back home
-              </Link>
-              {SECTIONS.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => scrollTo(s.id)}
-                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left capitalize ${
-                    activeSection === s.id
-                      ? "bg-[rgba(26,21,18,0.06)] text-[#1A1512] font-semibold"
-                      : "text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)]"
-                  }`}
+      {/* Architecture */}
+      <DocSectionBlock index={2} id="architecture" eyebrow="Architecture" title="How a card gets on screen" reducedMotion={false}>
+        <Prose>
+          <p>
+            Once paired, the extension holds one authenticated WebSocket per active meeting tab.
+            Speech is transcribed locally (Web Speech API in the content script), debounced, and
+            sent as transcript deltas over the socket.
+          </p>
+        </Prose>
+        <Card>
+          <ol className="space-y-3 text-sm" style={{ color: "#5A5550", lineHeight: 1.7 }}>
+            {[
+              ["Transcript in", "Content script sends { t: 'transcript', text, final, ts } over the authenticated WS."],
+              ["Tier 1 match", "Token-boundary-aware phrase matching against the user's enabled cards — not naive substring or exact-equality."],
+              ["Tier 2 fallback", "If no Tier 1 hit, a cosine-similarity search over card embeddings covers paraphrases."],
+              ["Sensitivity gate", "The user's 3-stop sensitivity (certain / balanced / eager) maps to a { tFire, tDrop } pair; scores below tFire are suppressed."],
+              ["Cooldown", "Each card has its own cooldown so it can't refire on every mention of the same phrase."],
+              ["Server pushes { t: 'show', card, matchedPhrase, score }", "The extension looks up the CardSpec and renders it with card-canvas."],
+              ["Composite", "The rendered card is drawn onto a canvas layered over the real camera frame; canvas.captureStream() replaces the outbound video track."],
+            ].map(([k, v], i) => (
+              <li key={k} className="flex gap-3">
+                <span
+                  className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold"
+                  style={{ background: "rgba(251,133,0,0.12)", color: "#fb8500" }}
                 >
-                  {s.label}
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </header>
+                  {i + 1}
+                </span>
+                <span>
+                  <strong style={{ color: "#1A1512" }}>{k}.</strong> {v}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </Card>
+        <Callout>
+          <strong style={{ color: "#1A1512" }}>Renderer parity matters.</strong> The dashboard's live
+          previews (<Code>@stash/card-react</Code>'s <Code>GlassCard</Code>) and the extension's
+          in-meeting renderer (<Code>@stash/card-canvas</Code>) both consume the exact same{" "}
+          <Code>CardSpec</Code> and the same layout math from <Code>@stash/card-core</Code>, so what
+          you see in the editor is what appears on your video.
+        </Callout>
+      </DocSectionBlock>
 
-      {/* ─── HERO ─── */}
-      <section className="relative w-full pt-40 pb-16 px-6 sm:px-12 lg:px-20">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={reducedMotion ? { duration: 0.01 } : { duration: 0.6, ease: EASE }}
-          >
-            <div
-              className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full text-xs font-medium"
-              style={{ ...GLASS, color: "#5A5550" }}
-            >
-              <span className="relative flex h-2 w-2">
-                {!reducedMotion && (
-                  <span
-                    className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60"
-                    style={{ background: "#fb8500" }}
-                  />
-                )}
-                <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "#fb8500" }} />
-              </span>
-              Documentation · runs offline by default
-            </div>
-            <h1
-              className="mb-6 leading-tight"
-              style={{
-                fontFamily: SERIF,
-                fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-                fontWeight: 300,
-                letterSpacing: "-0.02em",
-                color: "#1A1512",
-              }}
-            >
-              Build with Stash Live.
-            </h1>
-            <p className="max-w-2xl" style={{ color: "#5A5550", fontSize: "1.05rem", lineHeight: 1.8 }}>
-              Everything you need to run the ambient presenter engine locally — from a first{" "}
-              <Code>npm run dev</Code> to the WebSocket protocol, the Chrome extension, and adding
-              your own overlay cards. These docs describe the system as it actually behaves, including
-              its local fallbacks when no cloud keys are configured.
-            </p>
+      {/* Setup */}
+      <DocSectionBlock index={3} id="setup" eyebrow="Setup" title="Install & run" reducedMotion={false}>
+        <Prose>
+          <p>You need Node.js 20+. Clone the repo, then from the root:</p>
+        </Prose>
+        <CodeBlock>{`git clone https://github.com/devcool20/meet-visualizer
+cd meet-visualizer
+npm install
+cp .env.example .env      # optional — defaults to mock mode with no backend
+npm run dev                # Vite dev server for the marketing site + dashboard`}</CodeBlock>
+        <Prose>
+          <p>To run the backend engine locally, from <Code>engine/</Code>:</p>
+        </Prose>
+        <CodeBlock>{`cd engine
+npm install
+cp .env.example .env       # set STASH_LOCAL=1 for zero-credential local dev
+npm run dev                 # tsx watch, serves the REST + WS API`}</CodeBlock>
+        <Prose>
+          <p>To load the Chrome extension unpacked, from <Code>extension/</Code>:</p>
+        </Prose>
+        <CodeBlock lang="steps">{`1. npm install && npm run build
+2. Open chrome://extensions
+3. Enable "Developer mode"
+4. "Load unpacked" → select extension/dist/ (or extension/, if unbuilt)`}</CodeBlock>
+      </DocSectionBlock>
 
-            {/* quick jump chips */}
-            <div className="mt-8 flex flex-wrap gap-2">
-              {["setup", "usage", "protocol", "troubleshooting"].map((id) => (
-                <button
-                  key={id}
-                  onClick={() => scrollTo(id)}
-                  className="px-4 py-2 rounded-full text-sm font-medium transition-colors motion-safe:transition-all motion-safe:hover:-translate-y-0.5"
-                  style={{ ...GLASS, color: FG }}
-                >
-                  <span className="capitalize">{id}</span>
-                </button>
+      {/* Configuration */}
+      <DocSectionBlock index={4} id="configuration" eyebrow="Configuration" title="Environment & tuning" reducedMotion={false}>
+        <Prose>
+          <p>
+            The engine reads configuration from <Code>engine/.env</Code>. With{" "}
+            <Code>STASH_LOCAL=1</Code>, every external dependency below falls back to an in-memory
+            mock automatically.
+          </p>
+        </Prose>
+        <div className="overflow-x-auto my-5 rounded-2xl">
+          <table className="w-full text-sm" style={{ color: "#5A5550" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid rgba(26,21,18,0.08)" }}>
+                <th className="text-left px-5 py-3 font-semibold" style={{ color: "#1A1512" }}>Variable</th>
+                <th className="text-left px-5 py-3 font-semibold" style={{ color: "#1A1512" }}>Default / Fallback</th>
+                <th className="text-left px-5 py-3 font-semibold" style={{ color: "#1A1512" }}>Purpose</th>
+              </tr>
+            </thead>
+            <tbody style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {[
+                ["STASH_LOCAL", "unset", "Set to 1 to force mock Supabase auth, mock Notion, mock embeddings, and an in-memory store."],
+                ["SUPABASE_URL / SUPABASE_ANON_KEY", "mock auth provider", "Real Supabase project for Google OAuth."],
+                ["DATABASE_URL", "in-memory store", "Postgres connection string for Prisma."],
+                ["NOTION_CLIENT_ID / NOTION_CLIENT_SECRET", "mock connector", "Notion OAuth app credentials."],
+                ["STASH_PRODUCT_ORIGIN", "https://meet-visualizer.vercel.app", "The origin the extension pairs against and the value in externally_connectable."],
+              ].map(([k, d, p]) => (
+                <tr key={k} style={{ borderBottom: "1px solid rgba(26,21,18,0.04)" }}>
+                  <td className="px-5 py-3" style={{ color: "#1A1512" }}>{k}</td>
+                  <td className="px-5 py-3">{d}</td>
+                  <td className="px-5 py-3" style={{ fontFamily: "'Inter', sans-serif" }}>{p}</td>
+                </tr>
               ))}
-            </div>
-          </motion.div>
+            </tbody>
+          </table>
         </div>
-      </section>
+        <Prose>
+          <p>
+            Sensitivity is never a raw number in configuration or UI — the three stops (
+            <Code>certain</Code> / <Code>balanced</Code> / <Code>eager</Code>) map to{" "}
+            <Code>{"{ tFire, tDrop }"}</Code> pairs in <Code>engine/src/config.ts</Code>'s{" "}
+            <Code>SENSITIVITY_THRESHOLDS</Code>, which are explicitly unset/hypothesis values pending
+            calibration — not tuned production thresholds.
+          </p>
+        </Prose>
+      </DocSectionBlock>
 
-      {/* ─── BODY: sidebar + content ─── */}
-      <div className="max-w-5xl mx-auto px-6 sm:px-12 lg:px-20 pb-24 grid lg:grid-cols-[220px_1fr] gap-12 relative">
-        {/* Sticky sidebar (desktop) */}
-        <aside className="hidden lg:block">
-          <div className="sticky top-32">
-            <p className="text-[11px] uppercase tracking-widest mb-4 font-semibold px-3" style={{ color: MUTED }}>
-              On this page
-            </p>
-            <nav className="flex flex-col gap-0.5">
-              {SECTIONS.map((s) => {
-                const isActive = activeSection === s.id;
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => scrollTo(s.id)}
-                    className="relative text-left pl-4 pr-3 py-2 rounded-lg text-sm transition-colors capitalize hover:bg-[rgba(26,21,18,0.03)]"
-                    style={{ color: isActive ? FG : MUTED, fontWeight: isActive ? 600 : 400 }}
-                  >
-                    {isActive && (
-                      <motion.span
-                        layoutId="docs-active-rule"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full"
-                        style={{ background: "#fb8500" }}
-                        transition={reducedMotion ? { duration: 0.01 } : { ease: EASE, duration: 0.4 }}
-                      />
-                    )}
-                    {s.label}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-        </aside>
+      {/* Protocol */}
+      <DocSectionBlock index={5} id="protocol" eyebrow="Reference" title="WebSocket protocol v2" reducedMotion={false}>
+        <Prose>
+          <p>
+            The extension connects with the device token obtained from pairing (
+            <Code>?token=&lt;deviceToken&gt;</Code>), not a cookie. Client → server messages:
+          </p>
+        </Prose>
+        <CodeBlock lang="ts">{`type ClientMsg =
+  | { t: 'hello'; token: string; client: string; version: string }
+  | { t: 'transcript'; text: string; final: boolean; ts: number }
+  | { t: 'dismiss'; cardId?: string }
+  | { t: 'ping' };`}</CodeBlock>
+        <Prose>
+          <p>Server → client:</p>
+        </Prose>
+        <CodeBlock lang="ts">{`type ServerMsg =
+  | { t: 'ready'; userId: string; cardCount: number }
+  | { t: 'config'; settings: UserSettings; token?: string }
+  | { t: 'prewarm'; card: CardSpec }
+  | { t: 'show'; card: CardSpec; matchedPhrase: string; score: number }
+  | { t: 'hide'; cardId: string }
+  | { t: 'invalidate'; cardIds: string[] }
+  | { t: 'error'; code: ServerErrorCode; message: string }
+  | { t: 'pong' };`}</CodeBlock>
+        <Prose>
+          <p>
+            Every message is validated with zod (<Code>@stash/card-spec</Code>'s{" "}
+            <Code>parseClientMsg</Code> / <Code>parseServerMsg</Code>) — malformed frames are
+            rejected, not trusted.
+          </p>
+        </Prose>
+      </DocSectionBlock>
 
-        {/* Content */}
-        <main className="min-w-0">
-          {/* Overview */}
-          <DocSectionBlock index={1} id="overview" eyebrow="Overview" title="What Stash Live is" reducedMotion={reducedMotion}>
-            <Prose>
-              <p>
-                Stash Live is a real-time, speech-triggered overlay engine for video calls. As you
-                speak, it identifies intent, looks up the matching data card, renders it on a
-                transparent canvas, and streams the frames into your outbound Google Meet webcam feed —
-                so context appears beside your shoulder while you keep eye contact.
+      {/* Extension */}
+      <DocSectionBlock index={6} id="extension" eyebrow="Chrome extension" title="Pairing & rendering" reducedMotion={false}>
+        <Prose>
+          <p>
+            Pairing is a silent, one-time handshake (plan §2.2): the dashboard requests a 60-second
+            single-use nonce from <Code>POST /api/extension/pairing-nonce</Code>, then calls{" "}
+            <Code>chrome.runtime.sendMessage(EXTENSION_ID, {"{ type: 'pair', nonce }"})</Code> via{" "}
+            <Code>externally_connectable</Code>. The extension's service worker exchanges the nonce
+            for a long-lived device token at <Code>POST /api/extension/pair</Code> (unauthenticated
+            — the nonce itself is the credential) and stores it in{" "}
+            <Code>chrome.storage.local</Code>. No cookie is ever involved, because Supabase's browser
+            session lives in the dashboard's <Code>localStorage</Code>, which the extension cannot
+            read.
+          </p>
+          <p>
+            The extension's content script runs on both <Code>meet.google.com</Code> and the product
+            origin (for rehearsal, see the Help page), holds the WS connection, and renders matched
+            cards with <Code>@stash/card-canvas</Code> onto a transparent canvas layered over the
+            real webcam frame before calling <Code>canvas.captureStream()</Code>.
+          </p>
+        </Prose>
+        <Callout>
+          <strong style={{ color: "#1A1512" }}>Canvas taint safety.</strong> Any image drawn onto the
+          compositing canvas is probed for cross-origin tainting before use; a tainted image is never
+          drawn to the real output canvas, because a tainted <Code>captureStream()</Code> throws{" "}
+          <Code>SecurityError</Code> and would break the user's camera for the rest of the call.
+        </Callout>
+      </DocSectionBlock>
+
+      {/* Frontend */}
+      <DocSectionBlock index={7} id="frontend" eyebrow="This site" title="The frontend" reducedMotion={false}>
+        <Prose>
+          <p>
+            React 18 + Vite + TypeScript, Tailwind v4, react-router v7, with the existing shadcn/ui
+            set in <Code>src/app/components/ui/</Code>. <Code>src/app/App.tsx</Code> is the landing
+            page; onboarding lives in <Code>src/app/onboarding/</Code> and <Code>src/app/auth/</Code>;
+            the dashboard lives in <Code>src/app/dashboard/</Code>, lazy-loaded behind a{" "}
+            <Code>ProtectedRoute</Code>. <Code>src/lib/api.ts</Code>, <Code>auth.ts</Code>, and{" "}
+            <Code>extension.ts</Code> hold the typed REST client, the Supabase wrapper, and the
+            extension pairing/presence logic respectively — all with a mock mode
+            (<Code>VITE_STASH_MOCK=1</Code>) that needs no backend at all.
+          </p>
+        </Prose>
+      </DocSectionBlock>
+
+      {/* Testing */}
+      <DocSectionBlock index={8} id="testing" eyebrow="Testing" title="Running the test suite" reducedMotion={false}>
+        <Prose>
+          <p>From the repository root, Vitest covers the frontend and shared packages:</p>
+        </Prose>
+        <CodeBlock>{`npm test`}</CodeBlock>
+        <Card>
+          <ul className="space-y-2 text-sm list-disc list-inside" style={{ color: "#5A5550", lineHeight: 1.7 }}>
+            <li>Routing / protected-route logic.</li>
+            <li>The pairing client state machine, including extension-absent and nonce-expired.</li>
+            <li>Sensitivity slider ↔ enum mapping.</li>
+            <li>The onboarding step machine.</li>
+            <li>Card library / editor components against the shared fixtures.</li>
+          </ul>
+        </Card>
+        <Prose>
+          <p>
+            <Code>engine/</Code> has its own Vitest suite (<Code>cd engine && npm test</Code>),
+            including a cross-tenant isolation test asserting every store method is scoped by{" "}
+            <Code>userId</Code>.
+          </p>
+        </Prose>
+      </DocSectionBlock>
+
+      {/* Troubleshooting */}
+      <DocSectionBlock index={9} id="troubleshooting" eyebrow="Troubleshooting" title="Common issues" reducedMotion={false}>
+        <div className="space-y-4">
+          {[
+            ["Extension shows \"not detected\"", "Confirm it's installed and enabled, and that EXTENSION_ID in src/lib/extension.ts still matches extension/src/shared/constants.ts's DEV_EXTENSION_ID — they're kept in sync by hand, not by import, since the two are separate build targets."],
+            ["Pairing fails with an expired-nonce error", "Nonces are single-use and expire after 60 seconds. Request a fresh one — this is expected if pairing was interrupted (e.g. by the Chrome Web Store install flow taking longer than a minute)."],
+            ["Everything is running in mock mode unexpectedly", "Check VITE_STASH_MOCK and VITE_SUPABASE_URL in your .env — mock mode is the default whenever VITE_SUPABASE_URL is unset."],
+            ["NotReadableError requesting camera/mic", "Another app or tab is holding the device. Close it and retry — this is surfaced explicitly in the rehearsal flow."],
+            ["Cards not firing in a real meeting but firing in rehearsal", "Rehearsal runs the identical extension pipeline against the product origin, so a real discrepancy usually means the device token expired or was revoked — check Settings → Devices."],
+          ].map(([q, a]) => (
+            <div key={q} className="rounded-2xl p-5 motion-safe:transition-transform motion-safe:hover:-translate-y-0.5">
+              <p className="font-semibold text-sm mb-2 flex items-center gap-2" style={{ color: "#1A1512" }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#fb8500" }} />
+                {q}
               </p>
-              <p>The repository holds three parts:</p>
-            </Prose>
-            <div className="grid sm:grid-cols-3 gap-4 mt-6">
-              {[
-                { t: "engine/", d: "The backend orchestrator — Express + WebSocket server, Gemini intent parsing, Notion-backed cache, and a headless Puppeteer compositor that streams PNG overlay frames." },
-                { t: "engine/extension/", d: "A Manifest V3 Chrome extension that composites the engine's overlay frames onto the Meet webcam stream." },
-                { t: "src/ (this site)", d: "The marketing/landing showcase (React + Vite). It is standalone and does not talk to the engine." },
-              ].map((c) => (
-                <div key={c.t} className="rounded-2xl p-5 motion-safe:transition-transform motion-safe:hover:-translate-y-1" style={GLASS}>
-                  <p className="mb-2 font-semibold text-sm" style={{ fontFamily: MONO, color: "#1A1512" }}>
-                    {c.t}
-                  </p>
-                  <p className="text-sm" style={{ color: "#5A5550", lineHeight: 1.7 }}>
-                    {c.d}
-                  </p>
-                </div>
-              ))}
+              <p className="text-sm pl-3.5" style={{ color: "#5A5550", lineHeight: 1.7 }}>{a}</p>
             </div>
-            <Callout>
-              <strong style={{ color: "#1A1512" }}>Runs offline by default.</strong> Every external
-              dependency has a local fallback: with no <Code>GEMINI_API_KEY</Code> the engine uses a
-              local keyword simulator; with no <Code>NOTION_API_KEY</Code> it loads three built-in mock
-              rows; with no <Code>REDIS_URL</Code> it uses an in-memory cache. You can run the full demo
-              with zero credentials.
-            </Callout>
-          </DocSectionBlock>
-
-          {/* Architecture */}
-          <DocSectionBlock index={2} id="architecture" eyebrow="Architecture" title="How a card gets on screen" reducedMotion={reducedMotion}>
-            <Prose>
-              <p>
-                A single trigger flows through the engine as a pipeline. Speech text arrives over the
-                WebSocket, Gemini (or the local simulator) decides whether an overlay should fire and
-                which data anchor it maps to, a confidence gate filters weak matches, the cache resolves
-                the anchor's payload, and the compositor renders and streams frames.
-              </p>
-            </Prose>
-            <Card>
-              <ol className="space-y-3 text-sm" style={{ color: "#5A5550", lineHeight: 1.7 }}>
-                {[
-                  ["Speech in", "Dashboard or a WS client sends { type: 'speech', text }."],
-                  ["Intent parse", "GeminiService keeps a rolling transcript, pre-warms on keywords, and returns a structured intent (type + anchor + confidence)."],
-                  ["Confidence gate", "Anchors scoring below 0.88, or anchors missing from the cache, are suppressed."],
-                  ["Cache lookup", "The anchor key resolves to its payload (Redis or in-memory), seeded from Notion on boot."],
-                  ["Compose", "The Puppeteer compositor renders a transparent 1280×720 card and screenshots it on a frame loop."],
-                  ["Stream", "PNG frame buffers + { type: 'log' } messages are broadcast to every WS client."],
-                  ["Composite", "The extension paints those frames onto the Meet webcam canvas."],
-                ].map(([k, v], i) => (
-                  <li key={k} className="flex gap-3">
-                    <span
-                      className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold"
-                      style={{ background: "rgba(251,133,0,0.12)", color: "#fb8500" }}
-                    >
-                      {i + 1}
-                    </span>
-                    <span>
-                      <strong style={{ color: "#1A1512" }}>{k}.</strong> {v}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </Card>
-            <Callout>
-              <strong style={{ color: "#1A1512" }}>Note:</strong> the <Code>gmeet.ts</Code> proxy
-              service exists in the codebase but is experimental and not wired into the server — it does
-              not consume the streamed frames. The extension is the supported path into Meet.
-            </Callout>
-          </DocSectionBlock>
-
-          {/* Setup */}
-          <DocSectionBlock index={3} id="setup" eyebrow="Setup" title="Install & run" reducedMotion={reducedMotion}>
-            <Prose>
-              <p>
-                You need Node.js 20+ and Chrome. The engine bundles Chromium via Puppeteer; on Linux you
-                may need the usual shared libraries (see Troubleshooting).
-              </p>
-              <p>Clone the repo, then start the engine:</p>
-            </Prose>
-            <CodeBlock>{`git clone https://github.com/devcool20/meet-visualizer
-cd meet-visualizer/engine
-npm install
-cp .env.example .env   # optional — runs in simulation mode without it
-npm run dev            # tsx watch, serves the dashboard on :5000`}</CodeBlock>
-            <Prose>
-              <p>Engine scripts:</p>
-            </Prose>
-            <Card>
-              <ul className="space-y-2 text-sm" style={{ color: "#5A5550", lineHeight: 1.7 }}>
-                <li><Code>npm run dev</Code> — watch mode via <Code>tsx</Code>.</li>
-                <li><Code>npm run build</Code> — compile TypeScript to <Code>dist/</Code>.</li>
-                <li><Code>npm start</Code> — run the compiled server (<Code>node dist/index.js</Code>).</li>
-                <li><Code>npm test</Code> — run the pipeline test harness.</li>
-              </ul>
-            </Card>
-            <Prose>
-              <p>To run this landing site locally, from the repository root:</p>
-            </Prose>
-            <CodeBlock>{`cd meet-visualizer
-npm install
-npm run dev   # Vite dev server`}</CodeBlock>
-          </DocSectionBlock>
-
-          {/* Configuration */}
-          <DocSectionBlock index={4} id="configuration" eyebrow="Configuration" title="Environment & tuning" reducedMotion={reducedMotion}>
-            <Prose>
-              <p>
-                The engine reads configuration from <Code>engine/.env</Code>. Every variable is
-                optional — leave it unset to use the local fallback.
-              </p>
-            </Prose>
-            <div className="overflow-x-auto my-5 rounded-2xl" style={GLASS}>
-              <table className="w-full text-sm" style={{ color: "#5A5550" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(26,21,18,0.08)" }}>
-                    <th className="text-left px-5 py-3 font-semibold" style={{ color: "#1A1512" }}>Variable</th>
-                    <th className="text-left px-5 py-3 font-semibold" style={{ color: "#1A1512" }}>Default / Fallback</th>
-                    <th className="text-left px-5 py-3 font-semibold" style={{ color: "#1A1512" }}>Purpose</th>
-                  </tr>
-                </thead>
-                <tbody style={{ fontFamily: MONO }}>
-                  {[
-                    ["PORT", "5000", "HTTP + WebSocket port."],
-                    ["GEMINI_API_KEY", "local simulator", "Enables gemini-1.5-flash intent parsing."],
-                    ["NOTION_API_KEY", "3 mock rows", "Enables live Notion database sync."],
-                    ["NOTION_DATABASE_ID", "—", "The Notion database to pull cards from."],
-                    ["REDIS_URL", "in-memory cache", "Backing store for the anchor cache."],
-                  ].map(([k, d, p]) => (
-                    <tr key={k} style={{ borderBottom: "1px solid rgba(26,21,18,0.04)" }}>
-                      <td className="px-5 py-3" style={{ color: "#1A1512" }}>{k}</td>
-                      <td className="px-5 py-3">{d}</td>
-                      <td className="px-5 py-3" style={{ fontFamily: "'Inter', sans-serif" }}>{p}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <Prose>
-              <p>
-                Other tunables live in code: the confidence gate is <Code>0.88</Code>
-                {" "}(<Code>config.confidenceThreshold</Code>), the compositor renders a 1280×720 transparent
-                canvas at 30fps during ~800ms transitions and 1fps when idle, and the built-in anchors
-                are <Code>q2_financials</Code> (graph), <Code>sys_architecture_v2</Code> (image), and{" "}
-                <Code>security_compliance</Code> (text_card).
-              </p>
-            </Prose>
-          </DocSectionBlock>
-
-          {/* Usage */}
-          <DocSectionBlock index={5} id="usage" eyebrow="Usage" title="Driving the engine" reducedMotion={reducedMotion}>
-            <Prose>
-              <p>
-                <strong style={{ color: "#1A1512" }}>Dashboard.</strong> With the engine running, open{" "}
-                <Code>http://localhost:5000</Code>. The Ambient Control Console has sample trigger
-                buttons, a live-mic input (Web Speech API), a dismiss button, a static hot-cache
-                explorer, a mock presenter canvas, and a live pipeline log stream. Click a trigger and
-                watch the card render.
-              </p>
-              <p>
-                <strong style={{ color: "#1A1512" }}>Real Meet, via the extension.</strong> Load the
-                unpacked extension, join a Meet, and keep your <em>normal</em> webcam selected — there
-                is no separate virtual-camera device. Then drive triggers from a separate source (the
-                dashboard buttons, the dashboard mic, or a manual WS client). The extension composites
-                the resulting frames onto your outbound video.
-              </p>
-            </Prose>
-            <Callout>
-              Speaking <em>inside Meet</em> does not itself trigger overlays. The extension is a frame
-              consumer; the transcript that fires cards comes from whatever WS client you use to send{" "}
-              <Code>{"{ type: 'speech', text }"}</Code>.
-            </Callout>
-          </DocSectionBlock>
-
-          {/* Protocol */}
-          <DocSectionBlock index={6} id="protocol" eyebrow="Reference" title="WebSocket protocol" reducedMotion={reducedMotion}>
-            <Prose>
-              <p>
-                The dashboard connects to <Code>ws://{"{window.location.host}"}</Code> (so it follows{" "}
-                <Code>PORT</Code>); the extension hardcodes <Code>ws://localhost:5000</Code>. If you
-                change <Code>PORT</Code>, update <Code>engine/extension/inject.js</Code> too.
-              </p>
-              <p>Client → server messages are JSON:</p>
-            </Prose>
-            <CodeBlock lang="json">{`{ "type": "speech", "text": "our q2 revenue was strong" }
-{ "type": "dismiss" }`}</CodeBlock>
-            <Prose>
-              <p>Server → client is a mix of JSON log lines and raw binary PNG frames:</p>
-            </Prose>
-            <CodeBlock lang="json">{`{ "type": "log", "source": "gemini", "text": "intent: graph @ 0.94" }
-<binary PNG frame buffer>   // one per compositor tick`}</CodeBlock>
-            <Prose>
-              <p>
-                A client distinguishes the two by message type: string/JSON payloads are log events;
-                binary payloads are overlay frames to paint.
-              </p>
-            </Prose>
-          </DocSectionBlock>
-
-          {/* Extension */}
-          <DocSectionBlock index={7} id="extension" eyebrow="Chrome extension" title="Stash Live GMeet Interceptor" reducedMotion={reducedMotion}>
-            <Prose>
-              <p>
-                The Manifest V3 extension injects <Code>inject.js</Code> into <Code>meet.google.com</Code>
-                . That script monkeypatches <Code>navigator.mediaDevices.getUserMedia</Code>, composites
-                the engine's streamed PNG frames onto a canvas, and exposes{" "}
-                <Code>canvas.captureStream(30)</Code> as the webcam.
-              </p>
-              <p>Load it unpacked:</p>
-            </Prose>
-            <CodeBlock lang="steps">{`1. Open chrome://extensions
-2. Enable "Developer mode"
-3. "Load unpacked" → select engine/extension/
-4. Ensure the engine is running on port 5000`}</CodeBlock>
-            <Callout>
-              The extension is a compositor, not a speech client and not a virtual-camera driver. It
-              does not create a selectable camera device and does not capture Meet audio. Overlays only
-              appear when a separate trigger source is driving the engine.
-            </Callout>
-          </DocSectionBlock>
-
-          {/* Frontend */}
-          <DocSectionBlock index={8} id="frontend" eyebrow="This site" title="The landing frontend" reducedMotion={reducedMotion}>
-            <Prose>
-              <p>
-                The page you're reading lives in <Code>src/</Code>: React 18 + Vite 6 + TypeScript,
-                Tailwind v4, and Framer Motion, with a shadcn/ui component set. It's a standalone
-                showcase — the interactive hero demo is entirely client-side (a local keyword map) and
-                does not connect to the engine.
-              </p>
-              <p>
-                The entry chain is <Code>index.html</Code> → <Code>src/main.tsx</Code> →{" "}
-                <Code>src/app/App.tsx</Code> for the landing route, with this page at{" "}
-                <Code>src/app/DocsPage.tsx</Code> mounted at <Code>/docs</Code>. Design tokens live in{" "}
-                <Code>src/styles/</Code> and <Code>design.md</Code>.
-              </p>
-            </Prose>
-          </DocSectionBlock>
-
-          {/* Testing */}
-          <DocSectionBlock index={9} id="testing" eyebrow="Testing" title="The pipeline harness" reducedMotion={reducedMotion}>
-            <Prose>
-              <p>
-                From <Code>engine/</Code>, run <Code>npm test</Code>. It runs a manual harness (not a
-                framework) that exercises four checks:
-              </p>
-            </Prose>
-            <Card>
-              <ol className="space-y-2 text-sm list-decimal list-inside" style={{ color: "#5A5550", lineHeight: 1.7 }}>
-                <li>Cache set/get round-trips.</li>
-                <li>Notion sync populates the expected anchor keys.</li>
-                <li>Gemini intent parsing + pre-warm fires on a matching transcript.</li>
-                <li>Low-confidence intents are suppressed by the gate.</li>
-              </ol>
-            </Card>
-            <Prose>
-              <p>It runs in simulation mode without any API keys, so it works out of the box.</p>
-            </Prose>
-          </DocSectionBlock>
-
-          {/* Troubleshooting */}
-          <DocSectionBlock index={10} id="troubleshooting" eyebrow="Troubleshooting" title="Common issues" reducedMotion={reducedMotion}>
-            <div className="space-y-4">
-              {[
-                ["Puppeteer fails to launch on Linux", "Install the Chromium shared libraries, and pass --no-sandbox if running as root. This affects both the compositor and the gmeet proxy."],
-                ["Everything is \"mock\" / \"simulated\"", "Expected with no API keys. Check the boot logs to see which mode is active — set GEMINI_API_KEY and NOTION_API_KEY to go live."],
-                ["Redis errors on boot", "A set REDIS_URL is used directly with no automatic fallback. If it's unreachable you'll see connection errors — unset REDIS_URL to force the in-memory cache."],
-                ["Extension won't connect", "It hardcodes ws://localhost:5000. Confirm the engine is running on port 5000; if you changed PORT, edit engine/extension/inject.js."],
-                ["No overlay in Meet", "Confirm the engine is running, the extension is loaded, and a trigger source is actively driving the engine — the extension itself does not trigger cards."],
-              ].map(([q, a]) => (
-                <div key={q} className="rounded-2xl p-5 motion-safe:transition-transform motion-safe:hover:-translate-y-0.5" style={GLASS}>
-                  <p className="font-semibold text-sm mb-2 flex items-center gap-2" style={{ color: "#1A1512" }}>
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#fb8500" }} />
-                    {q}
-                  </p>
-                  <p className="text-sm pl-3.5" style={{ color: "#5A5550", lineHeight: 1.7 }}>{a}</p>
-                </div>
-              ))}
-            </div>
-          </DocSectionBlock>
-
-          <Reveal reducedMotion={reducedMotion}>
-            <div
-              className="rounded-3xl p-8 sm:p-10 mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6"
-              style={GLASS}
-            >
-              <div>
-                <p style={{ fontFamily: SERIF, fontSize: "1.6rem", fontWeight: 300, color: "#1A1512", letterSpacing: "-0.01em" }}>
-                  Ready to present with presence?
-                </p>
-                <p className="text-sm mt-1" style={{ color: "#5A5550" }}>
-                  Head back and try the live demo on the landing page.
-                </p>
-              </div>
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80 whitespace-nowrap self-start sm:self-auto"
-                style={{ background: "#1A1512", color: "#FBF9F6" }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Stash Live
-              </Link>
-            </div>
-          </Reveal>
-        </main>
-      </div>
-
-      {/* Reduced-motion toggle (footer, mirrors landing page) */}
-      <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 px-3 py-2 rounded-full" style={GLASS}>
-        <button
-          onClick={() => setReducedMotion((v) => !v)}
-          className="relative inline-flex items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fb8500]"
-          style={{ width: "36px", height: "20px", background: reducedMotion ? "#1A1512" : "rgba(26,21,18,0.15)", flexShrink: 0 }}
-          aria-label="Toggle reduced motion"
-          role="switch"
-          aria-checked={reducedMotion}
-        >
-          <span
-            className="absolute rounded-full transition-transform"
-            style={{
-              width: "14px",
-              height: "14px",
-              background: "#FBF9F6",
-              top: "3px",
-              left: "3px",
-              transform: reducedMotion ? "translateX(16px)" : "translateX(0)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-            }}
-          />
-        </button>
-        <span className="text-[10px]" style={{ color: "#5A5550" }}>{reducedMotion ? "motion off" : "motion on"}</span>
-      </div>
-    </div>
+          ))}
+        </div>
+      </DocSectionBlock>
+    </DocsPageShell>
   );
 }
