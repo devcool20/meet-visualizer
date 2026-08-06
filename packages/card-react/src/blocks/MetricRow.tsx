@@ -6,8 +6,13 @@ export function MetricRow({ block, theme }: { block: { items: MetricItem[] }; th
     <div style={{ display: 'flex', gap: 12, height: '100%' }}>
       {block.items.map((item, i) => {
         const valueStyle = item.emphasis ? TYPE.metricValue : TYPE.metricValueSmall;
-        const deltaColor =
-          item.delta?.direction === 'down' ? theme.text : theme.accent;
+        // Delta text renders at TYPE.delta.size (14px), below
+        // LEGIBILITY.TEXT_ACCENT_MIN_PX (20px) — accent is reserved for fills,
+        // bars and dots at this size (card-core/tokens.ts), never small text,
+        // because #fb8500 on white has almost no luminance contrast and
+        // smears under 4:2:0 chroma subsampling. Use the neutral text colour
+        // instead; the glyph (↑/↓/→) already carries the direction.
+        const deltaColor = theme.text;
         return (
           <div
             key={i}
