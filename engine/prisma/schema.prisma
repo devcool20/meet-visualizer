@@ -1,0 +1,104 @@
+// Stash Live engine datastore (plan §2.1).
+//
+// RLS caveat: Supabase row-level security does NOT apply to queries made over
+// this direct Prisma connection (a privileged Postgres connection string, not
+// the Supabase client/PostgREST). RLS is therefore NOT the tenant boundary for
+// anything in this codebase -- every repository function in src/db/ scopes by
+// userId explicitly, and test/cross-tenant.test.ts asserts that scoping holds.
+// RLS policies are still worth adding for any future direct Supabase-client
+// access path, but they are defence in depth, not the boundary itself.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+model User {
+  id          String       @id // = Supabase auth user id
+  email       String       @unique
+  name        String?
+  createdAt   DateTime     @default(now())
+  settings    Json
+  connections Connection[]
+  cards       Card[]
+  devices     Device[]
+}
+
+model Connection {
+  id              String    @id @default(cuid())
+  userId          String
+  provider        String // 'notion'
+  accessToken     String // AES-256-GCM encrypted
+  refreshToken    String? // Notion OAuth supports refresh + rotation
+  tokenExpiresAt  DateTime?
+  workspaceId     String
+  workspaceName   String
+  selectedSources Json // data-source ids, not database ids
+  lastSyncedAt    DateTime?
+  syncError       String?
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider, workspaceId])
+}
+
+model Card {
+  id                  String    @id @default(cuid())
+  userId              String
+  title               String
+  spec                Json // CardSpec — @stash/card-spec
+  phrases             String[]
+  phrasesEditedByUser Boolean   @default(false) // resync must not clobber
+  embedding           Unsupported("vector(768)")?
+  status              String    @default("approved") // 'draft' | 'approved'
+  approvedAt          DateTime?
+  revision            Int       @default(1) // cache invalidation
+  enabled             Boolean   @default(true)
+  source              String // 'sample' | 'notion'
+  sourceRef           String?
+  sourceRevision      String? // Notion last_edited_time
+  cooldownMs          Int       @default(120000)
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, enabled, status])
+}
+
+model Device {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique
+  label      String
+  lastSeenAt DateTime?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PairingNonce {
+  id         String    @id @default(cuid())
+  userId     String
+  nonceHash  String    @unique
+  expiresAt  DateTime // 60 seconds
+  consumedAt DateTime?
+}
+
+model ActivityEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  sessionId String
+  kind      String // 'fired' | 'near_miss' | 'suppressed_cooldown'
+  cardId    String?
+  score     Float?
+  snippet   String? // ONLY when user has opted in — §2.7
+  createdAt DateTime @default(now())
+  expiresAt DateTime // TTL sweep
+
+  @@index([userId, sessionId])
+}
