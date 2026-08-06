@@ -7,7 +7,7 @@ import react from '@vitejs/plugin-react'
 function figmaAssetResolver() {
   return {
     name: 'figma-asset-resolver',
-    resolveId(id) {
+    resolveId(id: string) {
       if (id.startsWith('figma:asset/')) {
         const filename = id.replace('figma:asset/', '')
         return path.resolve(__dirname, 'src/assets', filename)
@@ -28,6 +28,10 @@ export default defineConfig({
     alias: {
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
+      // Shared card contract + renderers (see packages/)
+      '@stash/card-spec': path.resolve(__dirname, './packages/card-spec/src/index.ts'),
+      '@stash/card-core': path.resolve(__dirname, './packages/card-core/src/index.ts'),
+      '@stash/card-react': path.resolve(__dirname, './packages/card-react/src/index.ts'),
     },
   },
 

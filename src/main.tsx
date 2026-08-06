@@ -1,8 +1,8 @@
 
   import { createRoot } from "react-dom/client";
   import { BrowserRouter, Routes, Route } from "react-router";
-  import App from "./app/App.tsx";
-  import DocsPage from "./app/DocsPage.tsx";
+  import App from "./app/App";
+  import DocsPage from "./app/DocsPage";
   import "./styles/index.css";
 
   createRoot(document.getElementById("root")!).render(

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": ["vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@stash/card-spec": ["./packages/card-spec/src/index.ts"],
+      "@stash/card-core": ["./packages/card-core/src/index.ts"],
+      "@stash/card-react": ["./packages/card-react/src/index.ts"],
+      "@stash/card-canvas": ["./packages/card-canvas/src/index.ts"]
+    }
+  },
+  "include": ["src", "packages/*/src", "packages/*/test", "vite.config.ts", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist", "engine", "extension"]
+}

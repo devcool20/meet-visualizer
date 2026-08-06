@@ -1,5 +1,8 @@
 packages:
   - '.'
+  - 'packages/*'
+  - 'engine'
+  - 'extension'
 supportedArchitectures:
   os:
     - linux

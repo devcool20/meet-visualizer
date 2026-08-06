@@ -1,2 +1,13 @@
 node_modules
 vite.config.local.ts
+
+# Build output
+dist
+engine/dist
+extension/.output
+extension/dist
+
+# Local env
+.env
+.env.local
+engine/.env

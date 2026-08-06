@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, type Variants } from "motion/react";
 import { Link } from "react-router";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import heroBg from "@/imports/hero.jpg";
@@ -51,7 +51,7 @@ const CHART_DATA = [
 
 const MAX_VAL = 100;
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: {},
   visible: {
     transition: {
@@ -60,7 +60,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: (reduced: boolean) => ({
     opacity: 0,
     y: reduced ? 0 : 8,
@@ -74,7 +74,7 @@ const itemVariants = {
   }),
 };
 
-const headingVariants = {
+const headingVariants: Variants = {
   hidden: (reduced: boolean) => ({
     opacity: 0,
     y: reduced ? 0 : 12,
@@ -88,7 +88,7 @@ const headingVariants = {
   }),
 };
 
-const rightWingVariants = {
+const rightWingVariants: Variants = {
   hidden: (reduced: boolean) => ({
     opacity: 0,
     y: reduced ? 0 : 10,
@@ -102,7 +102,7 @@ const rightWingVariants = {
   }),
 };
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: (custom: { index: number; reducedMotion: boolean }) => ({
     opacity: 0,
     y: custom.reducedMotion ? 0 : 6,
