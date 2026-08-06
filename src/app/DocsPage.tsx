@@ -21,7 +21,6 @@ const MONO = "'JetBrains Mono', monospace";
 const FG = "#1A1512"; // primary text
 const MUTED = "#5A5550"; // secondary text (AA-compliant on the cream canvas)
 const ACCENT = "#fb8500"; // orange accent
-const FAINT = "#8A857F"; // decorative / large-text muted (not AA for small text)
 
 type DocSection = { id: string; label: string };
 
