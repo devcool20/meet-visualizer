@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Stash Live",
+  "short_name": "Stash Live",
+  "description": "Speak naturally in a Google Meet call; glassmorphic data cards composite directly into your outbound webcam video.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "116",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Q8v++JTGjF39p12eACjDK5SwwbibCI4boxhvY9874MD3kmev+iFmSg7CTxI8B72xunJ7vUynzC8FVnzsJGXHZJptlW4NI4yYGE6mbHWBzTCL/0FpVVxLjMm+rWyksi5obAB22iPXCLqd+7XnE4Jo/MglWEzNPU3YU3mdljiG5l2it5o4SmX/DSpTm44V+ibys/dW/bZpBUbjjyzIJxfqDf8k/QkOvmINx6RsigHYEgAIulnWMOkJvMcTCSCDDcnlItAuHNqlVTDeu4eIi3FQwAeTiYEtnhePl9wJR5EnQblMycromOA49OaxyoABK/Cm9RGDdEGUVx88NX/sHzgGQIDAQAB",
+  "permissions": ["storage", "scripting", "offscreen"],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "https://meet-visualizer.vercel.app/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*", "https://meet-visualizer.vercel.app/*"],
+      "js": ["src/content/index.ts"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["fonts/*"],
+      "matches": ["https://meet.google.com/*", "https://meet-visualizer.vercel.app/*"]
+    }
+  ],
+  "externally_connectable": {
+    "matches": ["https://meet-visualizer.vercel.app/*"]
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Stash Live"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

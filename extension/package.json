@@ -1,0 +1,27 @@
+{
+  "name": "@stash/extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource/inter": "5.3.0",
+    "@fontsource/jetbrains-mono": "5.3.0",
+    "@stash/card-canvas": "*",
+    "@stash/card-core": "*",
+    "@stash/card-spec": "*"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "2.7.1",
+    "@playwright/test": "^1.62.1",
+    "@types/chrome": "^0.0.280",
+    "typescript": "5.6.3",
+    "vite": "6.3.5",
+    "vitest": "^3.2.4"
+  }
+}
