@@ -16,6 +16,7 @@ import { SAMPLE_CARDS } from '@stash/card-core';
 import type { CardSpec, UserSettings } from '@stash/card-spec';
 import { DEFAULT_USER_SETTINGS } from '@stash/card-spec';
 import { isMockMode, apiBaseUrl } from './env';
+import type { AiProvider, AiProviderState } from './ai-provider';
 
 export interface ApiUser {
   id: string;
@@ -26,7 +27,7 @@ export interface ApiUser {
 }
 
 export type CardStatus = 'draft' | 'approved';
-export type CardSource = 'sample' | 'notion';
+export type CardSource = 'sample' | 'notion' | 'ai';
 
 export interface ApiCard {
   id: string;
@@ -88,6 +89,12 @@ export class ApiError extends Error {
   }
 }
 
+export interface GenerateCardResult {
+  card: CardSpec;
+  provider: AiProvider;
+  source: 'ai';
+}
+
 export interface ApiClient {
   health(): Promise<HealthResponse>;
 
@@ -112,6 +119,18 @@ export interface ApiClient {
   getNotionConnection(): Promise<NotionConnection | null>;
 
   listActivity(sessionId?: string): Promise<ApiActivityEvent[]>;
+
+  // AI provider management
+  getAiProvider(): Promise<AiProviderState>;
+  putAiProvider(provider: AiProvider, apiKey: string): Promise<AiProviderState>;
+  deleteAiProvider(): Promise<void>;
+  testAiProvider(): Promise<{ ok: boolean; model: string; latencyMs: number }>;
+  generateCard(transcript: string, context?: 'rehearsal' | 'meeting'): Promise<GenerateCardResult>;
+
+  // AI key API (engine routes, plan §3.3)
+  getAiKey(): Promise<{ configured: boolean; provider: string | null; model: string | null; updatedAt: string | null }>;
+  putAiKey(input: { provider: string; apiKey: string; model?: string | null }): Promise<{ configured: boolean; provider: string; model: string | null; updatedAt: string }>;
+  deleteAiKey(): Promise<void>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -215,19 +234,49 @@ class HttpApiClient implements ApiClient {
   }
 
   async getNotionConnection(): Promise<NotionConnection | null> {
-    // No dedicated GET route is exposed by the engine for reading connection
-    // state directly; the dashboard derives it from `/api/me` in a future
-    // iteration. For now this is surfaced via bootstrap/me metadata once
-    // added server-side — kept as a stub returning null on the real client
-    // so the Integrations screen degrades to "not connected" rather than
-    // erroring.
     return null;
   }
 
   listActivity(): Promise<ApiActivityEvent[]> {
-    // No activity-list route confirmed in engine/src/routes at time of
-    // writing; return an empty list on the real client until one lands.
     return Promise.resolve([]);
+  }
+
+  getAiKey(): Promise<{ configured: boolean; provider: string | null; model: string | null; updatedAt: string | null }> {
+    return this.request('/api/me/ai-key');
+  }
+
+  putAiKey(input: { provider: string; apiKey: string; model?: string | null }): Promise<{ configured: boolean; provider: string; model: string | null; updatedAt: string }> {
+    return this.request('/api/me/ai-key', { method: 'PUT', body: JSON.stringify(input) });
+  }
+
+  deleteAiKey(): Promise<void> {
+    return this.request('/api/me/ai-key', { method: 'DELETE' });
+  }
+
+  getAiProvider(): Promise<AiProviderState> {
+    return this.request<{ provider: AiProviderState }>('/api/me/ai-provider').then((r) => r.provider);
+  }
+
+  putAiProvider(provider: AiProvider, apiKey: string): Promise<AiProviderState> {
+    return this.request<{ provider: AiProviderState }>('/api/me/ai-provider', {
+      method: 'PUT',
+      body: JSON.stringify({ provider, apiKey }),
+    }).then((r) => r.provider);
+  }
+
+  deleteAiProvider(): Promise<void> {
+    return this.request('/api/me/ai-provider', { method: 'DELETE' });
+  }
+
+  testAiProvider(): Promise<{ ok: boolean; model: string; latencyMs: number }> {
+    return this.request<{ ok: boolean; model: string; latencyMs: number }>('/api/me/ai-provider/test', { method: 'POST' });
+  }
+
+  generateCard(transcript: string, context: 'rehearsal' | 'meeting' = 'rehearsal'): Promise<GenerateCardResult> {
+    return this.request<GenerateCardResult>('/api/ai/generate-card', {
+      method: 'POST',
+      body: JSON.stringify({ transcript, context }),
+    });
   }
 }
 
@@ -243,13 +292,24 @@ function cloneSpec(spec: CardSpec): CardSpec {
   return JSON.parse(JSON.stringify(spec));
 }
 
-class MockApiClient implements ApiClient {
+export class MockApiClient implements ApiClient {
   private user: ApiUser | null = null;
   private cards: ApiCard[] = [];
   private devices: ApiDevice[] = [];
   private activity: ApiActivityEvent[] = [];
   private notionConnection: NotionConnection | null = null;
   private nextId = 1;
+
+  /** Mock AI provider state for testing. */
+  private mockAiProvider: AiProviderState = {
+    provider: null,
+    source: 'none',
+    keyPreview: null,
+    validatedAt: null,
+    lastError: null,
+    serverKeyAvailable: false,
+    serverProvider: null,
+  };
 
   private id(prefix: string): string {
     return `${prefix}-${this.nextId++}`;
@@ -419,6 +479,119 @@ class MockApiClient implements ApiClient {
     this.devices.push(device);
     return device;
   }
+
+  // AI provider mock
+
+  async getAiProvider(): Promise<AiProviderState> {
+    return { ...this.mockAiProvider };
+  }
+
+  async putAiProvider(provider: AiProvider, apiKey: string): Promise<AiProviderState> {
+    // Reject passwords that are too short or have wrong provider prefix.
+    if (apiKey.length < 8) {
+      throw new ApiError(400, 'invalid_key', 'Key is too short');
+    }
+    // Simulate key format check
+    const knownPrefixes: Record<string, string[]> = {
+      gemini: ['AIza'],
+      openai: ['sk-'],
+      anthropic: ['sk-ant-'],
+    };
+    const prefixes = knownPrefixes[provider];
+    if (prefixes && !prefixes.some((p) => apiKey.startsWith(p))) {
+      throw new ApiError(400, 'invalid_key', `Key does not look like a ${provider} key`);
+    }
+    this.mockAiProvider = {
+      provider,
+      source: 'user',
+      keyPreview: '••••' + apiKey.slice(-4),
+      validatedAt: nowIso(),
+      lastError: null,
+      serverKeyAvailable: this.mockAiProvider.serverKeyAvailable,
+      serverProvider: this.mockAiProvider.serverProvider,
+    };
+    return { ...this.mockAiProvider };
+  }
+
+  async deleteAiProvider(): Promise<void> {
+    if (this.mockAiProvider.serverKeyAvailable) {
+      this.mockAiProvider = {
+        provider: this.mockAiProvider.serverProvider,
+        source: 'server',
+        keyPreview: null,
+        validatedAt: null,
+        lastError: null,
+        serverKeyAvailable: true,
+        serverProvider: this.mockAiProvider.serverProvider,
+      };
+    } else {
+      this.mockAiProvider = {
+        provider: null,
+        source: 'none',
+        keyPreview: null,
+        validatedAt: null,
+        lastError: null,
+        serverKeyAvailable: false,
+        serverProvider: null,
+      };
+    }
+  }
+
+  async testAiProvider(): Promise<{ ok: boolean; model: string; latencyMs: number }> {
+    if (!this.mockAiProvider.provider) {
+      throw new ApiError(400, 'no_provider', 'No AI provider configured');
+    }
+    return { ok: true, model: this.mockAiProvider.provider, latencyMs: 320 };
+  }
+
+  async generateCard(_transcript: string, _context?: 'rehearsal' | 'meeting'): Promise<GenerateCardResult> {
+    if (!this.mockAiProvider.provider && !this.mockAiProvider.serverKeyAvailable) {
+      throw new ApiError(400, 'no_provider', 'No AI provider configured');
+    }
+    // Return a fixture-derived card as the mock result.
+    const fixture = SAMPLE_CARDS[0];
+    return {
+      card: cloneSpec(fixture.spec),
+      provider: this.mockAiProvider.provider ?? 'gemini',
+      source: 'ai',
+    };
+  }
+
+  // AI key mock (plan §3.3)
+  private mockAiKeyStore: { provider: string | null; apiKey: string | null; model: string | null; updatedAt: string | null } = {
+    provider: null,
+    apiKey: null,
+    model: null,
+    updatedAt: null,
+  };
+
+  async getAiKey(): Promise<{ configured: boolean; provider: string | null; model: string | null; updatedAt: string | null }> {
+    return {
+      configured: this.mockAiKeyStore.provider !== null,
+      provider: this.mockAiKeyStore.provider,
+      model: this.mockAiKeyStore.model,
+      updatedAt: this.mockAiKeyStore.updatedAt,
+    };
+  }
+
+  async putAiKey(input: { provider: string; apiKey: string; model?: string | null }): Promise<{ configured: boolean; provider: string; model: string | null; updatedAt: string }> {
+    this.mockAiKeyStore = {
+      provider: input.provider,
+      apiKey: input.apiKey,
+      model: input.model ?? null,
+      updatedAt: nowIso(),
+    };
+    return {
+      configured: true,
+      provider: input.provider,
+      model: input.model ?? null,
+      updatedAt: nowIso(),
+    };
+  }
+
+  async deleteAiKey(): Promise<void> {
+    this.mockAiKeyStore = { provider: null, apiKey: null, model: null, updatedAt: null };
+  }
 }
 
 let cachedApiClient: ApiClient | null = null;
@@ -439,4 +612,4 @@ export function __resetApiClientForTests(): void {
   cachedApiClient = null;
 }
 
-export { MockApiClient, HttpApiClient };
+export { HttpApiClient };

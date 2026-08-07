@@ -70,6 +70,16 @@ export interface PairingNonceRecord {
   consumedAt: Date | null;
 }
 
+export interface AiCredentialRecord {
+  id: string;
+  userId: string;
+  provider: string; // 'gemini' | 'openai' | 'anthropic'
+  apiKey: string; // AES-256-GCM encrypted
+  model: string | null; // optional override
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export type ActivityKind = 'fired' | 'near_miss' | 'suppressed_cooldown';
 
 export interface ActivityEventRecord {
@@ -129,4 +139,9 @@ export interface Store {
   recordActivityEvent(input: Omit<ActivityEventRecord, 'id'>): Promise<ActivityEventRecord>;
   listActivityEvents(userId: string, sessionId?: string): Promise<ActivityEventRecord[]>;
   deleteExpiredActivitySnippets(now: Date): Promise<number>;
+
+  // AI credentials
+  getAiCredential(userId: string): Promise<AiCredentialRecord | null>;
+  upsertAiCredential(userId: string, input: { provider: string; apiKey: string; model?: string | null }): Promise<AiCredentialRecord>;
+  deleteAiCredential(userId: string): Promise<void>;
 }

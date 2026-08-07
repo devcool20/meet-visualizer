@@ -24,6 +24,15 @@ export { loadImageCorsSafe, isImageTainting } from './taint-safety.js';
 export { CardCompositor } from './composite.js';
 export type { DegradationLevel, CompositorOptions, CompositeResult } from './composite.js';
 
+export { BusynessSampler } from './busyness-sampler.js';
+export type { BusynessSamplerOptions, BusynessReading } from './busyness-sampler.js';
+
+export { drawPlaceholderCard, PLACEHOLDER_HEIGHT, SHIMMER_PERIOD_MS } from './placeholder.js';
+export type { PlaceholderKind, PlaceholderOptions } from './placeholder.js';
+
+export { CardTtlTimer, resolveTtlMs, TTL_MIN_MS, DEFAULT_AUTO_DISMISS_MS } from './ttl.js';
+export type { TtlResolution } from './ttl.js';
+
 export { drawMetricRow } from './blocks/metricRow.js';
 export { drawBarChart } from './blocks/barChart.js';
 export { drawLineChart } from './blocks/lineChart.js';

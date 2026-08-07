@@ -23,6 +23,17 @@ import { createCardInferrer } from './notion/inference.js';
 import { ReconciliationSweep } from './notion/reconciliation.js';
 import { ActivitySnippetSweep } from './services/activity-sweep.js';
 import { AesGcmEncryptor, type Encryptor } from './util/encryption.js';
+// AI generation imports
+import { AiKeyResolver } from './generation/ai-credentials.js';
+import { providerFactory } from './generation/provider-factory.js';
+import { CardGenerator } from './generation/card-generator.js';
+import { WikipediaGroundingProvider, MockGroundingProvider } from './generation/grounding.js';
+import { MockGenerationProvider } from './generation/mock-provider.js';
+import { HttpImageFetcher, MockImageFetcher, createImageByteCache, ProxyImageResolver } from './images/image-fetcher.js';
+import { createImageProxyRouter } from './routes/image-proxy.js';
+import { createAiKeysRouter } from './routes/ai-keys.js';
+import { createGenerateCardRouter } from './routes/generate-card.js';
+import { cacheService } from './services/cache.js';
 
 /**
  * Local/no-config fallback key. STASH_ENCRYPTION_KEY MUST be set to a real
@@ -70,6 +81,23 @@ export async function buildApp() {
   }
   const notionOAuth = new NotionOAuthService(store, new MockNotionOAuthClient(), encryptor);
 
+  // AI generation stack
+  const aiKeyResolver = new AiKeyResolver(store, encryptor);
+  const groundingProvider = config.useMockGeneration
+    ? new MockGroundingProvider()
+    : new WikipediaGroundingProvider();
+  const imageFetcher = config.useMockGeneration
+    ? new MockImageFetcher()
+    : new HttpImageFetcher();
+  const imageByteCache = createImageByteCache();
+  const imageResolver = new ProxyImageResolver(imageFetcher, imageByteCache, config.imageProxyPublicOrigin);
+  const cardGenerator = new CardGenerator({
+    keyResolver: aiKeyResolver,
+    grounding: groundingProvider,
+    images: imageResolver,
+    cache: cacheService,
+  });
+
   const app = express();
   app.use(
     cors({
@@ -83,9 +111,12 @@ export async function buildApp() {
   app.use(createCardsRouter(store, authProvider));
   app.use(createUserRouter(store, authProvider));
   app.use(createNotionRouter(store, authProvider, notionOAuth, notionSync));
+  app.use(createImageProxyRouter(imageFetcher, imageByteCache));
+  app.use(createAiKeysRouter(store, authProvider, encryptor));
+  app.use(createGenerateCardRouter(authProvider, cardGenerator));
 
   const httpServer = http.createServer(app);
-  attachWsServer(httpServer, { store, deviceAuth, tier2, tier3 });
+  attachWsServer(httpServer, { store, deviceAuth, tier2, tier3, generator: cardGenerator });
 
   const reconciliation = new ReconciliationSweep(store, notionSync);
   const activitySweep = new ActivitySnippetSweep(store);

@@ -48,7 +48,7 @@ describe('GlassCard', () => {
     const el = render({ spec: REVENUE_CARD, reducedMotion: true });
     const card = el.firstElementChild as HTMLElement;
     const style = card.style;
-    expect(style.background).toBe('rgba(255, 255, 255, 0.45)');
+    expect(style.background).toBe('rgba(255, 255, 255, 0.62)');
     expect(style.backdropFilter).toBe('blur(20px) saturate(120%)');
     expect(style.border).toBe('1px solid rgba(26, 21, 18, 0.06)');
     expect(style.boxShadow).toBe('0 8px 32px 0 rgba(26,21,18,0.03)');

@@ -16,7 +16,14 @@
  * permanent ID from the *upload* key — update this the moment that ID is
  * known, in this file only.
  */
-export const EXTENSION_ID = 'fdeplcogfapfmfpkelllkjbcphmlccll';
+export const DEV_EXTENSION_ID = 'fdeplcogfapfmfpkelllkjbcphmlccll';
+
+/**
+ * Backward-compatible alias. New code should use `resolveExtensionId()`
+ * which supports the three-tier resolution (D6): localStorage override →
+ * VITE_STASH_EXTENSION_ID env var → DEV_EXTENSION_ID default.
+ */
+export const EXTENSION_ID = DEV_EXTENSION_ID;
 
 /** Chrome Web Store listing. Opens in a NEW tab per plan §4.2 seam. */
 export const CHROME_WEB_STORE_URL =
@@ -47,6 +54,109 @@ export function hasChromeRuntime(): boolean {
   return getChromeRuntime() !== null;
 }
 
+// Test-only injection point for env vars.
+let __testEnv: Record<string, string> | null = null;
+
+/** @internal — only for tests. */
+export function __setTestEnv(env: Record<string, string> | null): void {
+  __testEnv = env;
+}
+
+function getEnv(key: string): string | undefined {
+  if (__testEnv !== null) return __testEnv[key];
+  const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
+  return env[key];
+}
+
+/**
+ * Three-tier extension ID resolution (D6):
+ * 1. `localStorage['stash_extension_id']` — runtime per-browser override
+ * 2. `VITE_STASH_EXTENSION_ID` — build-time deploy configuration
+ * 3. `DEV_EXTENSION_ID` — the committed default
+ */
+export function resolveExtensionId(): string {
+  try {
+    const override = window.localStorage.getItem('stash_extension_id');
+    if (override && override.trim()) return override.trim();
+  } catch {
+    // Fall through.
+  }
+  const envId = getEnv('VITE_STASH_EXTENSION_ID');
+  if (envId && envId.trim()) return envId.trim();
+  return DEV_EXTENSION_ID;
+}
+
+export type ExtensionIdSource = 'override' | 'env' | 'default';
+
+/** Reports which tier the resolved ID comes from. */
+export function extensionIdSource(): ExtensionIdSource {
+  try {
+    const override = window.localStorage.getItem('stash_extension_id');
+    if (override && override.trim()) return 'override';
+  } catch {
+    // Fall through.
+  }
+  const envId = getEnv('VITE_STASH_EXTENSION_ID');
+  if (envId && envId.trim()) return 'env';
+  return 'default';
+}
+
+export function setUserExtensionId(id: string): void {
+  try {
+    window.localStorage.setItem('stash_extension_id', id.trim());
+  } catch {
+    // Non-critical.
+  }
+}
+
+export function clearUserExtensionId(): void {
+  try {
+    window.localStorage.removeItem('stash_extension_id');
+  } catch {
+    // Non-critical.
+  }
+}
+
+export type ExtensionSourceMode = 'unpacked' | 'webstore';
+
+export function extensionSourceMode(): ExtensionSourceMode {
+  const mode = getEnv('VITE_STASH_EXT_SOURCE');
+  if (mode === 'webstore') return 'webstore';
+  return 'unpacked';
+}
+
+export function extensionZipUrl(): string | undefined {
+  return getEnv('VITE_STASH_EXT_ZIP_URL') || undefined;
+}
+
+export function chromeWebStoreUrl(): string {
+  return 'https://chromewebstore.google.com/detail/stash-live/' + resolveExtensionId();
+}
+
+/** The expected product origin from env, or a dev fallback. */
+export function expectedProductOrigin(): string {
+  return getEnv('VITE_STASH_PRODUCT_ORIGIN') || 'https://meet-visualizer.vercel.app';
+}
+
+/** The engine origin, derived from the API base URL. */
+export function engineOrigin(): string {
+  const base = getEnv('VITE_STASH_API_URL');
+  if (base) {
+    try {
+      const url = new URL(base);
+      return url.origin;
+    } catch {
+      return base;
+    }
+  }
+  if (getEnv('DEV')) return 'http://localhost:5000';
+  return '';
+}
+
+export function isProductOrigin(): boolean {
+  return window.location.origin === expectedProductOrigin();
+}
+
 function sendMessageWithTimeout(
   message: unknown,
   timeoutMs: number,
@@ -61,7 +171,7 @@ function sendMessageWithTimeout(
     }, timeoutMs);
 
     try {
-      runtime.sendMessage(EXTENSION_ID, message, (response) => {
+      runtime.sendMessage(resolveExtensionId(), message, (response) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
@@ -86,7 +196,7 @@ function sendMessageWithTimeout(
 /**
  * Presence probe. The SAME `chrome.runtime.sendMessage` call used for
  * pairing doubles as the "is the extension installed?" check (plan §2.2,
- * §4.2): if nothing is listening on `EXTENSION_ID`, Chrome reports
+ * §4.2): if nothing is listening on the resolved extension ID, Chrome reports
  * `lastError` and we treat that as "not installed" rather than an error to
  * surface to the user.
  */

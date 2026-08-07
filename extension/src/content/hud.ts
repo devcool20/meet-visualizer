@@ -13,21 +13,36 @@
  * the actual guarantee — verified by code inspection, and by the Playwright
  * fixture test asserting the HUD element is absent from the captured canvas
  * pixels (see extension/test/hud-not-in-stream.spec.ts).
+ *
+ * Extended with four HUD phases for hold-to-talk (plan §"HUD states"):
+ * idle, listening, generating, error.
  */
 
 const HUD_ID = 'stash-live-hud';
 
+export type HudPhase = 'idle' | 'listening' | 'generating' | 'error';
+
 export interface HudState {
-  listening: boolean;
+  phase: HudPhase;
   lastPhrase: string | null;
   tokenWarning: boolean;
+  message: string | null;
 }
+
+const PHASE_LABELS: Record<HudPhase, string> = {
+  idle: 'Stash Live — idle  (Alt+Shift+Space to talk)',
+  listening: 'Stash Live — listening',
+  generating: 'Stash Live — generating card…',
+  error: 'Stash Live — error',
+};
 
 export class Hud {
   private root: HTMLDivElement | null = null;
   private pill: HTMLDivElement | null = null;
   private label: HTMLSpanElement | null = null;
+  private messageEl: HTMLSpanElement | null = null;
   private dismissed = false;
+  private currentPhase: HudPhase = 'idle';
 
   constructor(private onDismiss: () => void) {}
 
@@ -45,17 +60,22 @@ export class Hud {
 
     const pill = document.createElement('div');
     pill.style.display = 'flex';
-    pill.style.alignItems = 'center';
-    pill.style.gap = '8px';
+    pill.style.flexDirection = 'column';
+    pill.style.gap = '4px';
     pill.style.padding = '8px 12px';
-    pill.style.borderRadius = '999px';
+    pill.style.borderRadius = '12px';
     pill.style.background = 'rgba(26,21,18,0.85)';
     pill.style.color = '#fff';
     pill.style.fontSize = '13px';
     pill.style.boxShadow = '0 4px 16px rgba(0,0,0,0.3)';
 
+    const topRow = document.createElement('div');
+    topRow.style.display = 'flex';
+    topRow.style.alignItems = 'center';
+    topRow.style.gap = '8px';
+
     const label = document.createElement('span');
-    label.textContent = 'Stash Live — idle';
+    label.textContent = PHASE_LABELS.idle;
 
     const dismissBtn = document.createElement('button');
     dismissBtn.textContent = '✕';
@@ -70,22 +90,56 @@ export class Hud {
       this.onDismiss();
     });
 
-    pill.appendChild(label);
-    pill.appendChild(dismissBtn);
+    topRow.appendChild(label);
+    topRow.appendChild(dismissBtn);
+    pill.appendChild(topRow);
+
+    const messageEl = document.createElement('div');
+    messageEl.style.fontSize = '11px';
+    messageEl.style.color = 'rgba(255,255,255,0.7)';
+    messageEl.style.display = 'none';
+    pill.appendChild(messageEl);
+
     root.appendChild(pill);
     document.body.appendChild(root);
 
     this.root = root;
     this.pill = pill;
     this.label = label;
+    this.messageEl = messageEl;
   }
 
   update(state: HudState): void {
-    if (!this.label || !this.pill) return;
-    const status = state.listening ? 'listening' : 'idle';
-    const phrase = state.lastPhrase ? ` — “${state.lastPhrase}”` : '';
-    this.label.textContent = `Stash Live — ${status}${phrase}`;
-    this.pill.style.background = state.tokenWarning ? 'rgba(180,120,0,0.9)' : 'rgba(26,21,18,0.85)';
+    if (!this.label || !this.pill || !this.messageEl) return;
+
+    this.currentPhase = state.phase;
+
+    // Set the phase label
+    const labelText = PHASE_LABELS[state.phase];
+    const phrase = state.lastPhrase ? ` — “${state.lastPhrase?.slice(0, 60)}”` : '';
+    this.label.textContent = `${labelText}${phrase}`;
+
+    // Show/hide message line
+    if (state.message && (state.phase === 'error' || state.phase === 'generating')) {
+      this.messageEl.textContent = state.message;
+      this.messageEl.style.display = 'block';
+    } else {
+      this.messageEl.style.display = 'none';
+    }
+
+    // Phase-based styling
+    if (state.phase === 'error') {
+      this.pill.style.background = 'rgba(200,40,40,0.9)';
+    } else if (state.tokenWarning) {
+      this.pill.style.background = 'rgba(180,120,0,0.9)';
+    } else {
+      this.pill.style.background = 'rgba(26,21,18,0.85)';
+    }
+  }
+
+  /** Expose the current phase for testing. */
+  getPhase(): HudPhase {
+    return this.currentPhase;
   }
 
   dismiss(): void {

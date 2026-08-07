@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { Redis } from 'ioredis';
+import type { UserSettings } from '@stash/card-spec';
 import { config } from '../config.js';
 
 /**
@@ -19,14 +20,34 @@ export interface InvalidationMessage {
 
 export type InvalidationHandler = (msg: InvalidationMessage) => void;
 
+/**
+ * Settings change transport (plan §3.1b).
+ *
+ * Publishing on `u:<userId>:settings` lets every connected WS session reload
+ * the user's settings without a reconnect.
+ */
+export interface SettingsMessage {
+  userId: string;
+  settings: UserSettings;
+}
+
+export type SettingsHandler = (msg: SettingsMessage) => void;
+
 export interface IPubSub {
   publishInvalidation(msg: InvalidationMessage): Promise<void>;
   subscribeInvalidation(userId: string, handler: InvalidationHandler): () => void;
+  // Settings channel
+  publishSettings(msg: SettingsMessage): Promise<void>;
+  subscribeSettings(userId: string, handler: SettingsHandler): () => void;
   close(): Promise<void>;
 }
 
 function channelFor(userId: string): string {
   return `u:${userId}:cards:invalidate`;
+}
+
+function settingsChannelFor(userId: string): string {
+  return `u:${userId}:settings`;
 }
 
 class InProcessPubSub implements IPubSub {
@@ -42,6 +63,16 @@ class InProcessPubSub implements IPubSub {
     return () => this.emitter.off(channel, handler);
   }
 
+  async publishSettings(msg: SettingsMessage): Promise<void> {
+    this.emitter.emit(settingsChannelFor(msg.userId), msg);
+  }
+
+  subscribeSettings(userId: string, handler: SettingsHandler): () => void {
+    const channel = settingsChannelFor(userId);
+    this.emitter.on(channel, handler);
+    return () => this.emitter.off(channel, handler);
+  }
+
   async close(): Promise<void> {
     this.emitter.removeAllListeners();
   }
@@ -50,21 +81,36 @@ class InProcessPubSub implements IPubSub {
 class RedisPubSub implements IPubSub {
   private pub: Redis;
   private sub: Redis;
-  private handlers = new Map<string, Set<InvalidationHandler>>();
+  private invalidationHandlers = new Map<string, Set<InvalidationHandler>>();
+  private settingsHandlers = new Map<string, Set<SettingsHandler>>();
 
   constructor(url: string) {
     this.pub = new Redis(url);
     this.sub = new Redis(url);
     this.sub.on('message', (channel: string, raw: string) => {
-      const set = this.handlers.get(channel);
-      if (!set) return;
-      let msg: InvalidationMessage;
-      try {
-        msg = JSON.parse(raw);
-      } catch {
+      // Try invalidation handlers first
+      let set = this.invalidationHandlers.get(channel);
+      if (set) {
+        let msg: InvalidationMessage;
+        try {
+          msg = JSON.parse(raw);
+        } catch {
+          return;
+        }
+        for (const h of set) h(msg);
         return;
       }
-      for (const h of set) h(msg);
+      // Try settings handlers
+      set = this.settingsHandlers.get(channel) as unknown as Set<InvalidationHandler>;
+      if (set) {
+        let msg: SettingsMessage;
+        try {
+          msg = JSON.parse(raw);
+        } catch {
+          return;
+        }
+        for (const h of set) h(msg as any);
+      }
     });
   }
 
@@ -74,24 +120,47 @@ class RedisPubSub implements IPubSub {
 
   subscribeInvalidation(userId: string, handler: InvalidationHandler): () => void {
     const channel = channelFor(userId);
-    let set = this.handlers.get(channel);
+    let set = this.invalidationHandlers.get(channel);
     if (!set) {
       set = new Set();
-      this.handlers.set(channel, set);
+      this.invalidationHandlers.set(channel, set);
       this.sub.subscribe(channel).catch(() => {});
     }
     set.add(handler);
     return () => {
       set!.delete(handler);
       if (set!.size === 0) {
-        this.handlers.delete(channel);
+        this.invalidationHandlers.delete(channel);
+        this.sub.unsubscribe(channel).catch(() => {});
+      }
+    };
+  }
+
+  async publishSettings(msg: SettingsMessage): Promise<void> {
+    await this.pub.publish(settingsChannelFor(msg.userId), JSON.stringify(msg));
+  }
+
+  subscribeSettings(userId: string, handler: SettingsHandler): () => void {
+    const channel = settingsChannelFor(userId);
+    let set = this.settingsHandlers.get(channel);
+    if (!set) {
+      set = new Set();
+      this.settingsHandlers.set(channel, set);
+      this.sub.subscribe(channel).catch(() => {});
+    }
+    set.add(handler);
+    return () => {
+      set!.delete(handler);
+      if (set!.size === 0) {
+        this.settingsHandlers.delete(channel);
         this.sub.unsubscribe(channel).catch(() => {});
       }
     };
   }
 
   async close(): Promise<void> {
-    this.handlers.clear();
+    this.invalidationHandlers.clear();
+    this.settingsHandlers.clear();
     await Promise.allSettled([this.pub.quit(), this.sub.quit()]);
   }
 }

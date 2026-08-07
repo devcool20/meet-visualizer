@@ -108,6 +108,7 @@ export const userSettingsSchema = z.object({
   autoDismissMs: z.number().int().min(2000).max(120_000),
   reducedMotion: z.boolean(),
   storeSnippets: z.boolean(),
+  triggerMode: z.enum(['hold-to-talk', 'ambient']).default('hold-to-talk'),
 });
 
 export const clientMsgSchema = z.discriminatedUnion('t', [
@@ -125,6 +126,12 @@ export const clientMsgSchema = z.discriminatedUnion('t', [
   }),
   z.object({ t: z.literal('dismiss'), cardId: z.string().max(64).optional() }),
   z.object({ t: z.literal('ping') }),
+  z.object({
+    t: z.literal('generate'),
+    captureId: z.string().min(1).max(64),
+    text: z.string().min(1).max(2000),
+    ts: z.number(),
+  }),
 ]);
 
 export const serverMsgSchema = z.discriminatedUnion('t', [
@@ -136,6 +143,8 @@ export const serverMsgSchema = z.discriminatedUnion('t', [
     card: cardSpecSchema,
     matchedPhrase: z.string(),
     score: z.number(),
+    captureId: z.string().min(1).max(64).optional(),
+    origin: z.enum(['match', 'generated']).optional(),
   }),
   z.object({ t: z.literal('hide'), cardId: z.string() }),
   z.object({ t: z.literal('invalidate'), cardIds: z.array(z.string()) }),
@@ -145,6 +154,16 @@ export const serverMsgSchema = z.discriminatedUnion('t', [
     message: z.string(),
   }),
   z.object({ t: z.literal('pong') }),
+  z.object({
+    t: z.literal('generating'),
+    captureId: z.string().min(1).max(64),
+  }),
+  z.object({
+    t: z.literal('generate_failed'),
+    captureId: z.string().min(1).max(64),
+    code: z.enum(['empty', 'no_provider', 'timeout', 'invalid_output', 'rate_limited', 'internal']),
+    message: z.string(),
+  }),
 ]);
 
 export type ValidationResult<T> =

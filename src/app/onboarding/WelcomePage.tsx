@@ -4,7 +4,7 @@ import { GlassCard } from '@stash/card-react';
 import { Button } from '@/app/components/ui/button';
 import { useAuth } from '@/app/auth/AuthContext';
 import { getApiClient, type ApiCard } from '@/lib/api';
-import { saveOnboardingStep } from '@/lib/onboarding';
+import { saveSetupStep } from '@/lib/setup';
 import { OnboardingShell } from './OnboardingShell';
 
 /**
@@ -38,12 +38,12 @@ export default function WelcomePage() {
   }, [getAccessToken]);
 
   function handleContinue() {
-    saveOnboardingStep('rehearse');
-    navigate('/rehearse');
+    saveSetupStep('extension');
+    navigate('/setup/extension');
   }
 
   return (
-    <OnboardingShell step={1} totalSteps={4}>
+    <OnboardingShell step={1} totalSteps={5}>
       <div className="text-center space-y-3 mb-8">
         <h1
           className="leading-tight"

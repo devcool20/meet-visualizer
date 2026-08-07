@@ -35,7 +35,11 @@ function toPageToInjectMsg(msg: BackgroundToContentMsg): PageToInjectMsg | null 
     case 'card:prewarm':
       return { type: 'card:prewarm', card: msg.card };
     case 'card:show':
-      return { type: 'card:show', card: msg.card, matchedPhrase: msg.matchedPhrase, score: msg.score };
+      return { type: 'card:show', card: msg.card, matchedPhrase: msg.matchedPhrase, score: msg.score, captureId: msg.captureId };
+    case 'card:generating':
+      return { type: 'card:generating', captureId: msg.captureId };
+    case 'card:error':
+      return { type: 'card:error', captureId: msg.captureId, code: msg.code, message: msg.message };
     case 'card:hide':
       return { type: 'card:hide', cardId: msg.cardId };
     case 'card:invalidate':

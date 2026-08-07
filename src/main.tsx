@@ -13,6 +13,8 @@
   const RehearsePage = lazy(() => import("./app/onboarding/RehearsePage"));
   const NotionInterstitialPage = lazy(() => import("./app/onboarding/NotionInterstitialPage"));
   const MeetStepPage = lazy(() => import("./app/onboarding/MeetStepPage"));
+  const InstallExtensionPage = lazy(() => import("./app/onboarding/InstallExtensionPage"));
+  const DataSetupPage = lazy(() => import("./app/onboarding/DataSetupPage"));
 
   const DashboardShell = lazy(() =>
     import("./app/dashboard/DashboardShell").then((m) => ({ default: m.DashboardShell })),
@@ -80,6 +82,26 @@
               <ProtectedRoute>
                 <Suspense fallback={null}>
                   <MeetStepPage />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/setup/extension"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={null}>
+                  <InstallExtensionPage />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/setup/data"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={null}>
+                  <DataSetupPage />
                 </Suspense>
               </ProtectedRoute>
             }

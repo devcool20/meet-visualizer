@@ -2,6 +2,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import type { UserSettings, CardSpec } from '@stash/card-spec';
 import type {
   ActivityEventRecord,
+  AiCredentialRecord,
   CardRecord,
   CardStatus,
   ConnectionRecord,
@@ -294,6 +295,42 @@ export class PrismaStore implements Store {
       data: { snippet: null },
     });
     return result.count;
+  }
+
+  // AI credentials
+  async getAiCredential(userId: string): Promise<AiCredentialRecord | null> {
+    const row = await this.prisma.aiCredential.findUnique({ where: { userId } });
+    if (!row) return null;
+    return {
+      id: row.id,
+      userId: row.userId,
+      provider: row.provider,
+      apiKey: row.apiKey,
+      model: row.model,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  async upsertAiCredential(userId: string, input: { provider: string; apiKey: string; model?: string | null }): Promise<AiCredentialRecord> {
+    const row = await this.prisma.aiCredential.upsert({
+      where: { userId },
+      create: { userId, provider: input.provider, apiKey: input.apiKey, model: input.model ?? null },
+      update: { provider: input.provider, apiKey: input.apiKey, model: input.model ?? null },
+    });
+    return {
+      id: row.id,
+      userId: row.userId,
+      provider: row.provider,
+      apiKey: row.apiKey,
+      model: row.model,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  async deleteAiCredential(userId: string): Promise<void> {
+    await this.prisma.aiCredential.deleteMany({ where: { userId } });
   }
 }
 

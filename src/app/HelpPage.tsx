@@ -59,11 +59,11 @@ export default function HelpPage() {
         <Card>
           <ol className="space-y-2 text-sm list-decimal list-inside" style={{ color: "#5A5550", lineHeight: 1.8 }}>
             <li>Sign in with Google.</li>
-            <li>We seed three sample cards so you have something to try immediately.</li>
-            <li>Install the Chrome extension (opens in a new tab — come back here after).</li>
-            <li>Allow camera and microphone on this page for a rehearsal.</li>
-            <li>Say one of your cards' trigger phrases and watch it appear.</li>
-            <li>Optionally connect Notion, then join a real Google Meet.</li>
+            <li>Seed three sample cards (step 1 of 5).</li>
+            <li>Install the Chrome extension — Web Store or load-unpacked (step 2 of 5).</li>
+            <li>Configure an AI API key or connect Notion (step 3 of 5).</li>
+            <li>Hold Alt+Shift+Space and say a sentence to rehearse (step 4 of 5).</li>
+            <li>Join a real Google Meet — keep your normal webcam selected (step 5 of 5).</li>
           </ol>
         </Card>
       </DocSectionBlock>
@@ -124,6 +124,10 @@ export default function HelpPage() {
             ["A card isn't firing", "Try Test this phrase in the card editor — it tells you exactly why (too quiet a match, or too similar to another card). Raising sensitivity to Eager also helps."],
             ["The extension shows \"not detected\"", "Make sure it's installed and enabled in chrome://extensions, then refresh this page."],
             ["I don't see the same thing in a real meeting as in rehearsal", "Rehearsal runs the identical pipeline, so this is unusual — check that your device is still listed (not revoked) under Settings → Devices."],
+            ["Extension not detected on install screen", "If the page says the origin doesn't match, you're on a different domain than the extension was built for. Use the hosted app, or rebuild the extension with the right PRODUCT_ORIGIN."],
+            ["AI key was rejected", "Check that the key format matches the provider you selected. Gemini keys start with AIza, OpenAI keys with sk-, Anthropic keys with sk-ant-. The server validates the key with a live API call."],
+            ["Camera busy error", "Another app — often a Meet tab already in a call — is using the camera. Close it and retry."],
+            ["No card appears in Meet", "The extension patches getUserMedia at document start. If Meet was open before the extension loaded, refresh the Meet tab or re-select your camera in Meet Settings → Video."],
           ].map(([q, a]) => (
             <div key={q} className="rounded-2xl p-5">
               <p className="font-semibold text-sm mb-2 flex items-center gap-2" style={{ color: "#1A1512" }}>

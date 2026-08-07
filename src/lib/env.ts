@@ -32,3 +32,20 @@ export function supabaseAnonKey(): string | undefined {
   const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
   return env.VITE_SUPABASE_ANON_KEY || undefined;
 }
+
+/** The expected product origin from VITE_STASH_PRODUCT_ORIGIN or a default. */
+export function expectedProductOrigin(): string {
+  const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
+  return env.VITE_STASH_PRODUCT_ORIGIN || 'https://meet-visualizer.vercel.app';
+}
+
+/** The engine origin derived from VITE_STASH_API_URL, for diagnostics. */
+export function engineOrigin(): string {
+  const base = apiBaseUrl();
+  if (!base) return '';
+  try {
+    return new URL(base).origin;
+  } catch {
+    return base;
+  }
+}

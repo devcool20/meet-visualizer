@@ -27,7 +27,9 @@ export interface STTProvider {
   /** web-speech: false — it captures its own audio internally. */
   readonly needsAudioStream: boolean;
   start(opts: { lang: string; audio?: MediaStream }): Promise<void>;
-  stop(): Promise<void>;
+  stop(opts?: { flush?: boolean }): Promise<void>;
+  /** True while the provider has an active recognition session. */
+  readonly isRunning?: boolean;
   onPartial(cb: (text: string) => void): void;
   onFinal(cb: (text: string, confidence: number) => void): void;
   onError(cb: (err: STTError) => void): void;

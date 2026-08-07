@@ -809,6 +809,73 @@ npm run dev   # Vite dev server`}</CodeBlock>
             </div>
           </DocSectionBlock>
 
+          <DocSectionBlock index={11} id="deploy-engine" eyebrow="Manual operator step" title="Deploying the engine" reducedMotion={reducedMotion}>
+            <p className="text-sm" style={{ color: '#d4183d', marginBottom: '12px' }}>
+              ⚠ Performed by a human, not by the build. The engine is a long-lived Express + ws
+              server and cannot run on Vercel (WebSocket timeout limitation).
+            </p>
+            <ol className="space-y-2 text-sm" style={{ color: '#5A5550', lineHeight: 1.7, listStyle: 'decimal', paddingLeft: '1.2rem' }}>
+              <li>Create a service from the repo, root directory <code>engine/</code>, Node 20.</li>
+              <li>Build: <code>npm ci {'&&'} npm run build -w engine</code>; start: <code>node engine/dist/index.js</code>. Ensure the platform routes HTTP and WebSocket upgrade traffic to the same port.</li>
+              <li>Set env vars: <code>DATABASE_URL</code>, <code>SUPABASE_URL</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code>, <code>STASH_ENCRYPTION_KEY</code> (32 bytes, base64/hex), <code>STASH_PRODUCT_ORIGIN</code> (the Vercel dashboard origin), and optionally <code>GEMINI_API_KEY</code> / <code>OPENAI_API_KEY</code> / <code>ANTHROPIC_API_KEY</code>.</li>
+              <li>Run Prisma migrations against <code>DATABASE_URL</code> (pgvector required).</li>
+              <li>Confirm <code>GET /health</code> answers over the public URL and that CORS allows the dashboard origin.</li>
+              <li>Set <code>VITE_STASH_API_URL</code> on Vercel to that engine origin and redeploy the dashboard.</li>
+              <li>Set <code>ENGINE_ORIGIN</code> in <code>extension/src/shared/constants.ts</code> and add the engine origin to <code>host_permissions</code> in manifest.json, then rebuild the extension.</li>
+            </ol>
+          </DocSectionBlock>
+
+          <DocSectionBlock index={12} id="publish-extension" eyebrow="Manual operator step" title="Publishing the Chrome extension" reducedMotion={reducedMotion}>
+            <p className="text-sm" style={{ color: '#d4183d', marginBottom: '12px' }}>
+              ⚠ Performed by a human, not by the build. Requires a Chrome Web Store developer
+              account (one-time registration fee), and a review period measured in days.
+            </p>
+            <ol className="space-y-2 text-sm" style={{ color: '#5A5550', lineHeight: 1.7, listStyle: 'decimal', paddingLeft: '1.2rem' }}>
+              <li>Register a Chrome Web Store developer account and pay the one-time fee.</li>
+              <li>Build the extension against the final <code>PRODUCT_ORIGIN</code> and <code>ENGINE_ORIGIN</code>, zip the build output.</li>
+              <li>Prepare listing assets: name, description, at least one 1280×800 screenshot, a 128×128 icon, a category, a privacy policy URL, and permission justifications for microphone and camera access.</li>
+              <li>Upload the zip, complete the privacy and permissions questionnaire, submit for review.</li>
+              <li>After publication, copy the new ID from the store listing URL, then set <code>VITE_STASH_EXTENSION_ID</code> to it on Vercel and redeploy. Set <code>VITE_STASH_EXT_SOURCE=webstore</code> so the store CTA becomes primary.</li>
+              <li>Until step 5, leave <code>VITE_STASH_EXT_SOURCE=unpacked</code>. The install screen shows the load-unpacked path and pairing targets the dev ID.</li>
+            </ol>
+          </DocSectionBlock>
+
+          <DocSectionBlock index={13} id="configuration-table" eyebrow="Reference" title="Configuration values" reducedMotion={reducedMotion}>
+            <p className="text-sm mb-3" style={{ color: '#5A5550' }}>
+              All client-side env vars with their defaults. The product origin and engine origin
+              are now separate — see the deploy instructions above.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" style={{ color: '#5A5550' }}>
+                <thead>
+                  <tr className="border-b" style={{ borderColor: 'rgba(26,21,18,0.06)' }}>
+                    <th className="text-left py-2 pr-4 font-medium" style={{ color: '#1A1512' }}>Var</th>
+                    <th className="text-left py-2 pr-4 font-medium" style={{ color: '#1A1512' }}>Default</th>
+                    <th className="text-left py-2 font-medium" style={{ color: '#1A1512' }}>Purpose</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ['VITE_STASH_MOCK', '1', 'Forces mock auth + in-memory API'],
+                    ['VITE_SUPABASE_URL', 'unset', 'Real Supabase project URL; unset ⇒ mock'],
+                    ['VITE_SUPABASE_ANON_KEY', 'unset', 'Supabase anonymous key'],
+                    ['VITE_STASH_API_URL', 'localhost:5000 (dev)', 'Engine host origin (separate from dashboard)'],
+                    ['VITE_STASH_PRODUCT_ORIGIN', 'https://meet-visualizer.vercel.app', 'Dashboard origin the extension is built for'],
+                    ['VITE_STASH_EXTENSION_ID', 'fdeplcog… (dev ID)', 'Pairing target; set to store ID after publishing'],
+                    ['VITE_STASH_EXT_SOURCE', 'unpacked', 'Distribution mode: unpacked | webstore'],
+                    ['VITE_STASH_EXT_ZIP_URL', 'unset', 'Optional pre-built extension download URL'],
+                  ].map(([k, d, p]) => (
+                    <tr key={k} className="border-b" style={{ borderColor: 'rgba(26,21,18,0.04)' }}>
+                      <td className="py-2 pr-4 font-mono text-xs" style={{ color: '#1A1512' }}>{k}</td>
+                      <td className="py-2 pr-4 text-xs">{d}</td>
+                      <td className="py-2 text-xs">{p}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </DocSectionBlock>
+
           <Reveal reducedMotion={reducedMotion}>
             <div
               className="rounded-3xl p-8 sm:p-10 mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6"

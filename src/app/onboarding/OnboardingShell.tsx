@@ -5,15 +5,17 @@ import type { ReactNode } from 'react';
  * canvas background, centered column, small step indicator. Mirrors the
  * landing page's design tokens (plan §4.4 — no new UI library, reuse
  * `src/app/components/ui` + the confirmed palette).
+ *
+ * Now shows 5 steps for the V1 funnel (plan §4).
  */
 export function OnboardingShell({
   children,
   step,
-  totalSteps,
+  totalSteps = 5,
 }: {
   children: ReactNode;
   step: number;
-  totalSteps: number;
+  totalSteps?: number;
 }) {
   return (
     <div

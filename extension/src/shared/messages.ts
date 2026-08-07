@@ -22,7 +22,9 @@ export const BRIDGE_SOURCE_TAG = 'stash-live-bridge-v1';
 /** Sent from background to the active meeting tab's content script. */
 export type BackgroundToContentMsg =
   | { type: 'card:prewarm'; card: CardSpec }
-  | { type: 'card:show'; card: CardSpec; matchedPhrase: string; score: number }
+  | { type: 'card:show'; card: CardSpec; matchedPhrase: string; score: number; captureId?: string }
+  | { type: 'card:generating'; captureId: string }
+  | { type: 'card:error'; captureId: string; code: string; message: string }
   | { type: 'card:hide'; cardId: string }
   | { type: 'card:invalidate'; cardIds: string[] }
   | { type: 'conn:status'; status: ConnectionStatus }
@@ -33,6 +35,8 @@ export type BackgroundToContentMsg =
 export type ContentToBackgroundMsg =
   | { type: 'transcript'; text: string; final: boolean; ts: number }
   | { type: 'dismiss'; cardId?: string }
+  | { type: 'capture:generate'; captureId: string; text: string; ts: number }
+  | { type: 'capture:cancel'; captureId: string }
   | { type: 'hud:ready' }
   | { type: 'popup:query-state' };
 
@@ -48,7 +52,9 @@ export type ConnectionStatus =
 
 export type PageToInjectMsg =
   | { type: 'card:prewarm'; card: CardSpec }
-  | { type: 'card:show'; card: CardSpec; matchedPhrase: string; score: number }
+  | { type: 'card:show'; card: CardSpec; matchedPhrase: string; score: number; captureId?: string }
+  | { type: 'card:generating'; captureId: string }
+  | { type: 'card:error'; captureId: string; code: string; message: string }
   | { type: 'card:hide'; cardId: string }
   | { type: 'card:invalidate'; cardIds: string[] }
   | { type: 'settings:update'; settings: UserSettings }
@@ -87,6 +93,8 @@ export function isBridgeEnvelope(data: unknown): data is BridgeEnvelope<unknown>
 const PAGE_TO_INJECT_TYPES = new Set<PageToInjectMsg['type']>([
   'card:prewarm',
   'card:show',
+  'card:generating',
+  'card:error',
   'card:hide',
   'card:invalidate',
   'settings:update',

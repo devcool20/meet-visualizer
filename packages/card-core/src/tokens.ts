@@ -13,7 +13,7 @@ export const COLORS = {
   /** Deep Espresso — primary text and solids. */
   text: '#1A1512',
   /** Muted Earth Slate — secondary contextual type. */
-  textMuted: '#5A5550',
+  textMuted: '#4A4540',
   /** System accent. Fills and dots only — see LEGIBILITY below. */
   accent: '#fb8500',
   ok: '#059669',
@@ -23,7 +23,7 @@ export const COLORS = {
 } as const;
 
 export const DEFAULT_THEME: CardTheme = {
-  surface: 'rgba(255,255,255,0.45)',
+  surface: 'rgba(255,255,255,0.62)',
   border: 'rgba(26,21,18,0.06)',
   text: COLORS.text,
   textMuted: COLORS.textMuted,

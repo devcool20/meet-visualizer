@@ -1,18 +1,21 @@
+/**
+ * `/rehearse` — step 4 of 5 (plan §5.6).
+ *
+ * Full real-data pipeline: hold-to-talk via `useHoldToTalk`, send transcript
+ * to `POST /api/ai/generate-card`, show the card. Supports the compositor
+ * when extension is active, or a fixture-card preview otherwise.
+ */
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { GlassCard } from '@stash/card-react';
 import { Button } from '@/app/components/ui/button';
 import { useAuth } from '@/app/auth/AuthContext';
 import { getApiClient, type ApiCard } from '@/lib/api';
-import {
-  CHROME_WEB_STORE_URL,
-  hasChromeRuntime,
-  pairingReducer,
-  probeExtensionPresence,
-  sendPairMessage,
-  type PairingState,
-} from '@/lib/extension';
-import { saveOnboardingStep } from '@/lib/onboarding';
+import { hasChromeRuntime, probeExtensionPresence } from '@/lib/extension';
+import { saveSetupStep, markRehearsed } from '@/lib/setup';
+import { recordGeneratedCard } from '@/lib/rehearsal';
+import { useHoldToTalk } from '@/app/hooks/useHoldToTalk';
 import { OnboardingShell } from './OnboardingShell';
 
 type CameraState =
@@ -22,84 +25,61 @@ type CameraState =
   | { phase: 'denied' }
   | { phase: 'not-readable' };
 
-/**
- * `/rehearse` — the core of plan §4.2. Detects the extension, walks the
- * "Add to Chrome" → reload → silent pairing seam, primes camera/mic on OUR
- * origin (so there is no second permission prompt in the extension's own
- * context, since the content script also runs here per the plan's
- * `content_scripts`/`host_permissions` decision), and shows a card once the
- * user says one of their sample cards' trigger phrases.
- *
- * Runs in a clearly labeled degraded/simulated mode when the extension is
- * absent, so the page is still useful (and the funnel not a dead end) for
- * anyone who hasn't installed it yet.
- */
 export default function RehearsePage() {
   const { getAccessToken } = useAuth();
   const navigate = useNavigate();
-  const [pairing, setPairing] = useState<PairingState>({ phase: 'idle' });
   const [camera, setCamera] = useState<CameraState>({ phase: 'idle' });
   const [cards, setCards] = useState<ApiCard[]>([]);
-  const [firedCard, setFiredCard] = useState<ApiCard | null>(null);
+  const [extensionPresent, setExtensionPresent] = useState<boolean | null>(null);
+  const [generatedCard, setGeneratedCard] = useState<{ spec: unknown; provider: string } | null>(null);
+  const [anyCardShown, setAnyCardShown] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  const h2t = useHoldToTalk();
 
   useEffect(() => {
     const api = getApiClient(getAccessToken);
     api.listCards({ status: 'approved' }).then(setCards).catch(() => setCards([]));
-  }, [getAccessToken]);
-
-  const runProbe = useCallback(async () => {
-    setPairing((s) => pairingReducer(s, { type: 'PROBE_START' }));
-    const present = await probeExtensionPresence();
-    setPairing((s) => pairingReducer(s, { type: 'PROBE_RESULT', present }));
-    if (present) await runPairing();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const runPairing = useCallback(async () => {
-    setPairing((s) => pairingReducer(s, { type: 'NONCE_REQUESTED' }));
-    try {
-      const api = getApiClient(getAccessToken);
-      const { nonce } = await api.requestPairingNonce();
-      setPairing((s) => pairingReducer(s, { type: 'NONCE_RECEIVED' }));
-      const result = await sendPairMessage(nonce);
-      if (result.ok) {
-        setPairing((s) => pairingReducer(s, { type: 'PAIR_SUCCEEDED' }));
-      } else {
-        setPairing((s) => pairingReducer(s, { type: 'PAIR_FAILED', message: result.error ?? 'pairing failed' }));
-      }
-    } catch (err) {
-      setPairing((s) =>
-        pairingReducer(s, { type: 'NONCE_REQUEST_FAILED', message: err instanceof Error ? err.message : 'network error' }),
-      );
+    if (hasChromeRuntime()) {
+      probeExtensionPresence().then(setExtensionPresent);
+    } else {
+      setExtensionPresent(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getAccessToken]);
-
-  useEffect(() => {
-    runProbe();
     return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [getAccessToken]);
 
-  function handleAddToChrome() {
-    window.open(CHROME_WEB_STORE_URL, '_blank', 'noopener,noreferrer');
-    // Poll for presence: CWS opens in a new tab per plan §4.2 seam, and the
-    // reload after install triggers silent pairing automatically (step 5).
-    const interval = setInterval(async () => {
-      const present = await probeExtensionPresence();
-      if (present) {
-        clearInterval(interval);
-        window.location.reload();
+  // When transcript becomes available and state is transcribing, generate.
+  useEffect(() => {
+    if (h2t.state.phase === 'transcribing' && h2t.transcript) {
+      generateFromTranscript(h2t.transcript);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [h2t.state.phase, h2t.transcript]);
+
+  const generateFromTranscript = useCallback(
+    async (transcript: string) => {
+      h2t.startGenerating();
+      try {
+        const api = getApiClient(getAccessToken);
+        const result = await api.generateCard(transcript, 'rehearsal');
+        setGeneratedCard({ spec: result.card, provider: result.provider });
+        setAnyCardShown(true);
+        recordGeneratedCard({
+          title: result.card.title ?? 'AI Card',
+          spec: result.card,
+          provider: result.provider,
+        });
+        h2t.markShown();
+      } catch (err: unknown) {
+        const code = (err as { code?: string })?.code ?? 'internal';
+        h2t.markFailed(code);
       }
-    }, 2000);
-    // Stop polling after 2 minutes so we don't leak a timer forever if the
-    // user abandons the install.
-    setTimeout(() => clearInterval(interval), 120_000);
-  }
+    },
+    [getAccessToken, h2t],
+  );
 
   async function requestCameraAndMic() {
     setCamera({ phase: 'requesting' });
@@ -120,20 +100,20 @@ export default function RehearsePage() {
     }
   }
 
+  // Fallback: click a fixture card to simulate.
   function simulateTrigger(card: ApiCard) {
-    setFiredCard(card);
+    setGeneratedCard({ spec: card.spec, provider: 'fixture' });
+    setAnyCardShown(true);
   }
 
   function handleContinue() {
-    saveOnboardingStep('notion');
-    navigate('/notion-connect');
+    markRehearsed();
+    saveSetupStep('meet');
+    navigate('/meet');
   }
 
-  const extensionAbsent = pairing.phase === 'absent';
-  const paired = pairing.phase === 'paired';
-
   return (
-    <OnboardingShell step={2} totalSteps={4}>
+    <OnboardingShell step={4} totalSteps={5}>
       <div className="text-center space-y-3 mb-8">
         <h1
           className="leading-tight"
@@ -142,66 +122,29 @@ export default function RehearsePage() {
           Let&apos;s rehearse.
         </h1>
         <p className="text-sm" style={{ color: '#5A5550' }}>
-          This runs the real pipeline on your own camera, before you ever join a meeting.
+          Step 4 of 5 — Hold Alt+Shift+Space and say a sentence. The card generated from your voice
+          will appear on screen.
         </p>
       </div>
 
-      {pairing.phase === 'probing' && (
-        <p className="text-sm text-center" style={{ color: '#5A5550' }}>
-          Checking for the Stash Live extension&hellip;
-        </p>
-      )}
+      {/* Status strip */}
+      <div
+        className="flex items-center justify-center gap-4 mb-6 text-xs"
+        style={{ color: '#5A5550' }}
+      >
+        <span>
+          Extension:{' '}
+          {extensionPresent === null
+            ? 'checking…'
+            : extensionPresent
+              ? 'paired'
+              : 'not detected'}
+        </span>
+        <span>·</span>
+        <span>Mic: {camera.phase === 'granted' ? 'ready' : 'not started'}</span>
+      </div>
 
-      {extensionAbsent && (
-        <div
-          className="rounded-2xl p-6 text-center space-y-4 mb-6"
-          style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(26,21,18,0.06)' }}
-        >
-          <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#fb8500' }}>
-            Extension not detected
-          </p>
-          <p className="text-sm" style={{ color: '#5A5550' }}>
-            Install the Chrome extension to rehearse with the real pipeline. You can still preview
-            in a simulated mode below.
-          </p>
-          <Button onClick={handleAddToChrome}>Add to Chrome</Button>
-        </div>
-      )}
-
-      {(pairing.phase === 'requesting-nonce' || pairing.phase === 'pairing') && (
-        <p className="text-sm text-center mb-6" style={{ color: '#5A5550' }}>
-          Pairing your device&hellip;
-        </p>
-      )}
-
-      {pairing.phase === 'nonce-expired' && (
-        <div className="text-center space-y-3 mb-6">
-          <p className="text-sm" style={{ color: '#d4183d' }}>
-            That pairing code expired. Let&apos;s try again.
-          </p>
-          <Button variant="outline" onClick={() => runPairing()}>
-            Retry pairing
-          </Button>
-        </div>
-      )}
-
-      {pairing.phase === 'error' && (
-        <div className="text-center space-y-3 mb-6">
-          <p className="text-sm" style={{ color: '#d4183d' }}>
-            {pairing.message}
-          </p>
-          <Button variant="outline" onClick={() => runProbe()}>
-            Retry
-          </Button>
-        </div>
-      )}
-
-      {paired && (
-        <p className="text-sm text-center mb-6" style={{ color: '#1A1512' }}>
-          Extension paired. {hasChromeRuntime() ? '' : ''}
-        </p>
-      )}
-
+      {/* Video stage */}
       <div className="flex flex-col items-center gap-4 mb-8">
         <div
           className="relative w-full max-w-md aspect-video rounded-2xl overflow-hidden flex items-center justify-center"
@@ -218,9 +161,20 @@ export default function RehearsePage() {
                 'Could not access your camera — close other apps using it and retry.'}
             </span>
           )}
-          {firedCard && (
+
+          {/* Generated card overlay */}
+          {generatedCard && (
             <div className="absolute right-4 top-4">
-              <GlassCard spec={firedCard.spec} width={220} />
+              <GlassCard spec={generatedCard.spec as any} width={220} />
+            </div>
+          )}
+
+          {/* Compositor/preview label */}
+          {generatedCard && (
+            <div className="absolute bottom-3 left-3 text-xs px-2 py-1 rounded" style={{ background: 'rgba(0,0,0,0.6)', color: '#FBF9F6' }}>
+              {extensionPresent
+                ? 'This is your real outbound video'
+                : 'Preview — install the extension to composite this into your video'}
             </div>
           )}
         </div>
@@ -233,10 +187,111 @@ export default function RehearsePage() {
         )}
       </div>
 
-      {camera.phase === 'granted' && cards.length > 0 && (
+      {/* Hold to talk button */}
+      {camera.phase === 'granted' && (
+        <div className="text-center space-y-3 mb-8">
+          {(h2t.state.phase === 'idle' || h2t.state.phase === 'shown' || h2t.state.phase === 'failed') && (
+            <>
+              <Button
+                size="lg"
+                onPointerDown={() => h2t.startListening()}
+                onPointerUp={() => h2t.stopListening()}
+                onPointerLeave={() => h2t.stopListening()}
+                style={{
+                  background: '#fb8500',
+                  color: '#fff',
+                  borderRadius: '9999px',
+                  padding: '1rem 2.5rem',
+                }}
+              >
+                Hold to talk
+              </Button>
+              <p className="text-xs" style={{ color: '#5A5550' }}>
+                or hold Alt+Shift+Space
+              </p>
+            </>
+          )}
+
+          {h2t.state.phase === 'listening' && (
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: 'rgba(251,133,0,0.1)' }}>
+                <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#fb8500' }} />
+                <span className="text-sm" style={{ color: '#fb8500' }}>Listening…</span>
+              </div>
+              {h2t.transcript && (
+                <p className="text-sm italic" style={{ color: '#5A5550' }}>
+                  &ldquo;{h2t.transcript}&rdquo;
+                </p>
+              )}
+            </div>
+          )}
+
+          {h2t.state.phase === 'transcribing' && (
+            <p className="text-sm" style={{ color: '#5A5550' }}>
+              Processing…
+            </p>
+          )}
+
+          {h2t.state.phase === 'generating' && (
+            <p className="text-sm" style={{ color: '#5A5550' }}>
+              Building your card…
+            </p>
+          )}
+
+          {h2t.state.phase === 'failed' && (
+            <div className="space-y-2">
+              <p className="text-sm" style={{ color: '#d4183d' }}>
+                {h2t.state.error === 'no_provider'
+                  ? 'No AI provider configured. Go back to set up a key.'
+                  : h2t.state.error === 'not-allowed'
+                    ? 'Microphone access was denied. Check your browser permissions.'
+                    : `Generation failed: ${h2t.state.error}`}
+              </p>
+              {h2t.state.error === 'no_provider' && (
+                <Button variant="outline" onClick={() => navigate('/setup/data')}>
+                  Set up AI key
+                </Button>
+              )}
+            </div>
+          )}
+
+          {h2t.state.phase === 'unsupported' && (
+            <div className="space-y-3">
+              <p className="text-sm" style={{ color: '#5A5550' }}>
+                Speech recognition is not supported in this browser. Type a sentence instead:
+              </p>
+              <div className="flex gap-2 justify-center">
+                <input
+                  type="text"
+                  className="rounded-lg px-3 py-2 text-sm border"
+                  style={{ border: '1px solid rgba(26,21,18,0.12)', minWidth: '240px' }}
+                  placeholder="Type a sentence to generate from…"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const value = (e.target as HTMLInputElement).value.trim();
+                      if (value) generateFromTranscript(value);
+                    }
+                  }}
+                />
+                <Button
+                  onClick={() => {
+                    const input = document.querySelector<HTMLInputElement>('input[type="text"]');
+                    if (input?.value.trim()) generateFromTranscript(input.value.trim());
+                  }}
+                >
+                  Generate
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Fixture chips fallback */}
+      {cards.length > 0 && (
         <div className="space-y-3 mb-8">
           <p className="text-sm text-center" style={{ color: '#5A5550' }}>
-            Say one of these phrases out loud{extensionAbsent ? ' (simulated — tap instead)' : ''}:
+            No extension? Preview a sample card:
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
             {cards.flatMap((card) => card.phrases.slice(0, 1)).map((phrase, i) => (
@@ -253,9 +308,10 @@ export default function RehearsePage() {
         </div>
       )}
 
+      {/* Footer */}
       <div className="flex justify-center">
-        <Button size="lg" disabled={!firedCard} onClick={handleContinue}>
-          {firedCard ? 'Continue' : 'Waiting for your first card…'}
+        <Button size="lg" disabled={!anyCardShown} onClick={handleContinue}>
+          {anyCardShown ? 'Continue' : 'Generate a card to continue'}
         </Button>
       </div>
     </OnboardingShell>

@@ -16,12 +16,13 @@
  * `@stash/card-canvas`'s `CardCompositor` — this file only owns the camera
  * capture/canvas/rAF plumbing around it and feeds it validated `CardSpec`s.
  */
-import type { CardSpec, UserSettings } from '@stash/card-spec';
+import type { CardSpec, CardPosition, UserSettings } from '@stash/card-spec';
 import { parseCardSpec } from '@stash/card-spec';
-import { CardCompositor, loadImageCorsSafe } from '@stash/card-canvas';
+import { CardCompositor, loadImageCorsSafe, resolveTtlMs } from '@stash/card-canvas';
 import { ensureCardFontsLoaded } from './fonts.js';
 import { isBridgeEnvelope, isPageToInjectMsg, wrapBridgeMessage } from '../shared/messages.js';
 import type { PageToInjectMsg } from '../shared/messages.js';
+import { LOCAL_GENERATING_DELAY_MS, GENERATING_TIMEOUT_MS } from '../shared/constants.js';
 
 void ensureCardFontsLoaded();
 
@@ -35,8 +36,27 @@ let currentSpec: CardSpec | null = null;
 let currentSettings: UserSettings | null = null;
 const preloadedImages = new Map<string, CanvasImageSource>();
 
+// Local generating/error tracking per captureId
+interface PendingCapture {
+  captureId: string;
+  delayTimer: ReturnType<typeof setTimeout> | null;
+  timeoutTimer: ReturnType<typeof setTimeout> | null;
+  /** Set to true once the generating placeholder is actually shown (after delay). */
+  showingPlaceholder: boolean;
+}
+
+let pendingCaptures = new Map<string, PendingCapture>();
+
 function postToPage(msg: { type: 'inject:ready' } | { type: 'compositor:active'; active: boolean } | { type: 'compositor:error'; message: string }): void {
   window.postMessage(wrapBridgeMessage(msg), window.location.origin);
+}
+
+function clearPendingCapture(captureId: string): void {
+  const pending = pendingCaptures.get(captureId);
+  if (!pending) return;
+  if (pending.delayTimer !== null) clearTimeout(pending.delayTimer);
+  if (pending.timeoutTimer !== null) clearTimeout(pending.timeoutTimer);
+  pendingCaptures.delete(captureId);
 }
 
 function handleBridgeMessage(msg: PageToInjectMsg): void {
@@ -51,7 +71,50 @@ function handleBridgeMessage(msg: PageToInjectMsg): void {
       }
       void preloadImagesForSpec(result.value);
       currentSpec = result.value;
+
+      // If this show has a captureId, clear the pending capture
+      if (msg.captureId) clearPendingCapture(msg.captureId);
+
+      // Clear any placeholder before showing the real card
+      for (const instance of activeInstances) instance.clearPlaceholder();
+
       for (const instance of activeInstances) instance.showCard();
+
+      // Auto-dismiss TTL: start once the card enters
+      const ttl = resolveTtlMs(result.value.ttlMs, currentSettings?.autoDismissMs);
+      for (const instance of activeInstances) instance.startTtl(ttl.durationMs);
+      break;
+    }
+    case 'card:generating': {
+      // 250ms delay before showing generating placeholder (avoids flicker for fast gens)
+      const delayTimer = setTimeout(() => {
+        const pending = pendingCaptures.get(msg.captureId);
+        if (!pending) return;
+        pending.showingPlaceholder = true;
+        for (const instance of activeInstances) instance.showPlaceholder('generating', 'Generating card…');
+      }, LOCAL_GENERATING_DELAY_MS);
+
+      // 12s hard timeout: if generation doesn't complete, show error
+      const timeoutTimer = setTimeout(() => {
+        const pending = pendingCaptures.get(msg.captureId);
+        if (!pending) return;
+        if (pending.showingPlaceholder) {
+          for (const instance of activeInstances) instance.showPlaceholder('error', 'Generation timed out');
+        }
+        clearPendingCapture(msg.captureId);
+      }, GENERATING_TIMEOUT_MS);
+
+      pendingCaptures.set(msg.captureId, {
+        captureId: msg.captureId,
+        delayTimer,
+        timeoutTimer,
+        showingPlaceholder: false,
+      });
+      break;
+    }
+    case 'card:error': {
+      clearPendingCapture(msg.captureId);
+      for (const instance of activeInstances) instance.showPlaceholder('error', msg.message || 'Generation failed', msg.code);
       break;
     }
     case 'card:prewarm': {
@@ -69,6 +132,11 @@ function handleBridgeMessage(msg: PageToInjectMsg): void {
       break;
     case 'settings:update':
       currentSettings = msg.settings;
+      // Propagate settings to all active compositor instances
+      for (const instance of activeInstances) {
+        instance.setReducedMotion(msg.settings.reducedMotion);
+        instance.setUserPosition(msg.settings.position);
+      }
       break;
     case 'token:expired':
       // Degradation (plan §3.7): let any visible card finish its dismiss
@@ -103,6 +171,11 @@ window.addEventListener('message', (event: MessageEvent) => {
 interface InterceptionInstance {
   showCard: () => void;
   hideCard: () => void;
+  showPlaceholder: (kind: 'generating' | 'error', title: string, detail?: string) => void;
+  clearPlaceholder: () => void;
+  startTtl: (durationMs: number) => void;
+  setReducedMotion: (value: boolean) => void;
+  setUserPosition: (position: CardPosition) => void;
   stop: () => void;
 }
 
@@ -176,10 +249,13 @@ async function buildCompositedStream(
   const compositor = new CardCompositor({
     images: preloadedImages,
     reducedMotion: currentSettings?.reducedMotion ?? false,
+    autoPlacement: true,
   });
   let isLoopActive = true;
   let lastTime = performance.now();
   let shownSpec: CardSpec | null = null;
+  // Track whether placeholder is showing so we know which draw path to use
+  let showingPlaceholder = false;
 
   function renderLoop(): void {
     if (!isLoopActive) return;
@@ -193,12 +269,17 @@ async function buildCompositedStream(
       ctx.clearRect(0, 0, width, height);
       ctx.drawImage(videoEl, 0, 0, width, height);
 
-      // A card only keeps compositing while it is either the current spec or
-      // still finishing its leave animation (`isFinished` flips once the
-      // spring/fade settles at opacity 0) — mirrors plan §3.3's "never
-      // re-render during animation, but do keep animating the transform".
-      if (shownSpec && !compositor.isFinished) {
-        compositor.composite(ctx, shownSpec, { width, height }, dtMs, shownSpec.position);
+      if (showingPlaceholder && !compositor.isFinished) {
+        // Draw placeholder with videoEl as sampleSource for busyness sampling
+        compositor.compositePlaceholder(ctx, { width, height }, dtMs, videoEl);
+      } else if (shownSpec && !compositor.isFinished) {
+        // Draw real card with videoEl as sampleSource for busyness sampling
+        compositor.composite(ctx, shownSpec, { width, height }, dtMs, shownSpec.position, videoEl);
+      }
+
+      // TTL auto-dismiss: if the compositor reported expiry, hide the card
+      if (compositor.ttlExpired) {
+        hideCard();
       }
     } catch {
       try {
@@ -217,14 +298,35 @@ async function buildCompositedStream(
   const compositeStream = canvas.captureStream(30);
   rawStream.getAudioTracks().forEach((track) => compositeStream.addTrack(track));
 
+  function hideCard(): void {
+    compositor.hide();
+    showingPlaceholder = false;
+  }
+
   const instance: InterceptionInstance = {
     showCard: () => {
       if (!currentSpec) return;
       shownSpec = currentSpec;
+      showingPlaceholder = false;
       compositor.show();
     },
-    hideCard: () => {
-      compositor.hide();
+    hideCard,
+    showPlaceholder: (kind, title, detail) => {
+      showingPlaceholder = true;
+      shownSpec = null;
+      compositor.showPlaceholder(kind, title, detail);
+    },
+    clearPlaceholder: () => {
+      showingPlaceholder = false;
+    },
+    startTtl: (durationMs) => {
+      compositor.startTtl(durationMs);
+    },
+    setReducedMotion: (value) => {
+      compositor.setReducedMotion(value);
+    },
+    setUserPosition: (position) => {
+      compositor.setUserPosition(position);
     },
     stop: () => {
       isLoopActive = false;

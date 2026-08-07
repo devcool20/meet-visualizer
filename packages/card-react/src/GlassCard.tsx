@@ -27,7 +27,7 @@ import { BlockRenderer } from './blocks/BlockRenderer.js';
  * styling) draws from a single definition.
  */
 const GLASS_STYLE: CSSProperties = {
-  background: 'rgba(255,255,255,0.45)',
+  background: 'rgba(255,255,255,0.62)',
   backdropFilter: 'blur(20px) saturate(120%)',
   WebkitBackdropFilter: 'blur(20px) saturate(120%)',
   border: '1px solid rgba(26,21,18,0.06)',

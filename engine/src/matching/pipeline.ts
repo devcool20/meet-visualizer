@@ -58,6 +58,11 @@ export class MatchPipeline {
     this.cooldown.markDismissed(cardId);
   }
 
+  /** Mark an externally-generated card as shown, applying cooldown so a fixture match doesn't overwrite it. */
+  noteExternalCardShown(cardId: string, cooldownMs: number): void {
+    this.cooldown.markFired(cardId);
+  }
+
   private thresholds() {
     return SENSITIVITY_THRESHOLDS[this.settings.sensitivity];
   }

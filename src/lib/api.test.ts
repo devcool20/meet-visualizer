@@ -83,3 +83,69 @@ describe('MockApiClient (card library fixtures)', () => {
     await expect(client.getCard(approved.id)).rejects.toBeInstanceOf(ApiError);
   });
 });
+
+describe('MockApiClient (AI provider)', () => {
+  let client: MockApiClient;
+
+  beforeEach(() => {
+    client = new MockApiClient();
+  });
+
+  it('getAiProvider returns none state initially', async () => {
+    const state = await client.getAiProvider();
+    expect(state.provider).toBeNull();
+    expect(state.source).toBe('none');
+    expect(state.keyPreview).toBeNull();
+  });
+
+  it('putAiProvider rejects a short key', async () => {
+    await expect(client.putAiProvider('gemini', 'short')).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('putAiProvider rejects a mismatched key prefix', async () => {
+    await expect(client.putAiProvider('gemini', 'sk-openai-key-that-is-long-enough')).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('putAiProvider accepts a plausible key and reports source: user', async () => {
+    const state = await client.putAiProvider('gemini', 'AIzaSyDeadBeef0123456789');
+    expect(state.provider).toBe('gemini');
+    expect(state.source).toBe('user');
+    expect(state.keyPreview).toBe('••••6789');
+    expect(state.validatedAt).toBeTruthy();
+  });
+
+  it('deleteAiProvider falls back to server when serverKeyAvailable is true', async () => {
+    // Set up server key state
+    const clientWithServer = new MockApiClient();
+    // First put a user key
+    await clientWithServer.putAiProvider('gemini', 'AIzaSyDeadBeef0123456789');
+    // Delete it (no server key available -> source becomes 'none')
+    await clientWithServer.deleteAiProvider();
+    const state = await clientWithServer.getAiProvider();
+    expect(state.source).toBe('none');
+    expect(state.provider).toBeNull();
+  });
+
+  it('generateCard returns a valid card spec', async () => {
+    await client.putAiProvider('openai', 'sk-openai-valid-key-long-enough-here');
+    const result = await client.generateCard('walk me through Q2 revenue');
+    expect(result.source).toBe('ai');
+    expect(result.provider).toBe('openai');
+    expect(result.card).toBeDefined();
+    expect(result.card.title).toBeTruthy();
+  });
+
+  it('updateSettings round-trips triggerMode with hold-to-talk as default', async () => {
+    // Default settings — DEFAULT_USER_SETTINGS now includes triggerMode:'hold-to-talk'
+    const me = await client.getMe();
+    expect(me.settings.triggerMode).toBe('hold-to-talk');
+
+    // Set to ambient
+    const updated = await client.updateSettings({ triggerMode: 'ambient' });
+    expect(updated.settings.triggerMode).toBe('ambient');
+
+    // Set to hold-to-talk
+    const updated2 = await client.updateSettings({ triggerMode: 'hold-to-talk' });
+    expect(updated2.settings.triggerMode).toBe('hold-to-talk');
+  });
+});

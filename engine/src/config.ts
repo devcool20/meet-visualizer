@@ -94,6 +94,40 @@ export const config = {
   useMockNotion: isLocal || !process.env.NOTION_CLIENT_ID,
   useMockGemini: isLocal || bool(process.env.STASH_MOCK_GEMINI, !process.env.GEMINI_API_KEY),
   useMockSupabase: isLocal || bool(process.env.STASH_MOCK_SUPABASE, !process.env.SUPABASE_URL),
+
+  // AI generation
+  aiProviderDefault: (process.env.STASH_AI_PROVIDER || 'gemini') as 'gemini' | 'openai' | 'anthropic',
+  aiKeys: {
+    gemini: process.env.GEMINI_API_KEY || '',
+    openai: process.env.OPENAI_API_KEY || '',
+    anthropic: process.env.ANTHROPIC_API_KEY || '',
+  },
+  aiModels: {
+    gemini: process.env.STASH_AI_MODEL_GEMINI || 'gemini-flash-latest',
+    openai: process.env.STASH_AI_MODEL_OPENAI || 'gpt-4.1-mini',
+    anthropic: process.env.STASH_AI_MODEL_ANTHROPIC || 'claude-sonnet-4-5',
+  },
+  generationTotalBudgetMs: 8_000,
+  generationProviderTimeoutMs: 6_000,
+  groundingTimeoutMs: 1_500,
+  imageVerifyTimeoutMs: 2_000,
+  generationMaxOutputTokens: 900,
+  generationCacheTtlSeconds: 86_400,
+  generationRateLimitPerMinute: 6,
+  generationRateLimitPerHour: 40,
+  generatedHideGraceMs: 750,
+  groundingLang: process.env.STASH_GROUNDING_LANG || 'en',
+  groundingUserAgent: 'StashLive/0.1 (https://meet-visualizer.vercel.app)',
+
+  // Image proxy
+  imageProxyPublicOrigin: process.env.STASH_IMAGE_PROXY_ORIGIN || (process.env.STASH_PRODUCT_ORIGIN || 'https://meet-visualizer.vercel.app'),
+  imageProxyMaxBytes: 5_000_000,
+  imageProxyFetchTimeoutMs: 4_000,
+  imageProxyCacheTtlSeconds: 86_400,
+  imageProxyCacheMaxEntries: 200,
+  imageProxyTokenTtlSeconds: 7 * 24 * 3600,
+
+  useMockGeneration: isLocal || (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY),
 };
 
 export type Config = typeof config;

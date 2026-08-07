@@ -3,14 +3,19 @@
  *
  * - injects the MAIN-world compositor script
  * - bridges chrome.runtime <-> window.postMessage in both directions
- * - hosts Web Speech recognition and forwards transcripts to background
+ * - hosts Web Speech recognition (ambient mode) or PushToTalkController
+ *   (hold-to-talk mode) exclusively — exactly one capture path is active.
  * - renders the presenter-only HUD
  * - Alt+Shift+D dismiss, Alt+Shift+S toggle (plan §3.6)
  */
+import type { TriggerMode } from '@stash/card-spec';
 import type { BackgroundToContentMsg, ContentToBackgroundMsg } from '../shared/messages.js';
 import { forwardToInject, installBridge } from './bridge.js';
 import { Hud } from './hud.js';
+import type { HudPhase } from './hud.js';
 import { WebSpeechProvider } from '../stt/web-speech-provider.js';
+import { PushToTalkController } from './push-to-talk.js';
+import type { CaptureState, StopReason } from './push-to-talk.js';
 // The `?script&module` suffix is @crxjs/vite-plugin's convention for
 // bundling a TS entry as a standalone MAIN-world script and exposing it as a
 // web-accessible resource automatically — see extension/src/vite-env.d.ts.
@@ -27,45 +32,158 @@ function send(msg: ContentToBackgroundMsg): void {
   });
 }
 
-function injectMainWorldScript(): void {
-  const script = document.createElement('script');
-  script.src = chrome.runtime.getURL(injectedScriptUrl);
-  script.type = 'module';
-  (document.head || document.documentElement).appendChild(script);
+/* ------------------------------------------------------------------ */
+/* Capture paths — exactly one active at a time                        */
+/* ------------------------------------------------------------------ */
+
+let currentTriggerMode: TriggerMode = 'hold-to-talk';
+let ambientProvider: WebSpeechProvider | null = null;
+let pushToTalkController: PushToTalkController | null = null;
+
+/** Switch trigger modes, tearing down the old path and starting the new one. */
+function setTriggerMode(mode: TriggerMode): void {
+  if (mode === currentTriggerMode) return;
+  teardownCurrentCapturePath();
+  currentTriggerMode = mode;
+  startCapturePath();
 }
 
-function startHud(): void {
-  hud.mount();
-  send({ type: 'hud:ready' });
+function teardownCurrentCapturePath(): void {
+  if (ambientProvider) {
+    ambientProvider.stop();
+    ambientProvider = null;
+  }
+  if (pushToTalkController) {
+    pushToTalkController.dispose();
+    pushToTalkController = null;
+  }
 }
 
-function startSpeech(): void {
+function startCapturePath(): void {
+  if (currentTriggerMode === 'ambient') {
+    startAmbientSpeech();
+  } else {
+    startPushToTalk();
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Ambient mode — unchanged from the original startSpeech()            */
+/* ------------------------------------------------------------------ */
+
+function startAmbientSpeech(): void {
   const provider = new WebSpeechProvider();
   provider.onPartial((text) => {
-    hud.update({ listening: true, lastPhrase: text, tokenWarning: false });
+    hud.update({ phase: 'idle', lastPhrase: text, tokenWarning: false, message: null });
   });
   provider.onFinal((text) => {
-    hud.update({ listening: true, lastPhrase: text, tokenWarning: false });
+    hud.update({ phase: 'idle', lastPhrase: text, tokenWarning: false, message: null });
     send({ type: 'transcript', text, final: true, ts: Date.now() });
   });
   provider.onError((err) => {
     if (err.fatal) {
-      hud.update({ listening: false, lastPhrase: null, tokenWarning: true });
+      hud.update({ phase: 'idle', lastPhrase: null, tokenWarning: true, message: null });
     }
   });
   provider.start({ lang: navigator.language || 'en-US' }).catch(() => {
-    hud.update({ listening: false, lastPhrase: null, tokenWarning: true });
+    hud.update({ phase: 'idle', lastPhrase: null, tokenWarning: true, message: null });
   });
+  ambientProvider = provider;
 }
+
+/* ------------------------------------------------------------------ */
+/* Hold-to-talk mode — PushToTalkController + STT per hold             */
+/* ------------------------------------------------------------------ */
+
+let pttProvider: WebSpeechProvider | null = null;
+
+function startPushToTalk(): void {
+  pushToTalkController = new PushToTalkController(
+    {
+      now: () => Date.now(),
+      setTimer: (fn, ms) => window.setTimeout(fn, ms),
+      clearTimer: (h) => window.clearTimeout(h as ReturnType<typeof setTimeout>),
+      newCaptureId: () => crypto.randomUUID(),
+    },
+    {
+      onStartCapture(_captureId: string): void {
+        // Start a fresh speech recognizer for this hold
+        const provider = new WebSpeechProvider();
+        provider.onPartial((text) => {
+          pushToTalkController?.noteTranscript(text, false);
+          hud.update({ phase: 'listening', lastPhrase: text, tokenWarning: false, message: null });
+        });
+        provider.onFinal((text) => {
+          pushToTalkController?.noteTranscript(text, true);
+          hud.update({ phase: 'listening', lastPhrase: text, tokenWarning: false, message: null });
+        });
+        provider.onError((err) => {
+          pushToTalkController?.noteSttError({ code: err.code, message: err.message, fatal: err.fatal });
+        });
+        provider.start({ lang: navigator.language || 'en-US' }).catch(() => {
+          pushToTalkController?.noteSttError({ code: 'start_failed', message: 'Speech recognition failed to start', fatal: true });
+        });
+        pttProvider = provider;
+      },
+      onStopCapture(_captureId: string, _reason: StopReason): void {
+        // Shut down the per-hold recognizer
+        if (pttProvider) {
+          pttProvider.stop({ flush: true });
+          pttProvider = null;
+        }
+      },
+      onSubmit(captureId: string, text: string, ts: number): void {
+        send({ type: 'capture:generate', captureId, text, ts });
+      },
+      onCancelGeneration(_captureId: string): void {
+        // User pressed Alt+Shift+Space again mid-generation; the push-to-talk
+        // controller already abort-captured. No wire-level cancel exists —
+        // the background simply ignores stale captureIds. The generating hover
+        // card will time out naturally via GENERATING_TIMEOUT_MS.
+      },
+      onStateChange(state: CaptureState, detail: { captureId: string | null; text: string | null; message: string | null }): void {
+        const phaseMap: Record<CaptureState, HudPhase> = {
+          idle: 'idle',
+          listening: 'listening',
+          generating: 'generating',
+          error: 'error',
+        };
+        hud.update({
+          phase: phaseMap[state],
+          lastPhrase: detail.text,
+          tokenWarning: false,
+          message: detail.message,
+        });
+      },
+    },
+  );
+  pushToTalkController.install();
+}
+
+/* ------------------------------------------------------------------ */
+/* Background message bridge — extended for hold-to-talk               */
+/* ------------------------------------------------------------------ */
 
 function wireBackgroundMessages(): void {
   chrome.runtime.onMessage.addListener((msg: BackgroundToContentMsg) => {
     if (msg.type === 'token:expired') {
-      hud.update({ listening: true, lastPhrase: null, tokenWarning: true });
+      hud.update({ phase: 'idle', lastPhrase: null, tokenWarning: true, message: null });
+    } else if (msg.type === 'settings:update') {
+      setTriggerMode(msg.settings.triggerMode);
+    } else if (msg.type === 'card:generating') {
+      pushToTalkController?.noteGenerating(msg.captureId);
+      hud.update({ phase: 'generating', lastPhrase: null, tokenWarning: false, message: 'Generating card…' });
+    } else if (msg.type === 'card:error') {
+      pushToTalkController?.noteGenerationError(msg.captureId, msg.message);
+      hud.update({ phase: 'error', lastPhrase: null, tokenWarning: false, message: msg.message });
     }
     forwardToInject(msg);
   });
 }
+
+/* ------------------------------------------------------------------ */
+/* Mode-independent keyboard shortcuts                                 */
+/* ------------------------------------------------------------------ */
 
 function wireKeyboardShortcuts(): void {
   window.addEventListener('keydown', (event) => {
@@ -79,6 +197,22 @@ function wireKeyboardShortcuts(): void {
   });
 }
 
+/* ------------------------------------------------------------------ */
+/* Bootstrap                                                            */
+/* ------------------------------------------------------------------ */
+
+function injectMainWorldScript(): void {
+  const script = document.createElement('script');
+  script.src = chrome.runtime.getURL(injectedScriptUrl);
+  script.type = 'module';
+  (document.head || document.documentElement).appendChild(script);
+}
+
+function startHud(): void {
+  hud.mount();
+  send({ type: 'hud:ready' });
+}
+
 function main(): void {
   injectMainWorldScript();
   installBridge(() => {
@@ -88,7 +222,12 @@ function main(): void {
   startHud();
   wireBackgroundMessages();
   wireKeyboardShortcuts();
-  startSpeech();
+  // Ambient mode starts speech immediately; hold-to-talk starts with hotkey listeners
+  if (currentTriggerMode === 'ambient') {
+    startAmbientSpeech();
+  } else {
+    startPushToTalk();
+  }
 }
 
 main();

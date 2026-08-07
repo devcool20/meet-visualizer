@@ -2,12 +2,18 @@ import { useState } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router';
 import { Button } from '@/app/components/ui/button';
 import { useAuth } from './AuthContext';
+import { isMockMode } from '@/lib/env';
+import { useSetupStatus } from '@/app/hooks/useSetupStatus';
+import { firstIncompleteStep } from '@/lib/setup';
 
 /**
- * `/signup` — step 2 of the funnel (plan §4.2): "Sign in with Google",
+ * `/signup` — step 1 of the funnel (plan §4.2): "Sign in with Google",
  * one click plus consent. In mock mode this signs in a fixed local dev
  * user with no OAuth round trip, so the funnel is fully clickable with
  * zero configuration.
+ *
+ * After sign-in, redirects to the first incomplete setup step, or to
+ * `/dashboard` if setup is complete.
  */
 export default function SignUpPage() {
   const { status, signInWithGoogle } = useAuth();
@@ -16,8 +22,13 @@ export default function SignUpPage() {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { from?: string } };
 
+  const { signals, loading } = useSetupStatus();
+
+  // When signed-in, redirect to first incomplete step or dashboard.
   if (status === 'signed-in') {
-    return <Navigate to="/welcome" replace />;
+    if (loading) return null;
+    const target = firstIncompleteStep(signals) ?? '/dashboard';
+    return <Navigate to={target} replace />;
   }
 
   async function handleSignIn() {
@@ -27,7 +38,8 @@ export default function SignUpPage() {
       await signInWithGoogle();
       // Real Supabase mode redirects away for OAuth; mock mode resolves
       // immediately and we navigate on here.
-      navigate(location.state?.from ?? '/welcome', { replace: true });
+      const target = firstIncompleteStep(signals) ?? '/dashboard';
+      navigate(location.state?.from ?? target, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign-in failed');
       setPending(false);
@@ -40,12 +52,22 @@ export default function SignUpPage() {
       style={{ background: '#FBF9F6', color: '#1A1512' }}
     >
       <div className="w-full max-w-sm text-center space-y-6">
-        <span
-          className="block text-2xl font-medium tracking-tight"
-          style={{ fontFamily: "'Cormorant Garamond', serif" }}
-        >
-          Stash Live
-        </span>
+        <div className="flex items-center justify-center gap-2">
+          <span
+            className="block text-2xl font-medium tracking-tight"
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          >
+            Stash Live
+          </span>
+          {isMockMode() && (
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+              style={{ background: 'rgba(251,133,0,0.12)', color: '#fb8500' }}
+            >
+              Demo mode — no account created
+            </span>
+          )}
+        </div>
         <h1
           className="leading-tight"
           style={{

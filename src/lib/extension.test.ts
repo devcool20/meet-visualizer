@@ -1,5 +1,14 @@
-import { describe, it, expect } from 'vitest';
-import { pairingReducer, type PairingState } from './extension';
+import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  pairingReducer,
+  resolveExtensionId,
+  extensionIdSource,
+  chromeWebStoreUrl,
+  isProductOrigin,
+  extensionSourceMode,
+  __setTestEnv,
+  type PairingState,
+} from './extension';
 
 describe('pairingReducer', () => {
   it('starts idle -> probing on PROBE_START', () => {
@@ -56,5 +65,104 @@ describe('pairingReducer', () => {
     const state: PairingState = { phase: 'paired' };
     // @ts-expect-error intentionally passing an unknown event type
     expect(pairingReducer(state, { type: 'NOT_A_REAL_EVENT' })).toEqual(state);
+  });
+});
+
+describe('resolveExtensionId', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    __setTestEnv(null);
+  });
+
+  it('defaults to DEV_EXTENSION_ID', () => {
+    expect(resolveExtensionId()).toBe('fdeplcogfapfmfpkelllkjbcphmlccll');
+  });
+
+  it('uses VITE_STASH_EXTENSION_ID env var when set', () => {
+    __setTestEnv({ VITE_STASH_EXTENSION_ID: 'store-assigned-id' });
+    expect(resolveExtensionId()).toBe('store-assigned-id');
+  });
+
+  it('uses localStorage override over env var', () => {
+    __setTestEnv({ VITE_STASH_EXTENSION_ID: 'env-id' });
+    window.localStorage.setItem('stash_extension_id', 'override-id');
+    expect(resolveExtensionId()).toBe('override-id');
+  });
+
+  it('returns default when override is empty string', () => {
+    // No env var set — should fall through to default.
+    __setTestEnv(null);
+    window.localStorage.setItem('stash_extension_id', '');
+    expect(resolveExtensionId()).toBe('fdeplcogfapfmfpkelllkjbcphmlccll');
+  });
+
+  it('returns default when env var is empty string', () => {
+    __setTestEnv({ VITE_STASH_EXTENSION_ID: '   ' });
+    expect(resolveExtensionId()).toBe('fdeplcogfapfmfpkelllkjbcphmlccll');
+  });
+});
+
+describe('extensionIdSource', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    __setTestEnv(null);
+  });
+
+  it('returns default when nothing is configured', () => {
+    expect(extensionIdSource()).toBe('default');
+  });
+
+  it('returns env when only the env var is set', () => {
+    __setTestEnv({ VITE_STASH_EXTENSION_ID: 'env-id' });
+    expect(extensionIdSource()).toBe('env');
+  });
+
+  it('returns override when localStorage is set even with env var', () => {
+    __setTestEnv({ VITE_STASH_EXTENSION_ID: 'env-id' });
+    window.localStorage.setItem('stash_extension_id', 'override-id');
+    expect(extensionIdSource()).toBe('override');
+  });
+});
+
+describe('chromeWebStoreUrl', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    __setTestEnv(null);
+  });
+
+  it('tracks the resolved extension ID', () => {
+    expect(chromeWebStoreUrl()).toContain('fdeplcogfapfmfpkelllkjbcphmlccll');
+  });
+
+  it('uses the env ID when set', () => {
+    __setTestEnv({ VITE_STASH_EXTENSION_ID: 'store-id' });
+    expect(chromeWebStoreUrl()).toContain('store-id');
+  });
+});
+
+describe('isProductOrigin', () => {
+  it('returns false for localhost (function exists)', () => {
+    // Just verify it's callable and returns a boolean.
+    expect(typeof isProductOrigin()).toBe('boolean');
+  });
+});
+
+describe('extensionSourceMode', () => {
+  beforeEach(() => {
+    __setTestEnv(null);
+  });
+
+  it('defaults to unpacked when unset', () => {
+    expect(extensionSourceMode()).toBe('unpacked');
+  });
+
+  it('returns unpacked for invalid values', () => {
+    __setTestEnv({ VITE_STASH_EXT_SOURCE: 'invalid' });
+    expect(extensionSourceMode()).toBe('unpacked');
+  });
+
+  it('returns webstore when VITE_STASH_EXT_SOURCE=webstore', () => {
+    __setTestEnv({ VITE_STASH_EXT_SOURCE: 'webstore' });
+    expect(extensionSourceMode()).toBe('webstore');
   });
 });

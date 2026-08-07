@@ -93,3 +93,32 @@ The design framework adopts a highly polished, editorial **Light Mode** aestheti
 * **Typography Hierarchy:**
   - *Display Headings:* Classic, tight-letterspaced serif font (e.g., *Garamond*, *Editorial New*) for a high-end, authoritative cinematic feel.
   - *Body, Interface & Logs:* Crisp, high-scannability geometric sans-serif (e.g., *Geist*, *Inter*) paired with *JetBrains Mono* for system logs.
+
+---
+
+## Environment Variables
+
+### AI Generation (engine)
+| Variable | Default | Description |
+|---|---|---|
+| `STASH_AI_PROVIDER` | `gemini` | Default provider when no user key (`gemini`, `openai`, `anthropic`) |
+| `GEMINI_API_KEY` | — | Server-side Gemini API key (also powers embeddings + Tier 3) |
+| `OPENAI_API_KEY` | — | Server-side OpenAI API key |
+| `ANTHROPIC_API_KEY` | — | Server-side Anthropic API key |
+| `STASH_AI_MODEL_GEMINI` | `gemini-flash-latest` | Gemini model override |
+| `STASH_AI_MODEL_OPENAI` | `gpt-4.1-mini` | OpenAI model override |
+| `STASH_AI_MODEL_ANTHROPIC` | `claude-sonnet-4-5` | Anthropic model override |
+| `STASH_GROUNDING_LANG` | `en` | Wikipedia search language |
+
+### Image Proxy
+| Variable | Default | Description |
+|---|---|---|
+| `STASH_IMAGE_PROXY_ORIGIN` | `STASH_PRODUCT_ORIGIN` | Public origin for proxied image URLs |
+| `STASH_PRODUCT_ORIGIN` | `https://meet-visualizer.vercel.app` | Product origin used for CORS and image URLs |
+
+### CORS & Security
+| Variable | Default | Description |
+|---|---|---|
+| `STASH_ENCRYPTION_KEY` | — | 32-byte AES-256-GCM key (base64 or hex) for encrypting stored AI keys |
+
+> **Local dev:** `STASH_LOCAL=1` enables mock mode: zero credentials needed. AI generation uses `MockGenerationProvider`, grounding uses `MockGroundingProvider`, and all image fetches are simulated. No external API calls are made.

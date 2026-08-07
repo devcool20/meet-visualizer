@@ -107,17 +107,30 @@ export class WebSpeechProvider implements STTProvider {
     this.machine.begin();
   }
 
-  async stop(): Promise<void> {
+  get isRunning(): boolean {
+    return this.running;
+  }
+
+  async stop(opts?: { flush?: boolean }): Promise<void> {
     this.running = false;
     this.machine?.stop();
     this.debouncer.cancel();
     if (this.recognition) {
       try {
-        this.recognition.abort();
+        if (opts?.flush) {
+          // Call stop() first to flush a pending final result
+          this.recognition.stop();
+          // Give a short grace period for onend to fire, then abort
+          setTimeout(() => {
+            try { this.recognition?.abort(); } catch { /* ignore */ }
+          }, 700);
+        } else {
+          this.recognition.abort();
+        }
       } catch {
         // ignore — recognition may already be stopped
       }
-      this.recognition = null;
+      if (!opts?.flush) this.recognition = null;
     }
   }
 

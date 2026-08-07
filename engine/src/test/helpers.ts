@@ -34,6 +34,6 @@ export async function seedUser(store: MemoryStore, id: string, email = `${id}@te
   return store.createUser({
     id,
     email,
-    settings: { sensitivity: 'balanced', position: 'auto', autoDismissMs: 12_000, reducedMotion: false, storeSnippets: false },
+    settings: { sensitivity: 'balanced', position: 'auto', autoDismissMs: 12_000, reducedMotion: false, storeSnippets: false, triggerMode: 'hold-to-talk' },
   });
 }

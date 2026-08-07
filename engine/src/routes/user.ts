@@ -3,7 +3,8 @@ import type { Store } from '../db/types.js';
 import type { AuthProvider } from '../auth/supabase.js';
 import { requireAuth, type AuthedRequest } from '../auth/middleware.js';
 import { CardsService } from '../services/cards.js';
-import { DEFAULT_USER_SETTINGS, type UserSettings } from '@stash/card-spec';
+import { DEFAULT_USER_SETTINGS, userSettingsSchema, type UserSettings } from '@stash/card-spec';
+import { pubSubService } from '../services/pubsub.js';
 
 /**
  * User bootstrap + settings. `POST /api/me/bootstrap` is idempotent: called
@@ -44,7 +45,14 @@ export function createUserRouter(store: Store, authProvider: AuthProvider): Rout
       return;
     }
     const merged: UserSettings = { ...existing.settings, ...settings };
-    const updated = await store.updateUserSettings(req.user!.id, merged);
+    const parsed = userSettingsSchema.safeParse(merged);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'invalid_settings', message: parsed.error.errors.map((e) => e.message).join(', ') });
+      return;
+    }
+    const updated = await store.updateUserSettings(req.user!.id, parsed.data);
+    // Publish settings change so connected sessions pick it up live
+    pubSubService.publishSettings({ userId: req.user!.id, settings: parsed.data }).catch(() => {});
     res.json({ user: updated });
   });
 

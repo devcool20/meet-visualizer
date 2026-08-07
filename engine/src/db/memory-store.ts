@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type {
   ActivityEventRecord,
+  AiCredentialRecord,
   CardRecord,
   CardStatus,
   ConnectionRecord,
@@ -40,6 +41,7 @@ export class MemoryStore implements Store {
   private devices = new Map<string, DeviceRecord>();
   private nonces = new Map<string, PairingNonceRecord>(); // key: nonceHash
   private activity = new Map<string, ActivityEventRecord>();
+  private aiCredentials = new Map<string, AiCredentialRecord>(); // key: userId
 
   async createUser(input: { id: string; email: string; name?: string | null; settings: import('@stash/card-spec').UserSettings }): Promise<UserRecord> {
     const rec: UserRecord = {
@@ -219,6 +221,31 @@ export class MemoryStore implements Store {
       }
     }
     return count;
+  }
+
+  // AI credentials
+  async getAiCredential(userId: string): Promise<AiCredentialRecord | null> {
+    return this.aiCredentials.get(userId) ?? null; // tenant boundary
+  }
+
+  async upsertAiCredential(userId: string, input: { provider: string; apiKey: string; model?: string | null }): Promise<AiCredentialRecord> {
+    const existing = this.aiCredentials.get(userId);
+    const now = new Date();
+    const rec: AiCredentialRecord = {
+      id: existing?.id ?? randomUUID(),
+      userId,
+      provider: input.provider,
+      apiKey: input.apiKey,
+      model: input.model ?? null,
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+    };
+    this.aiCredentials.set(userId, rec);
+    return rec;
+  }
+
+  async deleteAiCredential(userId: string): Promise<void> {
+    this.aiCredentials.delete(userId);
   }
 
   /** Test/dev helper: wipe everything. */

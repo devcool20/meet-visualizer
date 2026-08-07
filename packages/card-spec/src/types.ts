@@ -88,6 +88,8 @@ export interface CardSpec {
 /* WebSocket protocol v2 (plan §2.5)                                    */
 /* ------------------------------------------------------------------ */
 
+export type TriggerMode = 'hold-to-talk' | 'ambient';
+
 export interface UserSettings {
   /** Three-stop sensitivity. The raw threshold is never shown to the user. */
   sensitivity: 'certain' | 'balanced' | 'eager';
@@ -96,6 +98,13 @@ export interface UserSettings {
   reducedMotion: boolean;
   /** Off by default. Controls whether near-miss transcript text is retained. */
   storeSnippets: boolean;
+  /**
+   * Which capture path is live. Exactly one at a time.
+   * - 'hold-to-talk' (default): client emits `generate` frames, never `transcript`.
+   * - 'ambient': client emits `transcript` frames, never `generate`.
+   * The engine accepts both frame types from any user; gating lives in the client.
+   */
+  triggerMode: TriggerMode;
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
@@ -104,13 +113,15 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   autoDismissMs: 12_000,
   reducedMotion: false,
   storeSnippets: false,
+  triggerMode: 'hold-to-talk',
 };
 
 export type ClientMsg =
   | { t: 'hello'; token: string; client: string; version: string }
   | { t: 'transcript'; text: string; final: boolean; ts: number }
   | { t: 'dismiss'; cardId?: string }
-  | { t: 'ping' };
+  | { t: 'ping' }
+  | { t: 'generate'; captureId: string; text: string; ts: number };
 
 export type ServerErrorCode =
   | 'auth_failed'
@@ -118,12 +129,22 @@ export type ServerErrorCode =
   | 'rate_limited'
   | 'internal';
 
+export type GenerateFailCode =
+  | 'empty'
+  | 'no_provider'
+  | 'timeout'
+  | 'invalid_output'
+  | 'rate_limited'
+  | 'internal';
+
 export type ServerMsg =
   | { t: 'ready'; userId: string; cardCount: number }
   | { t: 'config'; settings: UserSettings; token?: string }
   | { t: 'prewarm'; card: CardSpec }
-  | { t: 'show'; card: CardSpec; matchedPhrase: string; score: number }
+  | { t: 'show'; card: CardSpec; matchedPhrase: string; score: number; captureId?: string; origin?: 'match' | 'generated' }
   | { t: 'hide'; cardId: string }
   | { t: 'invalidate'; cardIds: string[] }
   | { t: 'error'; code: ServerErrorCode; message: string }
-  | { t: 'pong' };
+  | { t: 'pong' }
+  | { t: 'generating'; captureId: string }
+  | { t: 'generate_failed'; captureId: string; code: GenerateFailCode; message: string };

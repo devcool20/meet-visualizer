@@ -5,3 +5,8 @@ export * from './format.js';
 export * from './motion.js';
 export * from './placement.js';
 export * from './fixtures.js';
+export * from './busyness.js';
+export { SideSelector, SIDE_SELECTOR_DEFAULTS } from './side-selector.js';
+export type { SideDecision, SideSelectorOptions } from './side-selector.js';
+export type { AccentKey, LayoutKey, LayoutRecipe } from './recipes.js';
+export { ACCENTS, LAYOUT_RECIPES, resolveAccentTheme } from './recipes.js';

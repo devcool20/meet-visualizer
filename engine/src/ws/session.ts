@@ -1,5 +1,5 @@
 import type { ClientMsg, ServerMsg, UserSettings } from '@stash/card-spec';
-import { parseClientMsg } from '@stash/card-spec';
+import { DEFAULT_USER_SETTINGS, parseClientMsg } from '@stash/card-spec';
 import type { Store, CardRecord } from '../db/types.js';
 import { DeviceAuth } from '../auth/pairing.js';
 import { MatchPipeline } from '../matching/pipeline.js';
@@ -7,8 +7,10 @@ import { Tier2Matcher } from '../matching/tier2.js';
 import type { Tier3Confirmer } from '../matching/tier3.js';
 import { TranscriptWindow } from '../matching/transcript-window.js';
 import { RateLimiter } from '../util/rate-limiter.js';
-import { pubSubService } from '../services/pubsub.js';
+import { pubSubService, type SettingsMessage } from '../services/pubsub.js';
 import { config } from '../config.js';
+import { registerSession, unregisterSession } from './session-registry.js';
+import type { CardGenerator } from '../generation/card-generator.js';
 
 /**
  * Minimal socket interface the session depends on — lets tests drive a
@@ -29,6 +31,7 @@ export interface SessionDeps {
   deviceAuth: DeviceAuth;
   tier2: Tier2Matcher;
   tier3: Tier3Confirmer;
+  generator?: CardGenerator;
   clock?: () => number;
 }
 
@@ -55,6 +58,10 @@ export class Session {
   private interimDebounceTimer: NodeJS.Timeout | null = null;
   private msgRateLimiter = new RateLimiter(config.wsMessageRateLimitPerSecond, 1000);
   private unsubscribeInvalidation: (() => void) | null = null;
+  private unsubscribeSettings: (() => void) | null = null;
+  private generatedHideTimer: NodeJS.Timeout | null = null;
+  private generatedHideCardId: string | null = null;
+  private activeCaptureId: string | null = null;
   private closed = false;
   private sessionId: string;
 
@@ -63,6 +70,11 @@ export class Session {
     this.ws.on('message', (data: any) => this.handleRaw(data));
     this.ws.on('close', () => this.handleClose());
     this.ws.on('error', () => this.handleClose());
+
+    registerSession(this.sessionId, {
+      userId: this.userId ?? '',
+      send: (msg) => this.send(msg),
+    });
 
     this.helloTimer = setTimeout(() => {
       if (!this.authenticated) {
@@ -127,6 +139,9 @@ export class Session {
       case 'transcript':
         await this.handleTranscript(msg.text, msg.final);
         return;
+      case 'generate':
+        await this.handleGenerate(msg.captureId, msg.text);
+        return;
     }
   }
 
@@ -143,7 +158,7 @@ export class Session {
     this.userId = result.userId;
 
     const user = await this.deps.store.getUser(result.userId);
-    this.settings = user?.settings ?? ({ sensitivity: 'balanced', position: 'auto', autoDismissMs: 12_000, reducedMotion: false, storeSnippets: false } as UserSettings);
+    this.settings = user?.settings ?? ({ ...DEFAULT_USER_SETTINGS } as UserSettings);
 
     const cards = await this.deps.store.listCards(result.userId, { enabledOnly: true });
     this.pipeline = new MatchPipeline(this.deps.store, result.userId, this.deps.tier2, this.deps.tier3, cards, this.settings);
@@ -153,6 +168,10 @@ export class Session {
 
     this.unsubscribeInvalidation = pubSubService.subscribeInvalidation(result.userId, (invalidateMsg) => {
       this.onInvalidate(invalidateMsg.cardIds);
+    });
+
+    this.unsubscribeSettings = pubSubService.subscribeSettings(result.userId, (settingsMsg: SettingsMessage) => {
+      this.onSettingsUpdate(settingsMsg.settings);
     });
 
     this.heartbeatTimer = setInterval(() => {
@@ -240,13 +259,74 @@ export class Session {
     });
   }
 
+  private async handleGenerate(captureId: string, text: string): Promise<void> {
+    if (!this.userId) return;
+    const generator = this.deps.generator;
+    if (!generator) {
+      this.send({ t: 'generate_failed', captureId, code: 'no_provider', message: 'Generation not available' });
+      return;
+    }
+
+    // Track in-flight: newer generate supersedes older one
+    this.activeCaptureId = captureId;
+    this.send({ t: 'generating', captureId });
+
+    const outcome = await generator.generate(this.userId, text, {
+      autoDismissMs: this.settings?.autoDismissMs ?? 12_000,
+    });
+
+    if (this.closed || this.activeCaptureId !== captureId) return; // superseded or closed
+
+    if (outcome.kind === 'card') {
+      this.send({
+        t: 'show',
+        card: outcome.card,
+        matchedPhrase: text.slice(0, 120),
+        score: 1,
+        captureId,
+        origin: 'generated',
+      });
+      this.pipeline?.noteExternalCardShown(outcome.card.id, config.defaultCooldownMs);
+
+      // Arm the ttlMs backstop timer (plan §3.7a)
+      this.armGeneratedHideTimer(outcome.card.id, outcome.card.ttlMs ?? 12_000);
+    } else {
+      this.send({ t: 'generate_failed', captureId, code: outcome.code, message: outcome.message });
+    }
+  }
+
+  private armGeneratedHideTimer(cardId: string, ttlMs: number): void {
+    if (this.generatedHideTimer) clearTimeout(this.generatedHideTimer);
+    this.generatedHideCardId = cardId;
+    this.generatedHideTimer = setTimeout(() => {
+      this.expireGeneratedCard(cardId);
+    }, ttlMs + config.generatedHideGraceMs);
+  }
+
+  private expireGeneratedCard(cardId: string): void {
+    if (this.closed) return;
+    this.send({ t: 'hide', cardId });
+    this.pipeline?.dismiss(cardId);
+    this.generatedHideTimer = null;
+    this.generatedHideCardId = null;
+  }
+
+  private onSettingsUpdate(settings: UserSettings): void {
+    this.settings = settings;
+    this.pipeline?.updateSettings(settings);
+    this.send({ t: 'config', settings }); // No token — don't disturb the device token
+  }
+
   private handleClose(): void {
     if (this.closed) return;
     this.closed = true;
+    unregisterSession(this.sessionId);
     if (this.helloTimer) clearTimeout(this.helloTimer);
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
     if (this.interimDebounceTimer) clearTimeout(this.interimDebounceTimer);
+    if (this.generatedHideTimer) clearTimeout(this.generatedHideTimer);
     this.unsubscribeInvalidation?.();
+    this.unsubscribeSettings?.();
     // Full transcript window is discarded here by simply going out of scope
     // with this Session instance — nothing writes it to durable storage
     // (plan §2.7: "per-connection memory only, discarded on disconnect").

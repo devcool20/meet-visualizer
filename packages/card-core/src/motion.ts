@@ -104,13 +104,27 @@ export type CardPhase = 'entering' | 'visible' | 'leaving' | 'gone';
 export class CardAnimator {
   private progress: Spring;
   private phase: CardPhase = 'gone';
-  private readonly reducedMotion: boolean;
+  private reducedMotion: boolean;
   private fadeMs = 150;
   private fadeElapsed = 0;
 
   constructor(opts: { reducedMotion?: boolean } = {}) {
     this.reducedMotion = opts.reducedMotion ?? false;
     this.progress = new Spring(0);
+  }
+
+  /**
+   * Update the reduced-motion flag mid-lifecycle.
+   * When turning it ON, snap the progress spring to its current target
+   * so there is no visible jump (plan §"Side transition spring").
+   */
+  setReducedMotion(value: boolean): void {
+    if (value === this.reducedMotion) return;
+    this.reducedMotion = value;
+    if (value) {
+      this.progress.snapTo(this.progress['target']);
+      this.fadeElapsed = this.phase === 'visible' ? this.fadeMs : 0;
+    }
   }
 
   enter(): void {

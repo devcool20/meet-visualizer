@@ -64,6 +64,14 @@ export const RECONNECT_MAX_MS = 30_000;
 /** Debounce window for interim transcripts (plan §2.4). */
 export const INTERIM_DEBOUNCE_MS = 400;
 
+/** Hold-to-talk constants (plan §"Hold-to-talk timings"). */
+export const MAX_HOLD_MS = 30_000;
+export const FINAL_GRACE_MS = 700;
+export const NOTHING_HEARD_MS = 1_500;
+export const ERROR_HUD_MS = 4_000;
+export const LOCAL_GENERATING_DELAY_MS = 250;
+export const GENERATING_TIMEOUT_MS = 12_000;
+
 /** Keys used in chrome.storage.local. Centralised to avoid typo drift. */
 export const STORAGE_KEYS = {
   deviceToken: 'stash.deviceToken',

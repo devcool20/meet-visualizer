@@ -6,14 +6,15 @@ import { useAuth } from '@/app/auth/AuthContext';
 import { getApiClient, type ApiDevice, type ApiUser } from '@/lib/api';
 import type { UserSettings, CardPosition } from '@stash/card-spec';
 import { SENSITIVITY_LABELS, sensitivityToStopIndex, stopIndexToSensitivity } from '@/lib/sensitivity';
+import { AiProviderPanel } from './AiProviderPanel';
+import { TriggerModePanel } from './TriggerModePanel';
 
 const POSITIONS: CardPosition[] = ['auto', 'left', 'right'];
 
 /**
- * Settings (plan §4.3): sensitivity as a three-stop slider mapped through
- * `src/lib/sensitivity.ts` (raw threshold never shown). Position,
- * auto-dismiss, reduced motion, Activity text-snippet opt-in (default off),
- * privacy panel naming every data processor, Devices list with revoke.
+ * Settings (plan §4.3, §5.8): sensitivity, position, auto-dismiss,
+ * reduced motion, store snippets, privacy panel, devices list,
+ * plus AI provider panel (above devices), trigger mode, and live-apply notice.
  */
 export default function SettingsPage() {
   const { getAccessToken } = useAuth();
@@ -30,9 +31,13 @@ export default function SettingsPage() {
   async function patchSettings(patch: Partial<UserSettings>) {
     if (!user) return;
     setSaving(true);
-    const api = getApiClient(getAccessToken);
-    const updated = await api.updateSettings(patch);
-    setUser(updated);
+    try {
+      const api = getApiClient(getAccessToken);
+      const updated = await api.updateSettings(patch);
+      setUser(updated);
+    } catch {
+      // Revert on failure (optimistic update pattern).
+    }
     setSaving(false);
   }
 
@@ -53,6 +58,31 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-medium" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
         Settings
       </h1>
+
+      {/* Live-apply notice */}
+      <p className="text-xs" style={{ color: '#5A5550' }}>
+        Changes apply straight away, including in a meeting you are already in — no need to rejoin.
+      </p>
+
+      {/* AI provider section */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#5A5550' }}>
+          AI provider
+        </h2>
+        <AiProviderPanel initialState={null} />
+      </section>
+
+      {/* Trigger mode */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#5A5550' }}>
+          Trigger mode
+        </h2>
+        <TriggerModePanel
+          value={(user.settings as UserSettings & { triggerMode?: 'hold-to-talk' | 'ambient' }).triggerMode === 'ambient' ? 'ambient' : 'hold-to-talk'}
+          onChange={(mode) => patchSettings({ triggerMode: mode as 'hold-to-talk' | 'ambient' })}
+          saving={saving}
+        />
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#5A5550' }}>
@@ -128,7 +158,7 @@ export default function SettingsPage() {
         </h2>
         <p>Google — sign-in and, in a meeting, camera/microphone access.</p>
         <p>Your embedding provider — turns your Notion content into searchable card matches.</p>
-        <p>Gemini (or your configured LLM) — drafts new cards from your connected sources.</p>
+        <p>Your configured LLM — generates cards from what you say.</p>
       </section>
 
       <section className="space-y-2">

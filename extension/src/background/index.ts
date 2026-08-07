@@ -69,7 +69,13 @@ function handleServerMsg(msg: ServerMsg): void {
       broadcastToActiveTab({ type: 'card:prewarm', card: msg.card });
       break;
     case 'show':
-      broadcastToActiveTab({ type: 'card:show', card: msg.card, matchedPhrase: msg.matchedPhrase, score: msg.score });
+      broadcastToActiveTab({ type: 'card:show', card: msg.card, matchedPhrase: msg.matchedPhrase, score: msg.score, captureId: msg.captureId });
+      break;
+    case 'generating':
+      broadcastToActiveTab({ type: 'card:generating', captureId: msg.captureId });
+      break;
+    case 'generate_failed':
+      broadcastToActiveTab({ type: 'card:error', captureId: msg.captureId, code: msg.code, message: msg.message });
       break;
     case 'hide':
       broadcastToActiveTab({ type: 'card:hide', cardId: msg.cardId });
@@ -153,6 +159,12 @@ chrome.runtime.onMessage.addListener((message: ContentToBackgroundMsg, sender, s
   switch (message?.type) {
     case 'transcript':
       engineSocket?.send({ t: 'transcript', text: message.text, final: message.final, ts: message.ts });
+      break;
+    case 'capture:generate':
+      engineSocket?.send({ t: 'generate', captureId: message.captureId, text: message.text, ts: message.ts });
+      break;
+    case 'capture:cancel':
+      // No wire-level cancel frame exists; this is informational for local state
       break;
     case 'dismiss':
       engineSocket?.send({ t: 'dismiss', cardId: message.cardId });

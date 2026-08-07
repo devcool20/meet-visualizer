@@ -2,14 +2,13 @@ import { useNavigate } from 'react-router';
 import { Button } from '@/app/components/ui/button';
 import { getApiClient } from '@/lib/api';
 import { useAuth } from '@/app/auth/AuthContext';
-import { saveOnboardingStep } from '@/lib/onboarding';
+import { saveSetupStep } from '@/lib/setup';
 import { OnboardingShell } from './OnboardingShell';
 
 /**
- * "Now use your real data" (plan §4.2 step 8). Explicitly SKIPPABLE — the
- * plan calls Notion OAuth the highest-abandonment step and says it isn't
- * needed to prove value, so this is a pre-OAuth interstitial explaining
- * what the picker will ask for, not the OAuth flow itself.
+ * Notion OAuth interstitial (plan §5.5). Reachable from `/setup/data`
+ * and `/dashboard/integrations`. Optional step — the user can skip.
+ * On skip, routes to `/rehearse`.
  */
 export default function NotionInterstitialPage() {
   const { getAccessToken } = useAuth();
@@ -18,27 +17,33 @@ export default function NotionInterstitialPage() {
   async function handleConnect() {
     const api = getApiClient(getAccessToken);
     const { url } = await api.notionAuthorize();
-    saveOnboardingStep('meet');
+    saveSetupStep('rehearse');
     window.location.href = url;
   }
 
   function handleSkip() {
-    saveOnboardingStep('meet');
-    navigate('/meet');
+    saveSetupStep('rehearse');
+    navigate('/rehearse');
+  }
+
+  function handleBack() {
+    navigate('/setup/data');
   }
 
   return (
-    <OnboardingShell step={3} totalSteps={4}>
+    <OnboardingShell step={3} totalSteps={5}>
       <div className="text-center space-y-4">
         <h1
           className="leading-tight"
           style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 300 }}
         >
-          Now use your real data.
+          Connect Notion{' '}
+          <span className="text-base font-normal" style={{ color: '#5A5550' }}>
+            Optional
+          </span>
         </h1>
         <p className="text-sm" style={{ color: '#5A5550' }}>
-          Connect Notion and Stash Live will turn your pages and databases into cards. You can skip
-          this — the sample cards work in real meetings too.
+          Notion is an optional source for cards. The AI key alone is enough — you can skip this.
         </p>
         <div
           className="rounded-2xl p-5 text-left space-y-2 text-sm"
@@ -51,6 +56,9 @@ export default function NotionInterstitialPage() {
           <p>You can add or remove sources any time from Integrations, and disconnect completely with one click.</p>
         </div>
         <div className="flex items-center justify-center gap-4 pt-2">
+          <Button variant="outline" onClick={handleBack}>
+            Back
+          </Button>
           <Button variant="outline" onClick={handleSkip}>
             Skip for now
           </Button>

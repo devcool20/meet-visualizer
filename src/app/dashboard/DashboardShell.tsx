@@ -1,7 +1,10 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { hasChromeRuntime, probeExtensionPresence } from '@/lib/extension';
+import { isMockMode } from '@/lib/env';
 import { useAuth } from '@/app/auth/AuthContext';
+import { useSetupStatus } from '@/app/hooks/useSetupStatus';
+import { SetupChecklist } from '@/app/onboarding/SetupChecklist';
 
 const NAV_ITEMS: { to: string; label: string }[] = [
   { to: '/dashboard/cards', label: 'Cards' },
@@ -13,12 +16,14 @@ const NAV_ITEMS: { to: string; label: string }[] = [
 
 /**
  * Dashboard shell (plan §4.3): sidebar with Cards / Integrations / Rehearse
- * / Activity / Settings, centered wordmark, global extension-status chip.
+ * / Activity / Settings, centered wordmark, global extension-status chip,
+ * setup checklist banner, and demo mode pill.
  */
 export function DashboardShell({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { signOut } = useAuth();
   const [extensionPresent, setExtensionPresent] = useState<boolean | null>(null);
+  const { signals, loading } = useSetupStatus();
 
   useEffect(() => {
     if (!hasChromeRuntime()) {
@@ -40,13 +45,21 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         className="w-56 shrink-0 flex flex-col py-6 px-4 border-r"
         style={{ borderColor: 'rgba(26,21,18,0.06)' }}
       >
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center items-center gap-2 mb-8">
           <span
             className="text-lg font-medium tracking-tight"
             style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.35rem' }}
           >
             Stash Live
           </span>
+          {isMockMode() && (
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+              style={{ background: 'rgba(251,133,0,0.12)', color: '#fb8500' }}
+            >
+              Demo
+            </span>
+          )}
         </div>
         <nav className="flex flex-col gap-1 flex-1">
           {NAV_ITEMS.map((item) => {
@@ -99,7 +112,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           </button>
         </div>
       </aside>
-      <main className="flex-1 px-8 py-8 max-w-5xl mx-auto w-full">{children}</main>
+      <main className="flex-1 px-8 py-8 max-w-5xl mx-auto w-full">
+        {!loading && <SetupChecklist signals={signals} />}
+        {children}
+      </main>
     </div>
   );
 }
