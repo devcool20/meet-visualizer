@@ -75,6 +75,9 @@
     "vaul": "1.1.2",
     "zod": "3.23.8"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.12",
     "@types/node": "20.17.6",
@@ -82,14 +85,12 @@
     "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.7.0",
     "@vitest/coverage-v8": "^3.2.4",
+    "canvas": "^2.11.2",
     "jsdom": "25.0.1",
     "tailwindcss": "4.1.12",
     "typescript": "5.6.3",
     "vite": "6.3.5",
     "vitest": "^3.2.4"
-  },
-  "optionalDependencies": {
-    "canvas": "^2.11.2"
   },
   "peerDependencies": {
     "react": "18.3.1",
