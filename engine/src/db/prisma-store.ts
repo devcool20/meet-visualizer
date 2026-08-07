@@ -108,18 +108,18 @@ export class PrismaStore implements Store {
   }
 
   async listCards(userId: string, opts?: { enabledOnly?: boolean; status?: CardStatus }): Promise<CardRecord[]> {
-    const where: Prisma.CardWhereInput = { userId };
+    const where: any = { userId };
     if (opts?.enabledOnly) where.enabled = true;
     if (opts?.status) where.status = opts.status;
     const cards = await this.prisma.card.findMany({ where });
     // embedding omitted by the generated client; fetch separately if needed by callers.
-    return Promise.all(cards.map(async (c) => this.getCard(userId, c.id) as Promise<CardRecord>));
+    return Promise.all(cards.map(async (c: any) => this.getCard(userId, c.id) as Promise<CardRecord>));
   }
 
   async updateCard(userId: string, cardId: string, patch: Partial<CardRecord>): Promise<CardRecord> {
     const existing = await this.getCard(userId, cardId);
     if (!existing) throw new Error(`Card ${cardId} not found for user`);
-    const data: Prisma.CardUpdateInput = {};
+    const data: any = {};
     if (patch.title !== undefined) data.title = patch.title;
     if (patch.spec !== undefined) data.spec = patch.spec as any;
     if (patch.phrases !== undefined) data.phrases = { set: patch.phrases };
@@ -217,7 +217,7 @@ export class PrismaStore implements Store {
 
   async listConnectionsForReconciliation(): Promise<ConnectionRecord[]> {
     const cs = await this.prisma.connection.findMany();
-    return cs.map((c) => ({ ...c, selectedSources: c.selectedSources as unknown as string[] }));
+    return cs.map((c: any) => ({ ...c, selectedSources: c.selectedSources as unknown as string[] }));
   }
 
   async deleteConnection(userId: string, provider: string): Promise<void> {
