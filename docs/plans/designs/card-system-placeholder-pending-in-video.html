@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Stash Live — In-video pending placeholder</title>
+<meta name="description" content="The shimmer placeholder remote participants see while the card generates, shown at true relative scale in a 1280x720 outbound frame."/>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#FBF9F6;color:#1A1512;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;
+     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.wrap{max-width:1180px;margin:0 auto;padding:44px 40px 72px}
+.wrap--wide{max-width:1372px}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+         color:#5A5550;margin:0 0 10px}
+h1.disp{font-family:'Cormorant Garamond','Garamond',ui-serif,Georgia,serif;font-weight:400;
+        font-size:44px;line-height:1.06;letter-spacing:-.015em;margin:0 0 10px}
+p.lede{font-size:15px;line-height:23px;color:#5A5550;max-width:62ch;margin:0}
+.rule{height:1px;background:rgba(26,21,18,0.10);margin:30px 0 0}
+.stage{margin-top:30px;border-radius:18px;overflow:hidden;border:1px solid rgba(26,21,18,0.10);
+       position:relative;box-shadow:0 1px 0 rgba(255,255,255,.7) inset}
+.stage-inner{position:relative;display:flex;align-items:center;justify-content:center;padding:56px 40px}
+.grain{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.035) 0 1px,rgba(0,0,0,0.035) 1px 2px);opacity:.5;mix-blend-mode:overlay;}
+.specs{margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+       gap:0;border-top:1px solid rgba(26,21,18,0.10)}
+.spec{padding:16px 20px 18px;border-right:1px solid rgba(26,21,18,0.08)}
+.spec:last-child{border-right:0}
+.spec dt{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+         color:#5A5550;margin:0 0 8px}
+.spec dd{margin:0;font-size:13.5px;line-height:20px;color:#1A1512}
+.spec dd code{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;background:rgba(26,21,18,0.05);
+              border-radius:4px;padding:1px 5px}
+.spec dd .seq{display:block;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;line-height:19px;color:#1A1512}
+.spec dd .num{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;
+      letter-spacing:.08em;text-transform:uppercase;color:#5A5550;border:1px solid rgba(26,21,18,0.12);
+      border-radius:999px;padding:5px 11px}
+.chip i{width:7px;height:7px;border-radius:50%;background:#fb8500;display:block}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+
+.shimmer{position:relative;overflow:hidden;background:rgba(26,21,18,0.085);border-radius:6px;}
+.shimmer::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(100deg,rgba(255,255,255,0) 18%%,rgba(255,255,255,0.72) 50%%,rgba(255,255,255,0) 82%%);
+  transform:translateX(-100%%);animation:sweep 1450ms cubic-bezier(.4,0,.2,1) infinite;}
+.shimmer.d1::after{animation-delay:90ms}.shimmer.d2::after{animation-delay:180ms}
+.shimmer.d3::after{animation-delay:270ms}.shimmer.d4::after{animation-delay:360ms}
+@keyframes sweep{to{transform:translateX(100%%)}}
+@media (prefers-reduced-motion: reduce){ .shimmer::after{animation:none;opacity:0}
+  .shimmer{background:rgba(26,21,18,0.085)} }
+</style></head>
+<body><div class="wrap wrap--wide">
+<p class="eyebrow">In-video placeholder 14 / pending</p>
+<h1 class="disp">What the room sees while it generates</h1>
+<p class="lede">This is composited into the outbound video, so the audience sees it — which means it has to look deliberate. The title is real text from frame one, because the topic is already known from the transcript; only the body shimmers. The result reads as “a card is arriving” rather than “something is broken”. When the real card lands, the header stays put and the body swaps beneath it.</p>
+<div class="meta"><span class="chip"><i></i>audience-visible</span><span class="chip"><i></i>title is real from frame 1</span></div>
+<div class="rule"></div>
+<div class="stage" style="overflow-x:auto;"><div style="position:relative;width:1280px;"><div class="frame" data-component-id="outbound-frame" style="position:relative;width:1280px;height:720px;overflow:hidden;background:#1B1714;filter:blur(0.35px) contrast(1.03) saturate(0.94);"><div style="position:absolute;left:-8%;top:-8%;width:116%;height:116%;background:radial-gradient(15% 20% at 35% 34%, #F2DCC4 0%, #DFBE9C 58%, rgba(198,160,124,0) 88%),radial-gradient(30% 26% at 35% 88%, #4C4152 0%, #3A3141 60%, rgba(58,49,65,0) 92%),radial-gradient(9% 11% at 30% 30%, rgba(255,250,240,0.7), rgba(255,250,240,0) 84%),radial-gradient(52% 62% at 88% 16%, rgba(255,252,244,0.9), rgba(255,252,244,0) 76%),linear-gradient(118deg,#EDE4D7 0%,#E0D3C2 36%,#CDBEA9 64%,#AC9C86 100%);filter:blur(26px);"></div><div class="grain"></div><div style="position:absolute;left:876.8px;top:252.9px;width:358.4px;height:214.2px;transform-origin:top left;transform:scale(1.0011);opacity:1.0;"><div style="width:358px;"><div data-component-id="placeholder-pending" role="img" aria-label="Building card about Ranbir Kapoor" style="width:358px;height:214px;background:rgba(255,255,255,0.62);-webkit-backdrop-filter:blur(20px) saturate(120%);backdrop-filter:blur(20px) saturate(120%);border:1px solid rgba(26,21,18,0.06);box-shadow:0 8px 32px 0 rgba(26,21,18,0.03), 0 2px 10px rgba(26,21,18,0.10);border-radius:20px;box-sizing:border-box;overflow:hidden;position:relative;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;padding:18px 20px 20px;"><p style="margin:0;font-size:17px;font-weight:600;line-height:22px;color:#1A1512;">Ranbir Kapoor</p><p style="margin:0;font-size:14px;font-weight:400;line-height:18px;color:#5A5550;display:flex;align-items:center;gap:8px;"><span style="width:7px;height:7px;border-radius:50%;background:#fb8500;display:inline-block;flex:0 0 7px;"></span>Building card…</p><div style="height:14px;"></div><div style="display:flex;gap:12px;align-items:flex-end;"><div class="shimmer d1" style="width:44%;height:30px;border-radius:6px;"></div><div class="shimmer d2" style="width:26%;height:20px;border-radius:6px;margin-bottom:3px;"></div></div><div style="height:16px;"></div><div class="shimmer d3" style="width:100%;height:15px;border-radius:6px;"></div><div style="height:10px;"></div><div class="shimmer d4" style="width:92%;height:15px;border-radius:6px;"></div><div style="height:10px;"></div><div class="shimmer d2" style="width:58%;height:15px;border-radius:6px;"></div><div style="position:absolute;inset:0;border-radius:20px;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.55),inset 0 -1px 0 rgba(26,21,18,0.04);"></div></div></div></div><div style="position:absolute;left:16px;bottom:14px;display:flex;align-items:center;gap:8px;padding:6px 12px 6px 10px;border-radius:8px;background:rgba(0,0,0,0.42);color:#fff;font-size:13px;line-height:16px;font-weight:500;text-shadow:0 1px 2px rgba(0,0,0,.45);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>Priya Raman</div></div></div></div><div class="stage" style="margin-top:20px;"><div class="stage-inner" style="background:radial-gradient(46% 58% at 34% 44%, #F0D9C0 0%, #E2C1A1 34%, rgba(214,182,150,0) 72%),radial-gradient(28% 34% at 30% 30%, rgba(255,244,232,0.85), rgba(255,244,232,0) 70%),linear-gradient(160deg,#EDE4D8 0%,#DDD0BF 40%,#C8B9A6 72%,#B6A691 100%);padding:44px;"><div class="grain"></div><div style="position:relative;"><div data-component-id="placeholder-pending" role="img" aria-label="Building card about Ranbir Kapoor" style="width:358px;height:214px;background:rgba(255,255,255,0.62);-webkit-backdrop-filter:blur(20px) saturate(120%);backdrop-filter:blur(20px) saturate(120%);border:1px solid rgba(26,21,18,0.06);box-shadow:0 8px 32px 0 rgba(26,21,18,0.03), 0 2px 10px rgba(26,21,18,0.10);border-radius:20px;box-sizing:border-box;overflow:hidden;position:relative;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;padding:18px 20px 20px;"><p style="margin:0;font-size:17px;font-weight:600;line-height:22px;color:#1A1512;">Ranbir Kapoor</p><p style="margin:0;font-size:14px;font-weight:400;line-height:18px;color:#5A5550;display:flex;align-items:center;gap:8px;"><span style="width:7px;height:7px;border-radius:50%;background:#fb8500;display:inline-block;flex:0 0 7px;"></span>Building card…</p><div style="height:14px;"></div><div style="display:flex;gap:12px;align-items:flex-end;"><div class="shimmer d1" style="width:44%;height:30px;border-radius:6px;"></div><div class="shimmer d2" style="width:26%;height:20px;border-radius:6px;margin-bottom:3px;"></div></div><div style="height:16px;"></div><div class="shimmer d3" style="width:100%;height:15px;border-radius:6px;"></div><div style="height:10px;"></div><div class="shimmer d4" style="width:92%;height:15px;border-radius:6px;"></div><div style="height:10px;"></div><div class="shimmer d2" style="width:58%;height:15px;border-radius:6px;"></div><div style="position:absolute;inset:0;border-radius:20px;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.55),inset 0 -1px 0 rgba(26,21,18,0.04);"></div></div></div></div></div>
+<dl class="specs"><div class="spec"><dt>Draw path</dt><dd>Separate from CardSpec — not built from the 8 block kinds, not zod-validated. Same glass, same <span class="num">r20</span>, same padding rhythm, same type scale.</dd></div><div class="spec"><dt>Type (effective px @720p)</dt><dd>title <span class="num">17/600</span> real text · status line <span class="num">14/400</span>. No type below 14px. Bars stand in at the height of the type they replace: 30 / 20 / 15px.</dd></div><div class="spec"><dt>Accent</dt><dd>One <span class="num">7px</span> <code>#fb8500</code> dot beside “Building card…”. No accent on text — the status line is muted espresso at 14px.</dd></div><div class="spec"><dt>Shimmer</dt><dd>A 72%-white highlight sweeping each bar over 1450 ms, staggered 90 ms. Amplitude is kept low because a hard white sweep under 4:2:0 produces visible banding on the glass.</dd></div><div class="spec"><dt>Reduced motion</dt><dd>Sweep removed entirely. Bars sit at a flat <code>rgba(26,21,18,0.085)</code> — static, never pulsing. The card still reads as pending because the status line says so in words.</dd></div></dl>
+</div></body></html>

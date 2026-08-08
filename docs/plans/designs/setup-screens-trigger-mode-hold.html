@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Stash Live &mdash; Trigger mode, hold-to-talk selected</title>
+<meta name="description" content="The trigger-mode setting with hold-to-talk active: both modes explained as good-for / the-catch, sub-settings, and a confirmation that the change is already live in the running meeting."/>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#FBF9F6;color:#1A1512;font-size:15px;line-height:1.5;
+     font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;
+     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:inherit;text-decoration:none}
+::selection{background:rgba(251,133,0,.18)}
+.mono{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace}
+.serif{font-family:'Cormorant Garamond','Garamond',ui-serif,Georgia,serif}
+
+/* ---- chrome ---- */
+.topbar{height:64px;display:flex;align-items:center;justify-content:space-between;
+        padding:0 32px;border-bottom:1px solid rgba(26,21,18,.08);
+        background:rgba(251,249,246,.88);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+        position:sticky;top:0;z-index:20}
+.wordmark{font-family:'Cormorant Garamond','Garamond',ui-serif,Georgia,serif;font-size:21px;letter-spacing:-.01em}
+.topbar .right{display:flex;align-items:center;gap:18px;font-size:13px;color:#5A5550}
+.avatar{width:26px;height:26px;border-radius:50%;background:#1A1512;color:#FBF9F6;font-size:10.5px;
+        display:flex;align-items:center;justify-content:center;letter-spacing:.02em;
+        font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace}
+.shell{max-width:1180px;margin:0 auto;padding:46px 32px 110px;display:grid;
+       grid-template-columns:296px 1fr;gap:64px;align-items:start}
+.shell--plain{display:block;max-width:960px}
+.rail{position:sticky;top:96px}
+@media (max-width:1040px){.shell{grid-template-columns:1fr;gap:38px}.rail{position:static}}
+
+/* ---- type ---- */
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;
+         letter-spacing:.16em;text-transform:uppercase;color:#5A5550;margin:0 0 12px}
+h1.disp{font-family:'Cormorant Garamond','Garamond',ui-serif,Georgia,serif;font-weight:400;
+        font-size:38px;line-height:1.08;letter-spacing:-.015em;margin:0 0 12px}
+h2.disp{font-family:'Cormorant Garamond','Garamond',ui-serif,Georgia,serif;font-weight:400;
+        font-size:27px;line-height:1.14;letter-spacing:-.012em;margin:0 0 10px}
+h3.sec{font-size:13px;font-weight:600;letter-spacing:.01em;margin:0 0 4px}
+p.lede{font-size:15.5px;line-height:26px;color:#5A5550;max-width:62ch;margin:0}
+p.body{font-size:14px;line-height:23px;color:#5A5550;margin:0}
+.small{font-size:12.5px;line-height:20px;color:#5A5550}
+.rule{height:1px;background:rgba(26,21,18,.09);border:0;margin:34px 0}
+.stack>*+*{margin-top:14px}
+
+/* ---- panels ---- */
+.panel{background:rgba(255,255,255,.55);border:1px solid rgba(26,21,18,.07);border-radius:20px;
+       box-shadow:0 8px 32px rgba(26,21,18,.03)}
+.panel .pad{padding:26px 28px}
+.note{border:1px solid rgba(26,21,18,.12);border-radius:14px;padding:14px 16px;
+      background:rgba(26,21,18,.025);font-size:13.5px;line-height:21px;color:#5A5550}
+.note strong{color:#1A1512;font-weight:600}
+.note--err{border-color:rgba(185,28,28,.26);background:rgba(185,28,28,.045)}
+.note--err strong{color:#B91C1C}
+.note--ok{border-color:rgba(5,150,105,.28);background:rgba(5,150,105,.045)}
+.note--ok strong{color:#047857}
+.note--warn{border-color:rgba(180,83,9,.26);background:rgba(180,83,9,.05)}
+.note--warn strong{color:#B45309}
+.log{background:rgba(26,21,18,.035);border:1px solid rgba(26,21,18,.08);border-radius:12px;
+     padding:12px 14px;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+     font-size:12px;line-height:21px;color:#5A5550;white-space:pre;overflow-x:auto}
+.log b{color:#1A1512;font-weight:500}
+.log .ok{color:#059669}
+.log .er{color:#B91C1C}
+
+/* ---- controls ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;
+     border-radius:9px;font-size:14px;font-weight:500;font-family:inherit;border:1px solid transparent;
+     cursor:pointer;white-space:nowrap;transition:all .15s ease}
+.btn--primary{background:#1A1512;color:#FBF9F6}
+.btn--outline{background:#fff;border-color:rgba(26,21,18,.16);color:#1A1512}
+.btn--ghost{background:transparent;color:#5A5550;padding:0 12px}
+.btn--danger{background:#fff;border-color:rgba(185,28,28,.3);color:#B91C1C}
+.btn--lg{height:46px;padding:0 26px;font-size:15px}
+.btn--sm{height:32px;padding:0 12px;font-size:13px;border-radius:8px}
+.btn--off{background:rgba(26,21,18,.07);color:#5A5550;cursor:default}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.link{color:#1A1512;border-bottom:1px solid rgba(26,21,18,.28);padding-bottom:1px}
+.link--muted{color:#5A5550;border-bottom-color:rgba(26,21,18,.18)}
+
+.field{display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;background:#fff;
+       border:1px solid rgba(26,21,18,.14);border-radius:10px;
+       font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;color:#1A1512}
+.field .ph{color:rgba(26,21,18,.32)}
+.field--focus{border-color:#1A1512;box-shadow:0 0 0 3px rgba(26,21,18,.07)}
+.field--err{border-color:#B91C1C;box-shadow:0 0 0 3px rgba(185,28,28,.09)}
+.field--ok{border-color:rgba(5,150,105,.55);box-shadow:0 0 0 3px rgba(5,150,105,.09)}
+.field--lock{background:rgba(26,21,18,.03);color:#5A5550}
+.label{font-size:13px;font-weight:500;display:block;margin:0 0 7px}
+.hint{font-size:12.5px;line-height:19px;color:#5A5550;margin:8px 0 0}
+
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(26,21,18,.12);
+      border-radius:999px;padding:5px 12px;font-size:12px;color:#5A5550;background:rgba(255,255,255,.5)}
+.chip i{width:7px;height:7px;border-radius:50%;background:#5A5550;display:block;flex:0 0 7px}
+.chip--ok i{background:#059669}
+.chip--live i{background:#fb8500}
+.chip--err i{background:#B91C1C}
+.chip--mono{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;
+            letter-spacing:.06em;text-transform:uppercase}
+.tag{display:inline-flex;align-items:center;border-radius:7px;padding:2px 8px;font-size:11.5px;
+     font-weight:500;background:rgba(26,21,18,.06);color:#5A5550}
+.tag--outline{background:transparent;border:1px solid rgba(26,21,18,.16)}
+.tag--gen{background:rgba(251,133,0,.13);color:#8a4b00}
+
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:32px;padding:0 10px;
+     background:#fff;border:1px solid rgba(26,21,18,.16);border-radius:8px;
+     box-shadow:0 2px 0 rgba(26,21,18,.09);font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+     font-size:12.5px;color:#1A1512}
+.kbd--lg{min-width:66px;height:54px;font-size:15px;border-radius:11px;box-shadow:0 3px 0 rgba(26,21,18,.11)}
+.plus{color:rgba(26,21,18,.3);font-size:14px}
+
+/* ---- setup rail ---- */
+.prog{height:3px;background:rgba(26,21,18,.10);border-radius:2px;overflow:hidden;margin:14px 0 0}
+.prog b{display:block;height:100%;background:#fb8500;border-radius:2px}
+.steps{list-style:none;margin:20px 0 0;padding:0;border-top:1px solid rgba(26,21,18,.09)}
+.step{display:flex;gap:13px;padding:13px 0 14px;border-bottom:1px solid rgba(26,21,18,.09)}
+.step .idx{width:22px;height:22px;flex:0 0 22px;border-radius:50%;border:1px solid rgba(26,21,18,.18);
+     display:flex;align-items:center;justify-content:center;margin-top:1px;color:#5A5550;
+     font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px}
+.step .t{font-size:14px;font-weight:500;line-height:20px}
+.step .s{font-size:12px;line-height:18px;color:#5A5550;margin-top:2px}
+.step--done .idx{background:#1A1512;border-color:#1A1512;color:#FBF9F6}
+.step--done .t{color:#5A5550;font-weight:400}
+.step--current .idx{border-color:#fb8500;color:#fb8500;box-shadow:0 0 0 3px rgba(251,133,0,.13)}
+.step--current .s{color:#fb8500}
+.step--pending .t{color:#5A5550;font-weight:400}
+.step--pending .idx{color:rgba(26,21,18,.35)}
+.step .sub{list-style:none;margin:9px 0 0;padding:0}
+.step .sub li{display:flex;gap:8px;font-size:12px;color:#5A5550;padding:3px 0}
+.step .sub i{width:5px;height:5px;border-radius:50%;background:rgba(26,21,18,.22);margin-top:6px;flex:0 0 5px}
+.railfoot{margin-top:22px;font-size:12.5px;line-height:20px;color:#5A5550}
+
+/* ---- numbered instructions ---- */
+.instr{list-style:none;margin:0;padding:0;border-top:1px solid rgba(26,21,18,.09)}
+.instr>li{display:grid;grid-template-columns:38px 1fr;gap:20px;padding:24px 0 26px;
+          border-bottom:1px solid rgba(26,21,18,.09)}
+.instr .n{font-family:'Cormorant Garamond','Garamond',ui-serif,Georgia,serif;font-size:30px;line-height:1;
+          color:rgba(26,21,18,.26);padding-top:2px}
+.instr>li.on .n{color:#fb8500}
+.instr>li.done .n{color:rgba(26,21,18,.18)}
+.instr h3{font-size:15px;font-weight:600;margin:0 0 6px;line-height:22px}
+.instr p{font-size:13.5px;line-height:22px;color:#5A5550;margin:0}
+.instr p+p{margin-top:8px}
+.instr .cue{margin-top:14px}
+
+/* ---- browser reproductions ---- */
+.chromewin{border:1px solid rgba(26,21,18,.13);border-radius:12px;background:#fff;overflow:hidden;
+           box-shadow:0 6px 20px rgba(26,21,18,.05)}
+.chromewin .tabbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#F1EFEC;
+           border-bottom:1px solid rgba(26,21,18,.08)}
+.chromewin .dot{width:9px;height:9px;border-radius:50%;background:rgba(26,21,18,.16)}
+.chromewin .url{flex:1;height:24px;border-radius:999px;background:#fff;border:1px solid rgba(26,21,18,.10);
+           display:flex;align-items:center;padding:0 11px;font-size:11.5px;color:#5A5550;
+           font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace}
+.chromewin .page{padding:14px 16px}
+.cx-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;
+         border-bottom:1px solid rgba(26,21,18,.08)}
+.cx-head .ttl{font-size:14px;font-weight:500;color:#202124}
+.cx-dev{display:flex;align-items:center;gap:9px;font-size:12.5px;color:#5A5550}
+.tgl{width:34px;height:18px;border-radius:999px;background:#CBCED4;position:relative;flex:0 0 34px}
+.tgl b{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;
+       box-shadow:0 1px 2px rgba(0,0,0,.28)}
+.tgl.on{background:#1A73E8}
+.tgl.on b{left:18px}
+.cx-actions{display:flex;gap:10px;padding-top:12px}
+.cx-btn{height:28px;padding:0 13px;border-radius:6px;border:1px solid rgba(26,21,18,.14);
+        display:inline-flex;align-items:center;font-size:12.5px;color:#1A73E8;background:#fff}
+.cx-btn.ghosted{color:rgba(26,21,18,.32)}
+.cx-btn.focusring{box-shadow:0 0 0 3px rgba(251,133,0,.28);border-color:#fb8500;color:#1A1512}
+.callout{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#fb8500;margin-top:9px;
+         font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;letter-spacing:.05em;
+         text-transform:uppercase}
+.finder{border:1px solid rgba(26,21,18,.13);border-radius:12px;overflow:hidden;background:#fff;
+        box-shadow:0 6px 20px rgba(26,21,18,.05);font-size:12.5px}
+.finder .bar{padding:9px 13px;background:#F1EFEC;border-bottom:1px solid rgba(26,21,18,.08);
+        font-size:12px;color:#5A5550;display:flex;justify-content:space-between;align-items:center}
+.finder .rowitem{display:flex;align-items:center;gap:9px;padding:7px 13px;color:#1A1512}
+.finder .rowitem+.rowitem{border-top:1px solid rgba(26,21,18,.05)}
+.finder .rowitem.sel{background:rgba(26,21,18,.06);font-weight:500}
+.finder .fold{width:14px;height:11px;border-radius:2px;background:rgba(26,21,18,.22);flex:0 0 14px}
+.finder .file{width:11px;height:13px;border-radius:2px;background:rgba(26,21,18,.12);flex:0 0 11px}
+.finder .foot{padding:9px 13px;border-top:1px solid rgba(26,21,18,.08);display:flex;justify-content:flex-end;gap:8px}
+
+/* ---- camera stage ---- */
+.stage{position:relative;aspect-ratio:16/9;width:100%;border-radius:18px;overflow:hidden;
+       background:#211D1A;display:flex;align-items:center;justify-content:center}
+.stage .plc{color:rgba(251,249,246,.42);font-size:12.5px;
+       font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;letter-spacing:.04em}
+.stage .silhouette{position:absolute;left:0;right:0;bottom:0;height:78%;
+       background:radial-gradient(60% 78% at 34% 100%,rgba(255,255,255,.10),rgba(255,255,255,0) 70%)}
+.stage .badge{position:absolute;left:14px;top:14px;display:inline-flex;align-items:center;gap:7px;
+       padding:5px 11px;border-radius:999px;background:rgba(26,21,18,.62);color:#FBF9F6;font-size:11.5px;
+       font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;letter-spacing:.05em}
+.stage .badge i{width:6px;height:6px;border-radius:50%;background:#fb8500;display:block}
+.gcard{position:absolute;right:16px;top:16px;width:250px;border-radius:20px;padding:15px 16px;
+       background:rgba(255,255,255,.70);-webkit-backdrop-filter:blur(20px) saturate(120%);
+       backdrop-filter:blur(20px) saturate(120%);border:1px solid rgba(255,255,255,.5);
+       box-shadow:0 8px 32px rgba(0,0,0,.16);color:#1A1512}
+.gcard .h{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#5A5550;
+       font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;margin-bottom:10px}
+.gcard .m{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;font-size:13px}
+.gcard .m b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.gcard .m+.m{border-top:1px solid rgba(26,21,18,.07)}
+.gcard .m .up{color:#fb8500}
+.meter{display:flex;align-items:flex-end;gap:3px;height:16px}
+.meter i{display:block;width:3px;border-radius:2px;background:#fb8500}
+
+/* ---- option cards ---- */
+.opt{display:grid;grid-template-columns:20px 1fr;gap:14px;border:1px solid rgba(26,21,18,.10);
+     border-radius:16px;padding:18px 20px;background:rgba(255,255,255,.5)}
+.opt--on{border-color:#1A1512;background:#fff;box-shadow:0 0 0 1px #1A1512}
+.radio{width:18px;height:18px;border-radius:50%;border:1px solid rgba(26,21,18,.28);margin-top:2px;position:relative}
+.opt--on .radio{border-color:#1A1512;background:#1A1512}
+.opt--on .radio:after{content:"";position:absolute;inset:5px;border-radius:50%;background:#fff}
+.opt h3{font-size:15px;font-weight:600;margin:0 0 5px}
+.opt p{font-size:13.5px;line-height:22px;color:#5A5550;margin:0}
+
+/* ---- dashboard shell ---- */
+.dash{display:flex;min-height:100vh}
+.sidebar{width:224px;flex:0 0 224px;border-right:1px solid rgba(26,21,18,.07);padding:24px 16px;
+         display:flex;flex-direction:column}
+.sidebar .brand{display:flex;justify-content:center;margin-bottom:30px}
+.sidebar nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.sidebar a.nav{padding:8px 12px;border-radius:9px;font-size:14px;font-weight:500;color:#5A5550}
+.sidebar a.nav.on{background:rgba(26,21,18,.06);color:#1A1512}
+.sidebar .foot{display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#5A5550;text-align:center}
+.sidebar .statuschip{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:9px;
+         background:rgba(26,21,18,.04);font-size:12px;color:#5A5550;text-align:left}
+.sidebar .statuschip i{width:7px;height:7px;border-radius:50%;background:#059669;flex:0 0 7px}
+.main{flex:1;padding:38px 40px 96px;max-width:1000px;margin:0 auto;width:100%}
+@media (max-width:900px){.sidebar{display:none}}
+
+/* ---- card library tiles ---- */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.tile{border:1px solid rgba(26,21,18,.08);border-radius:20px;background:rgba(255,255,255,.55);
+      padding:16px;display:flex;flex-direction:column;gap:13px}
+.tile--gen{border-style:dashed;border-color:rgba(251,133,0,.45);background:rgba(255,255,255,.4)}
+.tile .prev{border-radius:16px;padding:14px 15px;background:rgba(255,255,255,.72);
+      border:1px solid rgba(26,21,18,.07)}
+.tile--gen .prev{background:rgba(255,251,246,.8)}
+.tile .prev .h{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:#5A5550;
+      font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;margin-bottom:9px}
+.tile .prev .m{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;padding:4px 0}
+.tile .prev .m+.m{border-top:1px solid rgba(26,21,18,.06)}
+.tile .prev .m b{font-size:14px;font-variant-numeric:tabular-nums}
+.tile .prev li{font-size:12.5px;color:#5A5550;line-height:20px;list-style:none}
+.tile .phr{display:flex;flex-wrap:wrap;gap:6px}
+.tile .phr span{font-size:11.5px;padding:3px 9px;border-radius:999px;background:rgba(26,21,18,.06);color:#5A5550}
+.tile .meta{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;
+      letter-spacing:.07em;text-transform:uppercase;color:#5A5550}
+.switch{width:36px;height:20px;border-radius:999px;background:#CBCED4;position:relative;flex:0 0 36px}
+.switch b{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;
+      box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch.on{background:#1A1512}
+.switch.on b{left:18px}
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.segment{display:inline-flex;border:1px solid rgba(26,21,18,.12);border-radius:9px;overflow:hidden;background:#fff}
+.segment span{padding:6px 13px;font-size:13px;color:#5A5550;border-right:1px solid rgba(26,21,18,.09)}
+.segment span:last-child{border-right:0}
+.segment span.on{background:#1A1512;color:#FBF9F6}
+.search{display:flex;align-items:center;height:34px;padding:0 13px;border:1px solid rgba(26,21,18,.12);
+      border-radius:9px;background:#fff;font-size:13px;color:rgba(26,21,18,.36);min-width:220px}
+.zonehead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+      padding-bottom:10px;border-bottom:1px solid rgba(26,21,18,.09);margin-bottom:20px}
+.zonehead .lbl{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;
+      letter-spacing:.16em;text-transform:uppercase;color:#5A5550}
+.empty{border:1px dashed rgba(26,21,18,.16);border-radius:20px;padding:36px 28px;text-align:center;
+      background:rgba(255,255,255,.35)}
+
+.opt{position:relative}
+.opt .badgeline{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.opt .tradeoff{border-top:1px solid rgba(26,21,18,.08);margin-top:14px;padding-top:13px;
+      display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:700px){.opt .tradeoff{grid-template-columns:1fr}}
+.opt .tradeoff h4{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;
+      letter-spacing:.14em;text-transform:uppercase;color:#5A5550;margin:0 0 6px;font-weight:400}
+.opt .tradeoff ul{margin:0;padding-left:16px;font-size:13px;line-height:22px;color:#5A5550}
+.sub{margin-top:16px;padding-top:14px;border-top:1px solid rgba(26,21,18,.08)}
+.subrow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:9px 0}
+.subrow+.subrow{border-top:1px solid rgba(26,21,18,.06)}
+.subrow .t{font-size:13.5px;font-weight:500}
+.subrow .s{font-size:12.5px;color:#5A5550;line-height:19px;margin-top:2px;max-width:44ch}
+.livebar{display:flex;align-items:center;gap:11px;border:1px solid rgba(5,150,105,.28);
+      background:rgba(5,150,105,.05);border-radius:12px;padding:12px 15px;font-size:13.5px;color:#5A5550}
+.livebar i{width:8px;height:8px;border-radius:50%;background:#059669;flex:0 0 8px}
+.livebar b{color:#047857;font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border-radius:999px;
+      background:rgba(26,21,18,.86);color:#FBF9F6;font-size:12.5px}
+.pill .k{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;
+      border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:2px 6px;color:rgba(255,255,255,.75)}
+.pill i{width:7px;height:7px;border-radius:50%;background:#fb8500;display:block}
+</style>
+</head>
+<body>
+
+<div class="dash"><aside class="sidebar" data-component-id="dashboard-sidebar">
+  <div class="brand"><span class="wordmark">Stash Live</span></div>
+  <nav><a class="nav" href="#">Cards</a><a class="nav" href="#">Integrations</a><a class="nav" href="#">Rehearse</a><a class="nav" href="#">Activity</a><a class="nav on" href="#">Settings</a></nav>
+  <div class="foot"><div class="statuschip"><i></i>Extension connected</div>
+  <a href="#">Account</a><a href="#" style="font-size:12px">Sign out</a></div>
+</aside><main class="main">
+  <p class="eyebrow">Settings</p>
+  <h1 class="disp">How cards get triggered</h1>
+  <p class="lede">Pick one. This is the single biggest difference in how Stash Live feels day to day, so it&rsquo;s
+  worth thirty seconds of reading.</p>
+
+  <div class="stack" style="margin-top:26px" role="radiogroup" aria-label="Trigger mode">
+    <div class="opt opt--on" role="radio" aria-checked="true" tabindex="0" data-component-id="trigger-mode-hold">
+      <span class="radio"></span><div><div class="badgeline"><h3>Hold&#8209;to&#8209;talk</h3><span class="tag">Default</span></div><p>You hold <span class="mono" style="font-size:12.5px">Alt&#8202;+&#8202;Shift&#8202;+&#8202;Space</span> and talk. When you let go, Stash Live writes a card from what you just said and shows it. Nothing appears unless you ask for it.</p><div class="tradeoff"><div><h4>Good for</h4><ul><li>Client calls and demos where a surprise card would be awkward</li><li>Talking about numbers you didn&rsquo;t prepare a card for</li></ul></div><div><h4>The catch</h4><ul><li>You have to remember the keys</li><li>A card takes a second or two to arrive</li></ul></div></div>
+      <div class="sub" data-component-id="trigger-mode-hold-settings">
+        <div class="subrow"><div><div class="t">Shortcut</div>
+          <div class="s">Change it if another app already uses these keys.</div></div>
+          <div class="row"><span class="kbd">Alt</span><span class="plus">+</span><span class="kbd">Shift</span>
+          <span class="plus">+</span><span class="kbd" style="min-width:78px">Space</span>
+          <a class="btn btn--outline btn--sm" href="#">Change</a></div></div>
+        <div class="subrow"><div><div class="t">Show a card before sending it</div>
+          <div class="s">You get about two seconds to press Escape and bin it. Off means it goes straight out.</div></div>
+          <span class="switch on"><b></b></span></div>
+      </div></div>
+    </div>
+    <div class="opt" role="radio" aria-checked="false" tabindex="0" data-component-id="trigger-mode-ambient">
+      <span class="radio"></span><div><div class="badgeline"><h3>Ambient</h3></div><p>Stash Live listens the whole meeting and shows one of your saved cards when it hears a phrase you set up &mdash; no keys, no thinking about it. It never writes anything new; it only picks from cards you already approved.</p><div class="tradeoff"><div><h4>Good for</h4><ul><li>Repeating the same pitch several times a week</li><li>Presenting hands&#8209;free while sharing your screen</li></ul></div><div><h4>The catch</h4><ul><li>It can fire when you didn&rsquo;t mean it to</li><li>Your microphone is being transcribed for the whole call</li></ul></div></div></div>
+    </div>
+  </div>
+
+  <div class="livebar" style="margin-top:24px" data-component-id="trigger-mode-live-notice">
+    <i></i><span><b>Saved and already live.</b> You&rsquo;re in a meeting right now &mdash; hold&#8209;to&#8209;talk is
+    in effect from your next sentence. No need to rejoin.</span></div>
+
+  <hr class="rule"/>
+  <div class="spread"><div><p class="cap mono" style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#5A5550;margin:0 0 10px">
+    What other people in the call see</p>
+    <span class="pill"><i></i>Listening<span class="k">alt shift space</span></span></div>
+    <p class="small" style="max-width:34ch;text-align:right">Only you see this. It sits in the corner of your own
+    browser and is never part of the video you send.</p></div>
+</main></div>
+</body>
+</html>
