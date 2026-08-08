@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Stash Live — Card recipes contract</title>
+<meta name="description" content="The mapping from topic type to block composition and accent treatment that the generation engine is allowed to emit, plus the six composition laws it must obey."/>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#FBF9F6;color:#1A1512;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;
+     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.wrap{max-width:1180px;margin:0 auto;padding:44px 40px 72px}
+.wrap--wide{max-width:1372px}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+         color:#5A5550;margin:0 0 10px}
+h1.disp{font-family:'Cormorant Garamond','Garamond',ui-serif,Georgia,serif;font-weight:400;
+        font-size:44px;line-height:1.06;letter-spacing:-.015em;margin:0 0 10px}
+p.lede{font-size:15px;line-height:23px;color:#5A5550;max-width:62ch;margin:0}
+.rule{height:1px;background:rgba(26,21,18,0.10);margin:30px 0 0}
+.stage{margin-top:30px;border-radius:18px;overflow:hidden;border:1px solid rgba(26,21,18,0.10);
+       position:relative;box-shadow:0 1px 0 rgba(255,255,255,.7) inset}
+.stage-inner{position:relative;display:flex;align-items:center;justify-content:center;padding:56px 40px}
+.grain{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.035) 0 1px,rgba(0,0,0,0.035) 1px 2px);opacity:.5;mix-blend-mode:overlay;}
+.specs{margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+       gap:0;border-top:1px solid rgba(26,21,18,0.10)}
+.spec{padding:16px 20px 18px;border-right:1px solid rgba(26,21,18,0.08)}
+.spec:last-child{border-right:0}
+.spec dt{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+         color:#5A5550;margin:0 0 8px}
+.spec dd{margin:0;font-size:13.5px;line-height:20px;color:#1A1512}
+.spec dd code{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;background:rgba(26,21,18,0.05);
+              border-radius:4px;padding:1px 5px}
+.spec dd .seq{display:block;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;line-height:19px;color:#1A1512}
+.spec dd .num{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;
+      letter-spacing:.08em;text-transform:uppercase;color:#5A5550;border:1px solid rgba(26,21,18,0.12);
+      border-radius:999px;padding:5px 11px}
+.chip i{width:7px;height:7px;border-radius:50%;background:#fb8500;display:block}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+
+table.rec{width:100%;border-collapse:collapse;margin-top:0}
+table.rec th{text-align:left;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:#5A5550;font-weight:400;padding:0 18px 12px 0;
+  border-bottom:1px solid rgba(26,21,18,0.14);}
+table.rec td{padding:16px 18px 16px 0;border-bottom:1px solid rgba(26,21,18,0.07);vertical-align:top;}
+table.rec td:last-child,table.rec th:last-child{padding-right:0}
+.rk{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#1A1512;background:rgba(26,21,18,0.055);
+    border-radius:5px;padding:2px 7px;display:inline-block}
+.rl{font-size:14.5px;font-weight:500;margin-top:7px}
+.rl2{font-size:13.5px;font-weight:500;vertical-align:middle}
+.rt{font-size:13px;color:#5A5550;margin-top:3px;line-height:19px;max-width:23ch}
+.rt2{margin-top:5px}
+.rt2 code{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;color:#5A5550}
+.bk{display:inline-block;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;line-height:16px;color:#1A1512;
+    border:1px solid rgba(26,21,18,0.14);border-radius:5px;padding:3px 7px;margin:0 5px 5px 0;
+    background:rgba(255,255,255,0.6)}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:8px;vertical-align:middle}
+.rn{font-size:13.5px;line-height:20px;color:#1A1512;max-width:40ch}
+.laws{margin-top:34px;border-top:1px solid rgba(26,21,18,0.14);padding-top:22px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:26px}
+.law h3{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:#5A5550;font-weight:400;margin:0 0 9px}
+.law p{margin:0;font-size:13.5px;line-height:20px}
+.law code{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;background:rgba(26,21,18,0.05);border-radius:4px;padding:1px 5px}
+</style></head>
+<body><div class="wrap wrap--wide">
+<p class="eyebrow">System contract / recipes</p>
+<h1 class="disp">What the model is allowed to emit</h1>
+<p class="lede">Seven recipes cover the observed topic space. Each is a fixed, ordered block composition and one accent — the model chooses a recipe and fills it, it does not invent layouts. Everything below is expressible with the eight existing block kinds; no spec change is required.</p>
+<div class="meta"><span class="chip"><i></i>no spec change required</span><span class="chip"><i></i>8 block kinds, unchanged</span></div>
+<div class="rule"></div>
+<table class="rec" data-component-id="recipes-table"><thead><tr><th style="width:23%">Recipe · trigger shape</th><th style="width:27%">Block composition (ordered)</th><th style="width:17%">Accent</th><th>Constraints</th></tr></thead><tbody><tr data-component-id="recipe-person_entity"><td><span class="rk">person_entity</span><div class="rl">Person or entity</div><div class="rt">“big fan of Ranbir Kapoor”</div></td><td><span class="bk">image</span><span class="bk">text</span><span class="bk">bullets</span><span class="bk">status_list</span></td><td><span class="sw" style="background:#6D28D9"></span><span class="rl2">Violet</span><div class="rt2"><code>#6D28D9</code></div></td><td class="rn">Image first when a portrait resolves; the engine MUST also emit a metric_row fallback that takes slot 1 when the image is dropped. Bullets are notable works, max 3, max 39 chars.</td></tr><tr data-component-id="recipe-concept_explainer"><td><span class="rk">concept_explainer</span><div class="rl">Concept or definition</div><div class="rt">“what retrieval-augmented generation is”</div></td><td><span class="bk">text</span><span class="bk">bullets</span></td><td><span class="sw" style="background:#6D28D9"></span><span class="rl2">Violet</span><div class="rt2"><code>#6D28D9</code></div></td><td class="rn">Two-sentence definition, then 3 discriminating properties. No chart — there is no series.</td></tr><tr data-component-id="recipe-business_metric"><td><span class="rk">business_metric</span><div class="rl">Business metric</div><div class="rt">“our Q2 revenue”</div></td><td><span class="bk">metric_row</span><span class="bk">line_chart</span><span class="bk">status_list</span></td><td><span class="sw" style="background:#fb8500"></span><span class="rl2">Orange (default)</span><div class="rt2"><code>#fb8500</code></div></td><td class="rn">Emphasised value ≤ 6 glyphs. Provenance row is required whenever the number came from an integration.</td></tr><tr data-component-id="recipe-trend_history"><td><span class="rk">trend_history</span><div class="rl">Trend over time</div><div class="rt">“solar has tripled since 2019”</div></td><td><span class="bk">metric_row</span><span class="bk">bar_chart</span><span class="bk">text</span></td><td><span class="sw" style="background:#0F766E"></span><span class="rl2">Teal</span><div class="rt2"><code>#0F766E</code></div></td><td class="rn">bar_chart for discrete periods, line_chart for continuous. Label at most 3 of n points. The trailing text block must interpret, not restate.</td></tr><tr data-component-id="recipe-comparison"><td><span class="rk">comparison</span><div class="rl">Comparison or trade-off</div><div class="rt">“Postgres versus Dynamo”</div></td><td><span class="bk">metric_row</span><span class="bk">status_list</span><span class="bk">bullets</span></td><td><span class="sw" style="background:#0F766E"></span><span class="rl2">Teal</span><div class="rt2"><code>#0F766E</code></div></td><td class="rn">status_list carries for/against via ok/warn/error dots. Never colour the row text.</td></tr><tr data-component-id="recipe-team_people"><td><span class="rk">team_people</span><div class="rl">People or team</div><div class="rt">“who is on the team”</div></td><td><span class="bk">metric_row</span><span class="bk">avatar_grid</span><span class="bk">status_list</span></td><td><span class="sw" style="background:#fb8500"></span><span class="rl2">Orange (default)</span><div class="rt2"><code>#fb8500</code></div></td><td class="rn">Max 6 avatars per row; overflow goes to a second row, never a smaller disc.</td></tr><tr data-component-id="recipe-list_facts"><td><span class="rk">list_facts</span><div class="rl">Enumerable facts</div><div class="rt">“the three things we shipped”</div></td><td><span class="bk">bullets</span><span class="bk">text</span></td><td><span class="sw" style="background:#fb8500"></span><span class="rl2">Orange (default)</span><div class="rt2"><code>#fb8500</code></div></td><td class="rn">The minimum viable card. 3–5 bullets. Use when nothing quantitative exists.</td></tr></tbody></table><div class="laws"><div class="law" data-component-id="law-0"><h3>Accent is a fill, never a caption</h3><p>Accent may colour bars, area gradients, chart strokes, bullet dots, status dots, and text at <code>≥ 20px</code>. Nothing else. <code>#fb8500</code> has luminance 0.373 against a 0.808 glass — 2.03:1, which vanishes under 4:2:0.</p></div><div class="law" data-component-id="law-1"><h3>Three accents, chosen by topic domain</h3><p>Orange <code>#fb8500</code> for business and system data (unchanged default), violet <code>#6D28D9</code> for people and culture, teal <code>#0F766E</code> for science, history and comparison. Both additions are existing AVATAR_TINTS foreground values — no new hues enter the brand.</p></div><div class="law" data-component-id="law-2"><h3>At most four blocks</h3><p>A 358px card holds roughly 4 blocks before it exceeds a comfortable frame height. The engine should refuse to emit a fifth rather than let <code>layoutCard</code> run the card past the frame.</p></div><div class="law" data-component-id="law-3"><h3>Every image recipe has a no-image twin</h3><p>The renderer silently drops any image that fails or would taint the capture canvas. The block list must read as finished without it — which is why the fallback block is first, not last.</p></div><div class="law" data-component-id="law-4"><h3>One emphasised metric, six glyphs</h3><p>At most one <code>emphasis: true</code> per row, and its value must fit ~6 glyphs at 26/700 within a 3-up row. <code>$240,000</code> does not; <code>$240K</code> does.</p></div><div class="law" data-component-id="law-5"><h3>Source line when the claim is external</h3><p>Any card built from a fetched fact ends with a single <code>status_list</code> row in <code>info</code> state naming the source and freshness. It is the cheapest credibility the format has.</p></div></div>
+<dl class="specs"><div class="spec"><dt>Palette extension</dt><dd>Two additions, both already in the codebase as AVATAR_TINTS foregrounds: <code>#6D28D9</code> (L 0.098) and <code>#0F766E</code> (L 0.142). Both are <em>darker</em> than <code>#fb8500</code> (L 0.373), so they carry more luminance contrast, not less.</dd></div><div class="spec"><dt>Contrast over bright glass</dt><dd>violet <span class="num">5.81:1</span> · teal <span class="num">4.47:1</span> · orange <span class="num">2.03:1</span> against a 0.808-luminance glass.</dd></div><div class="spec"><dt>Unchanged</dt><dd>Default theme, all four approved fixtures, all eight block kinds, and every token in <code>tokens.ts</code> except the two proposed additions.</dd></div><div class="spec"><dt>Engine output</dt><dd>Recipe key + filled blocks + accent hex. The client resolves the rest through <code>resolveTheme()</code>.</dd></div></dl>
+</div></body></html>

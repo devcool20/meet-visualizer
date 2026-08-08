@@ -1,0 +1,143 @@
+{
+  "title": "Stash Live V1 — Card Visual System",
+  "summary": "This plan defines what a Stash Live card actually looks like when it is burned into the presenter's outbound webcam frame, and what the presenter sees locally while it is being made. Everything is drawn at true size against the shipped tokens: CARD width 358 / radius 20 / paddingX 20 / blockGap 14 from layout.ts, the exact TYPE scale (title 17/600/22, body 15/400/21, metricValue 26/700/30, metricLabel 14/500/18 at 0.6 tracking, personName 14/500/16), the Warm Alabaster palette (#FBF9F6 canvas, #1A1512 espresso text, #5A5550 muted, #fb8500 accent, #059669 / #B45309 / #B91C1C states), Inter + JetBrains Mono, and Cormorant Garamond only for page chrome as the dashboard already does. Every block position in every mockup was produced by a line-for-line port of layoutCard() and scales.ts, so heights and chart geometry are the real emitted numbers, not eyeballed.\n\nThe central argument of the plan is that the card system should be defined by RECIPES, not by the four business fixtures that exist today. A presenter saying \"I have been a big fan of Ranbir Kapoor\" must get a card as considered as one about ARR. The Recipes section states the contract the generation engine consumes: seven topic types, each mapping to an ordered block composition drawn only from the eight existing CardSpec kinds (metric_row, bar_chart, line_chart, avatar_grid, status_list, bullets, text, image) — V1 adds no new block kind — plus six composition laws. Two of those laws matter most: accent is a fill and never a caption (because MetricRow already forces delta text to theme.text below TEXT_ACCENT_MIN_PX of 20px, and #fb8500 measures only 2.03:1 on glass), and every image recipe needs a no-image twin whose fallback block sits FIRST, because the canvas image block silently returns {skipped:true} on a tainting image rather than risk a SecurityError on captureStream.\n\nThree measured proposals are embedded in the archetypes and should be reviewed with the engine agent. (1) Glass alpha 0.45 → 0.62: over a dark shoulder, 0.45 glass puts #5A5550 muted text at 2.06:1, a hard fail; 0.62 lifts it to 3.26:1 and the primary text to 8.01:1. (2) textMuted #5A5550 → #4A4540, which reaches 4.19:1 over dark glass and 8.24:1 over bright. (3) Two topic accents beyond orange — violet #6D28D9 for people and culture, teal #0F766E for science, history and comparison — both of which are already AVATAR_TINTS foreground values in format.ts, so no new hue enters the brand, and both of which are darker than #fb8500 and therefore carry more luminance contrast, not less. Orange remains the default for business and system data.\n\nArchetypes: the recommended variation is the person card with portrait, because it is the case the current fixtures cannot express and the one the user described. Its degraded twin is a required companion, not an alternative. In-video context: the recommended variation is the centred-presenter frame, since a card over clean wall proves nothing — the honest test is the card overlapping a shoulder, and that is where the 0.62 glass earns itself. Presenter HUD: the listening state is recommended as the anchor because it carries the most simultaneous signal (ring, level meter, debounced interim transcript) and sets the pattern the other three follow; note the HUD is local DOM at 13.5px and the 14px in-video legibility floor does not apply to it, and it is provably never composited since the compositor only does drawImage plus canvas-native draws. In-video failure: the recommended treatment is the silent fade — the audience should not be shown an error at all. A failure is meaningful to the presenter and meaningless to the room, and a red notice burned into someone's face on a sales call converts a silent non-event into a permanent artifact of the recording. The explicit pill is included so the trade-off is reviewable, not because it should ship.\n\nOne existing bug surfaced while rendering at true size: REVENUE_CARD's $240,000 at metricValue 26/700 overflows its cell in a 3-up metric_row and ellipsises to \"$240,…\". The mockup compacts it to $240K and codifies the rule that an emphasised value is at most about six glyphs; the fixture itself is left untouched. This product surface has no dark mode — the .dark block in theme.css is unused shadcn boilerplate — so all mockups are light-mode only, and the bright / low-light pairs shown inside them are camera backdrops the glass must survive, not theme variants.",
+  "sections": [
+    {
+      "title": "Card recipes contract",
+      "key": "card-system-recipes",
+      "description": "The topic-type to block-composition mapping the generation engine is allowed to emit, plus the six composition laws.",
+      "variations": [
+        {
+          "title": "Seven recipes and six composition laws",
+          "key": "contract",
+          "html_link": "card-system-recipes-contract.html",
+          "is_recommended": true
+        }
+      ]
+    },
+    {
+      "title": "Card archetypes",
+      "key": "card-system-archetypes",
+      "description": "Six data-rich card compositions at true size over bright and low-light camera backdrops.",
+      "variations": [
+        {
+          "title": "Person or entity, with portrait",
+          "key": "person-with-image",
+          "html_link": "card-system-archetype-person-with-image.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Person or entity, image unavailable",
+          "key": "person-no-image",
+          "html_link": "card-system-archetype-person-no-image.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Business metric with area chart",
+          "key": "business-metrics",
+          "html_link": "card-system-archetype-business-metrics.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Comparison and trade-off",
+          "key": "comparison-list",
+          "html_link": "card-system-archetype-comparison-list.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Trend over time, bar chart",
+          "key": "timeline-trend",
+          "html_link": "card-system-archetype-timeline-trend.html",
+          "is_recommended": false
+        },
+        {
+          "title": "People and team roster",
+          "key": "team-people",
+          "html_link": "card-system-archetype-team-people.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "In-video composition",
+      "key": "card-system-in-video",
+      "description": "The card composited into a 1280x720 outbound frame at the real 28% placement scale.",
+      "variations": [
+        {
+          "title": "Centred presenter, card over the shoulder",
+          "key": "centered-presenter",
+          "html_link": "card-system-context-in-video-centered.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Off-centre presenter, card on clean right third",
+          "key": "right-third",
+          "html_link": "card-system-context-in-video-720p.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Presenter HUD states",
+      "key": "card-system-hud",
+      "description": "The local-only pill in the lower-left of the Meet page, across idle, listening, generating and error.",
+      "variations": [
+        {
+          "title": "Listening, hotkey held",
+          "key": "listening",
+          "html_link": "card-system-hud-listening.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Idle, at rest",
+          "key": "idle",
+          "html_link": "card-system-hud-idle.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Generating, topic resolved",
+          "key": "generating",
+          "html_link": "card-system-hud-generating.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Error, recoverable failure",
+          "key": "error",
+          "html_link": "card-system-hud-error.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Pending and failure in video",
+      "key": "card-system-placeholders",
+      "description": "What remote participants see while a card is generating, and what they see when it never arrives.",
+      "variations": [
+        {
+          "title": "Pending placeholder with real title",
+          "key": "pending-in-video",
+          "html_link": "card-system-placeholder-pending-in-video.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Failure, silent fade",
+          "key": "error-silent-fade",
+          "html_link": "card-system-placeholder-error-silent-fade.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Failure, explicit pill (alternative)",
+          "key": "error-pill",
+          "html_link": "card-system-placeholder-error-pill.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Loading skeleton, isolated at 1:1",
+          "key": "loading-pending",
+          "html_link": "card-system-state-loading-pending.html",
+          "is_recommended": false
+        }
+      ]
+    }
+  ]
+}

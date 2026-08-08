@@ -1,0 +1,355 @@
+{
+  "title": "Stash Live V1 \u2014 Card System & Setup Flow",
+  "summary": "Visual design for the Stash Live V1: the AI-generated glassmorphic card system composited into the presenter's outbound video (card archetypes, presenter HUD states, in-video pending/error placeholders), plus the guided web setup flow (extension install and pairing, AI provider key, rehearsal, joining Meet, trigger mode, cards library).",
+  "sections": [
+    {
+      "title": "Card recipes contract",
+      "key": "card-system-recipes",
+      "description": "The topic-type to block-composition mapping the generation engine is allowed to emit, plus the six composition laws.",
+      "variations": [
+        {
+          "title": "Seven recipes and six composition laws",
+          "key": "contract",
+          "html_link": "card-system-recipes-contract.html",
+          "is_recommended": true
+        }
+      ]
+    },
+    {
+      "title": "Card archetypes",
+      "key": "card-system-archetypes",
+      "description": "Six data-rich card compositions at true size over bright and low-light camera backdrops.",
+      "variations": [
+        {
+          "title": "Person or entity, with portrait",
+          "key": "person-with-image",
+          "html_link": "card-system-archetype-person-with-image.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Person or entity, image unavailable",
+          "key": "person-no-image",
+          "html_link": "card-system-archetype-person-no-image.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Business metric with area chart",
+          "key": "business-metrics",
+          "html_link": "card-system-archetype-business-metrics.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Comparison and trade-off",
+          "key": "comparison-list",
+          "html_link": "card-system-archetype-comparison-list.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Trend over time, bar chart",
+          "key": "timeline-trend",
+          "html_link": "card-system-archetype-timeline-trend.html",
+          "is_recommended": false
+        },
+        {
+          "title": "People and team roster",
+          "key": "team-people",
+          "html_link": "card-system-archetype-team-people.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "In-video composition",
+      "key": "card-system-in-video",
+      "description": "The card composited into a 1280x720 outbound frame at the real 28% placement scale.",
+      "variations": [
+        {
+          "title": "Centred presenter, card over the shoulder",
+          "key": "centered-presenter",
+          "html_link": "card-system-context-in-video-centered.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Off-centre presenter, card on clean right third",
+          "key": "right-third",
+          "html_link": "card-system-context-in-video-720p.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Presenter HUD states",
+      "key": "card-system-hud",
+      "description": "The local-only pill in the lower-left of the Meet page, across idle, listening, generating and error.",
+      "variations": [
+        {
+          "title": "Listening, hotkey held",
+          "key": "listening",
+          "html_link": "card-system-hud-listening.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Idle, at rest",
+          "key": "idle",
+          "html_link": "card-system-hud-idle.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Generating, topic resolved",
+          "key": "generating",
+          "html_link": "card-system-hud-generating.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Error, recoverable failure",
+          "key": "error",
+          "html_link": "card-system-hud-error.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Pending and failure in video",
+      "key": "card-system-placeholders",
+      "description": "What remote participants see while a card is generating, and what they see when it never arrives.",
+      "variations": [
+        {
+          "title": "Pending placeholder with real title",
+          "key": "pending-in-video",
+          "html_link": "card-system-placeholder-pending-in-video.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Failure, silent fade",
+          "key": "error-silent-fade",
+          "html_link": "card-system-placeholder-error-silent-fade.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Failure, explicit pill (alternative)",
+          "key": "error-pill",
+          "html_link": "card-system-placeholder-error-pill.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Loading skeleton, isolated at 1:1",
+          "key": "loading-pending",
+          "html_link": "card-system-state-loading-pending.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Setup checklist shell",
+      "key": "setup-screens-checklist",
+      "description": "The persistent wrapper showing where you are in the five-step flow and what remains.",
+      "variations": [
+        {
+          "title": "Sticky left rail \u2014 step 3 of 5",
+          "key": "rail",
+          "html_link": "setup-screens-checklist-rail.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Full-width top stepper \u2014 step 3 of 5",
+          "key": "stepper",
+          "html_link": "setup-screens-checklist-stepper.html",
+          "is_recommended": false
+        },
+        {
+          "title": "All five steps complete",
+          "key": "complete",
+          "html_link": "setup-screens-checklist-complete.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Extension install \u2014 not installed",
+      "key": "setup-screens-install",
+      "description": "The two install paths and what happens when Chrome refuses the folder.",
+      "variations": [
+        {
+          "title": "Chrome Web Store, one click",
+          "key": "not-installed",
+          "html_link": "setup-screens-install-not-installed.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Load unpacked \u2014 six numbered steps",
+          "key": "load-unpacked",
+          "html_link": "setup-screens-install-load-unpacked.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Chrome couldn't read that folder",
+          "key": "error",
+          "html_link": "setup-screens-install-error.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Extension detected and paired",
+      "key": "setup-screens-pairing",
+      "description": "The pairing handshake and the confirmation that this browser is now linked.",
+      "variations": [
+        {
+          "title": "Pairing in progress",
+          "key": "in-progress",
+          "html_link": "setup-screens-pairing-in-progress.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Paired \u2014 device confirmed",
+          "key": "success",
+          "html_link": "setup-screens-pairing-success.html",
+          "is_recommended": true
+        }
+      ]
+    },
+    {
+      "title": "Data & AI setup \u2014 provider key",
+      "key": "setup-screens-ai-key",
+      "description": "Picking a provider, validating the key with a real test call, and the settled configured state.",
+      "variations": [
+        {
+          "title": "Empty \u2014 choose a provider",
+          "key": "empty",
+          "html_link": "setup-screens-ai-key-empty.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Key entered \u2014 validating",
+          "key": "validating",
+          "html_link": "setup-screens-ai-key-validating.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Verified \u2014 Notion offered as optional",
+          "key": "success",
+          "html_link": "setup-screens-ai-key-success.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Rejected by the provider",
+          "key": "error",
+          "html_link": "setup-screens-ai-key-error.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Already configured \u2014 masked summary",
+          "key": "configured",
+          "html_link": "setup-screens-ai-key-configured.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Rehearse on your own camera",
+      "key": "setup-screens-rehearse",
+      "description": "Teaching the hold-to-talk gesture, the live moment, the card landing, and the no-extension fallback.",
+      "variations": [
+        {
+          "title": "Learning the hotkey",
+          "key": "hotkey",
+          "html_link": "setup-screens-rehearse-hotkey.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Holding \u2014 listening",
+          "key": "holding",
+          "html_link": "setup-screens-rehearse-holding.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Card on camera \u2014 before / after",
+          "key": "card-live",
+          "html_link": "setup-screens-rehearse-card-live.html",
+          "is_recommended": false
+        },
+        {
+          "title": "No extension \u2014 static fixture preview",
+          "key": "no-extension",
+          "html_link": "setup-screens-rehearse-no-extension.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Join a real Google Meet",
+      "key": "setup-screens-join-meet",
+      "description": "The hand-off into Meet, re-selecting the intercepted camera, and the camera-already-busy case.",
+      "variations": [
+        {
+          "title": "Pre-flight \u2014 before you click",
+          "key": "ready",
+          "html_link": "setup-screens-join-meet-ready.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Selecting the Stash Live camera in Meet",
+          "key": "camera-select",
+          "html_link": "setup-screens-join-meet-camera-select.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Camera already in use",
+          "key": "camera-busy",
+          "html_link": "setup-screens-join-meet-camera-busy.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Settings \u2014 trigger mode",
+      "key": "setup-screens-trigger-mode",
+      "description": "Choosing between hold-to-talk and ambient, with the tradeoff stated in plain language.",
+      "variations": [
+        {
+          "title": "Hold-to-talk active (default)",
+          "key": "hold",
+          "html_link": "setup-screens-trigger-mode-hold.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Ambient active",
+          "key": "ambient",
+          "html_link": "setup-screens-trigger-mode-ambient.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Switching mid-meeting \u2014 confirm",
+          "key": "switch-confirm",
+          "html_link": "setup-screens-trigger-mode-switch-confirm.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Cards library with AI-generated cards",
+      "key": "setup-screens-cards-library",
+      "description": "How ephemeral AI-written cards and permanent saved cards coexist and what each affords.",
+      "variations": [
+        {
+          "title": "Two zones \u2014 expiring above saved",
+          "key": "zoned",
+          "html_link": "setup-screens-cards-library-zoned.html",
+          "is_recommended": true
+        },
+        {
+          "title": "One grid, filtered by type",
+          "key": "unified",
+          "html_link": "setup-screens-cards-library-unified.html",
+          "is_recommended": false
+        },
+        {
+          "title": "First run \u2014 no AI cards yet",
+          "key": "empty",
+          "html_link": "setup-screens-cards-library-empty.html",
+          "is_recommended": false
+        }
+      ]
+    }
+  ]
+}

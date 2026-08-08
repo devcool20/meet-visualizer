@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Stash Live — Presenter HUD, generating</title>
+<meta name="description" content="The HUD after the hotkey is released: a spinning arc, the resolved topic, an indeterminate progress track and a cancel affordance."/>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#FBF9F6;color:#1A1512;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;
+     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.wrap{max-width:1180px;margin:0 auto;padding:44px 40px 72px}
+.wrap--wide{max-width:1372px}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+         color:#5A5550;margin:0 0 10px}
+h1.disp{font-family:'Cormorant Garamond','Garamond',ui-serif,Georgia,serif;font-weight:400;
+        font-size:44px;line-height:1.06;letter-spacing:-.015em;margin:0 0 10px}
+p.lede{font-size:15px;line-height:23px;color:#5A5550;max-width:62ch;margin:0}
+.rule{height:1px;background:rgba(26,21,18,0.10);margin:30px 0 0}
+.stage{margin-top:30px;border-radius:18px;overflow:hidden;border:1px solid rgba(26,21,18,0.10);
+       position:relative;box-shadow:0 1px 0 rgba(255,255,255,.7) inset}
+.stage-inner{position:relative;display:flex;align-items:center;justify-content:center;padding:56px 40px}
+.grain{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.035) 0 1px,rgba(0,0,0,0.035) 1px 2px);opacity:.5;mix-blend-mode:overlay;}
+.specs{margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+       gap:0;border-top:1px solid rgba(26,21,18,0.10)}
+.spec{padding:16px 20px 18px;border-right:1px solid rgba(26,21,18,0.08)}
+.spec:last-child{border-right:0}
+.spec dt{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+         color:#5A5550;margin:0 0 8px}
+.spec dd{margin:0;font-size:13.5px;line-height:20px;color:#1A1512}
+.spec dd code{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;background:rgba(26,21,18,0.05);
+              border-radius:4px;padding:1px 5px}
+.spec dd .seq{display:block;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;line-height:19px;color:#1A1512}
+.spec dd .num{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;
+      letter-spacing:.08em;text-transform:uppercase;color:#5A5550;border:1px solid rgba(26,21,18,0.12);
+      border-radius:999px;padding:5px 11px}
+.chip i{width:7px;height:7px;border-radius:50%;background:#fb8500;display:block}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+
+.hud{display:inline-flex;align-items:center;gap:10px;padding:8px 14px 8px 10px;border-radius:999px;
+     background:rgba(26,21,18,0.86);-webkit-backdrop-filter:blur(14px) saturate(120%);
+     backdrop-filter:blur(14px) saturate(120%);color:#fff;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:13.5px;
+     line-height:18px;font-weight:500;box-shadow:0 6px 22px rgba(0,0,0,.34),
+     inset 0 1px 0 rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.09);white-space:nowrap;}
+.hud--wide{border-radius:16px;padding:10px 14px 10px 12px;align-items:center;}
+.hud--error{background:rgba(48,17,15,0.90);border-color:rgba(233,120,110,.34);}
+.hud .kbd{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;line-height:14px;letter-spacing:.02em;color:rgba(255,255,255,.72);
+     border:1px solid rgba(255,255,255,.20);border-radius:6px;padding:2px 6px;background:rgba(255,255,255,.06);}
+.hud .sep{width:1px;height:16px;background:rgba(255,255,255,.16);}
+.hud .sub{color:rgba(255,255,255,.62);font-weight:400;}
+.hud .btn{font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:12.5px;font-weight:500;color:#fff;background:rgba(255,255,255,.13);
+     border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:4px 10px;cursor:pointer;}
+.hud .x{width:20px;height:20px;border-radius:50%;border:0;background:transparent;color:rgba(255,255,255,.62);
+     font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* status orb -------------------------------------------------------- */
+.orb{position:relative;width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center;}
+.orb .core{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.42);}
+.orb--idle .core{background:rgba(255,255,255,.40);}
+.orb--live .core{background:#fb8500;width:9px;height:9px;}
+.orb--err .core{background:#F0736A;}
+.ring{position:absolute;inset:0;border-radius:50%;border:2px solid #fb8500;opacity:0;}
+.orb--live .ring{animation:ringPulse 1.5s cubic-bezier(.16,1,.3,1) infinite;}
+.orb--live .ring:nth-child(2){animation-delay:.5s;}
+.orb--live .base{position:absolute;inset:1px;border-radius:50%;border:1.5px solid #fb8500;opacity:.55;animation:none;}
+@keyframes ringPulse{0%{transform:scale(.42);opacity:.85}70%{opacity:.10}100%{transform:scale(1);opacity:0}}
+.arc{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.16);
+     border-top-color:#fb8500;animation:spin 900ms linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* speech level meter ------------------------------------------------ */
+.level{display:flex;align-items:flex-end;gap:3px;height:16px;}
+.level i{display:block;width:3px;border-radius:2px;background:#fb8500;height:5px;
+         animation:lvl 900ms ease-in-out infinite;}
+.level i:nth-child(1){animation-delay:0ms}.level i:nth-child(2){animation-delay:110ms}
+.level i:nth-child(3){animation-delay:220ms}.level i:nth-child(4){animation-delay:80ms}
+.level i:nth-child(5){animation-delay:300ms}.level i:nth-child(6){animation-delay:180ms}
+@keyframes lvl{0%,100%{height:4px;opacity:.55}50%{height:15px;opacity:1}}
+
+/* determinate generation track -------------------------------------- */
+.track{position:relative;width:96px;height:3px;border-radius:2px;background:rgba(255,255,255,.16);overflow:hidden;}
+.track b{position:absolute;inset:0 auto 0 0;width:38%;border-radius:2px;background:#fb8500;
+         animation:slide 1.5s cubic-bezier(.5,0,.5,1) infinite;}
+@keyframes slide{0%{left:-40%}100%{left:100%}}
+
+@media (prefers-reduced-motion: reduce){
+  .orb--live .ring{animation:none;opacity:.5;transform:scale(1)}
+  .arc{animation:none;border-top-color:#fb8500}
+  .level i{animation:none;height:9px}
+  .track b{animation:none;left:0;width:46%}
+  .shimmer::after{animation:none}
+}
+
+.meet{position:relative;width:1160px;height:652px;background:#202124;overflow:hidden;
+      border-radius:0;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;}
+.meet .tiles{position:absolute;inset:0 0 76px 0;padding:12px;display:grid;
+      grid-template-columns:2fr 1fr;gap:10px;}
+.meet .tile{position:relative;border-radius:10px;overflow:hidden;background:#3C4043;}
+.meet .tile .cam{position:absolute;left:-8%;top:-8%;width:116%;height:116%;filter:blur(22px);}
+.meet .tile .nm{position:absolute;left:12px;bottom:10px;color:#fff;font-size:13px;font-weight:500;
+      text-shadow:0 1px 3px rgba(0,0,0,.6);display:flex;align-items:center;gap:7px;}
+.meet .side{display:grid;grid-template-rows:1fr 1fr;gap:10px;}
+.meet .bar{position:absolute;left:0;right:0;bottom:0;height:76px;background:#202124;
+      display:flex;align-items:center;justify-content:center;gap:12px;}
+.meet .bar .ctl{width:48px;height:48px;border-radius:50%;background:#3C4043;display:flex;
+      align-items:center;justify-content:center;}
+.meet .bar .ctl.end{width:62px;border-radius:24px;background:#EA4335;}
+.meet .clock{position:absolute;left:24px;bottom:28px;color:#E8EAED;font-size:14px;}
+.meet .right{position:absolute;right:24px;bottom:28px;display:flex;gap:14px;}
+.meet .right span{width:22px;height:22px;border-radius:4px;background:#3C4043;display:block}
+.hudpos{position:absolute;left:24px;bottom:132px;z-index:5;}
+.iso{display:flex;align-items:center;justify-content:center;padding:52px 40px;
+     background:linear-gradient(140deg,#312D2A,#1D1A18);border-radius:0;position:relative;}
+</style></head>
+<body><div class="wrap wrap--wide">
+<p class="eyebrow">Presenter HUD 12 / generating</p>
+<h1 class="disp">Generating</h1>
+<p class="lede">The key is released and the model is working. Three things prevent this reading as a hang: the arc rotates, the track sweeps, and — most importantly — the resolved topic is named. “Building card · Ranbir Kapoor” tells the presenter the system understood them, which is the actual anxiety at this moment. Cancel is always offered.</p>
+<div class="meta"><span class="chip"><i></i>names the topic</span><span class="chip"><i></i>always cancellable</span></div>
+<div class="rule"></div>
+<div class="stage"><div class="iso"><div class="hud hud--wide" data-component-id="hud-generating" role="status" aria-live="polite" aria-label="Generating card"><span class="orb"><span class="arc"></span><span class="core"></span></span><span>Building card</span><span class="sub">Ranbir Kapoor</span><span class="track"><b></b></span><span class="sep"></span><span class="kbd">⌥ ⇧ D</span><span class="sub">cancel</span></div></div></div><div class="stage" style="margin-top:20px;"><div style="width:1160px;"><div class="meet" data-component-id="meet-page"><div class="tiles"><div class="tile"><div class="cam" style="background:radial-gradient(15% 22% at 46% 34%, #F2DCC4 0%, #DDBB98 58%, rgba(198,160,124,0) 88%),radial-gradient(42% 42% at 48% 104%, #43394B 0%, rgba(51,44,61,0) 88%),linear-gradient(112deg,#E9E0D3 0%,#D8CBBA 44%,#B9AA95 100%)"></div><div class="nm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg> Priya Raman (You)</div></div><div class="side"><div class="tile"><div class="cam" style="background:radial-gradient(17% 24% at 50% 36%, #D9B592 0%, #A87F5B 62%, rgba(150,112,80,0) 88%),radial-gradient(46% 44% at 50% 104%, #33303A 0%, rgba(51,48,58,0) 88%),linear-gradient(120deg,#4A4340,#2E2A28)"></div><div class="nm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg> Daniel Okafor</div></div><div class="tile"><div class="cam" style="background:radial-gradient(17% 24% at 52% 35%, #C7A9C4 0%, #8E6E8C 62%, rgba(110,84,108,0) 88%),radial-gradient(46% 44% at 52% 104%, #2C2C36 0%, rgba(44,44,54,0) 88%),linear-gradient(120deg,#3A3A46,#26262E)"></div><div class="nm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M4 4l16 16" stroke="#E8564A" stroke-width="2" stroke-linecap="round"/></svg> Mei Tan</div></div></div></div><div class="hudpos"><div class="hud hud--wide" data-component-id="hud-generating" role="status" aria-live="polite" aria-label="Generating card"><span class="orb"><span class="arc"></span><span class="core"></span></span><span>Building card</span><span class="sub">Ranbir Kapoor</span><span class="track"><b></b></span><span class="sep"></span><span class="kbd">⌥ ⇧ D</span><span class="sub">cancel</span></div></div><div class="bar"><div class="ctl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></div><div class="ctl"></div><div class="ctl"></div><div class="ctl"></div><div class="ctl end"></div></div><div class="clock">10:41 · wkq-mnbv-xyz</div><div class="right"><span></span><span></span><span></span></div></div></div></div>
+<dl class="specs"><div class="spec"><dt>Progress</dt><dd>Indeterminate: a 38%-wide accent bar sweeping a 96px track over 1500 ms. Honest — generation latency is not predictable, so no fake determinate percentage.</dd></div><div class="spec"><dt>Topic echo</dt><dd>The resolved subject at <span class="num">13.5/400</span>, 62% white. This is the state’s real payload; the spinner is secondary.</dd></div><div class="spec"><dt>Cancel</dt><dd><code>⌥⇧D</code> shown inline. Cancelling here also removes the in-video placeholder if it has already appeared.</dd></div><div class="spec"><dt>Reduced motion</dt><dd>The arc stops and holds one accent quadrant; the track holds a static 46% fill. The label changes nothing — the text already says “Building card”.</dd></div><div class="spec"><dt>Duration</dt><dd>Typically 2–4 s. Past 8 s the HUD should transition to the error state rather than spin indefinitely.</dd></div></dl>
+</div></body></html>

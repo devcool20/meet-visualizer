@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Stash Live — Card loading state</title>
+<meta name="description" content="The seconds between hotkey release and the card arriving: a titled shimmer skeleton at the exact rhythm of the card it is about to become."/>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#FBF9F6;color:#1A1512;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;
+     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.wrap{max-width:1180px;margin:0 auto;padding:44px 40px 72px}
+.wrap--wide{max-width:1372px}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+         color:#5A5550;margin:0 0 10px}
+h1.disp{font-family:'Cormorant Garamond','Garamond',ui-serif,Georgia,serif;font-weight:400;
+        font-size:44px;line-height:1.06;letter-spacing:-.015em;margin:0 0 10px}
+p.lede{font-size:15px;line-height:23px;color:#5A5550;max-width:62ch;margin:0}
+.rule{height:1px;background:rgba(26,21,18,0.10);margin:30px 0 0}
+.stage{margin-top:30px;border-radius:18px;overflow:hidden;border:1px solid rgba(26,21,18,0.10);
+       position:relative;box-shadow:0 1px 0 rgba(255,255,255,.7) inset}
+.stage-inner{position:relative;display:flex;align-items:center;justify-content:center;padding:56px 40px}
+.grain{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.035) 0 1px,rgba(0,0,0,0.035) 1px 2px);opacity:.5;mix-blend-mode:overlay;}
+.specs{margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+       gap:0;border-top:1px solid rgba(26,21,18,0.10)}
+.spec{padding:16px 20px 18px;border-right:1px solid rgba(26,21,18,0.08)}
+.spec:last-child{border-right:0}
+.spec dt{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+         color:#5A5550;margin:0 0 8px}
+.spec dd{margin:0;font-size:13.5px;line-height:20px;color:#1A1512}
+.spec dd code{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;background:rgba(26,21,18,0.05);
+              border-radius:4px;padding:1px 5px}
+.spec dd .seq{display:block;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;line-height:19px;color:#1A1512}
+.spec dd .num{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;
+      letter-spacing:.08em;text-transform:uppercase;color:#5A5550;border:1px solid rgba(26,21,18,0.12);
+      border-radius:999px;padding:5px 11px}
+.chip i{width:7px;height:7px;border-radius:50%;background:#fb8500;display:block}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+
+.shimmer{position:relative;overflow:hidden;background:rgba(26,21,18,0.085);border-radius:6px;}
+.shimmer::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(100deg,rgba(255,255,255,0) 18%%,rgba(255,255,255,0.72) 50%%,rgba(255,255,255,0) 82%%);
+  transform:translateX(-100%%);animation:sweep 1450ms cubic-bezier(.4,0,.2,1) infinite;}
+.shimmer.d1::after{animation-delay:90ms}.shimmer.d2::after{animation-delay:180ms}
+.shimmer.d3::after{animation-delay:270ms}.shimmer.d4::after{animation-delay:360ms}
+@keyframes sweep{to{transform:translateX(100%%)}}
+@media (prefers-reduced-motion: reduce){ .shimmer::after{animation:none;opacity:0}
+  .shimmer{background:rgba(26,21,18,0.085)} }
+</style></head>
+<body><div class="wrap">
+<p class="eyebrow">Card state 07 / pending</p>
+<h1 class="disp">The two seconds before the card</h1>
+<p class="lede">The placeholder is never an anonymous grey box: the topic is already known from the transcript, so the title line is real text from the first frame. Only the body shimmers. When the real card arrives it swaps in place — the header does not move.</p>
+<div class="meta"><span class="chip"><i></i>topic known from frame 1</span><span class="chip"><i></i>header does not reflow</span></div>
+<div class="rule"></div>
+<div class="stage"><div style="display:flex;"><div style="position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:0;background:radial-gradient(46% 58% at 34% 44%, #F0D9C0 0%, #E2C1A1 34%, rgba(214,182,150,0) 72%),radial-gradient(28% 34% at 30% 30%, rgba(255,244,232,0.85), rgba(255,244,232,0) 70%),linear-gradient(160deg,#EDE4D8 0%,#DDD0BF 40%,#C8B9A6 72%,#B6A691 100%);padding:44px 26px 20px;"><div class="grain"></div><div style="position:relative;"><div class="stash-card" data-component-id="pending-card" role="img" aria-label="Listening… — Ranbir Kapoor" style="width:358px;height:210px;border-radius:20px;box-sizing:border-box;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;color:#1A1512;position:relative;overflow:hidden;background:rgba(255,255,255,0.62);-webkit-backdrop-filter:blur(20px) saturate(120%);backdrop-filter:blur(20px) saturate(120%);border:1px solid rgba(26,21,18,0.06);box-shadow:0 8px 32px 0 rgba(26,21,18,0.03), 0 2px 10px rgba(26,21,18,0.10);"><p data-component-id="pending-card-title" style="position:absolute;margin:0;top:18px;left:20px;right:20px;font-size:17px;font-weight:600;line-height:22px;color:#1A1512;">Listening…</p><p data-component-id="pending-card-subtitle" style="position:absolute;margin:0;top:40px;left:20px;right:20px;font-size:14px;font-weight:400;line-height:18px;color:#5A5550;">Ranbir Kapoor</p><div style="position:absolute;top:72px;left:20px;width:318px;height:118px;"><div data-component-id="pending-card-skeleton-0" style="position:relative;height:118px;"><div style="position:absolute;top:0px;left:0;width:58%;height:26px;border-radius:6px;background:linear-gradient(90deg,rgba(26,21,18,0.09),rgba(26,21,18,0.045) 60%,rgba(26,21,18,0.09));"></div><div style="position:absolute;top:38px;left:0;width:100%;height:15px;border-radius:6px;background:linear-gradient(90deg,rgba(26,21,18,0.09),rgba(26,21,18,0.045) 60%,rgba(26,21,18,0.09));"></div><div style="position:absolute;top:65px;left:0;width:88%;height:15px;border-radius:6px;background:linear-gradient(90deg,rgba(26,21,18,0.09),rgba(26,21,18,0.045) 60%,rgba(26,21,18,0.09));"></div><div style="position:absolute;top:92px;left:0;width:42%;height:15px;border-radius:6px;background:linear-gradient(90deg,rgba(26,21,18,0.09),rgba(26,21,18,0.045) 60%,rgba(26,21,18,0.09));"></div></div></div><div style="position:absolute;inset:0;border-radius:20px;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.55),inset 0 -1px 0 rgba(26,21,18,0.04);"></div></div></div><div style="position:relative;margin-top:18px;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.95);background:rgba(26,21,18,0.62);border-radius:999px;padding:5px 12px;">Bright room</div></div><div style="position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:0;background:radial-gradient(44% 56% at 32% 42%, #6E5240 0%, #4A3628 38%, rgba(52,38,28,0) 74%),radial-gradient(26% 30% at 28% 28%, rgba(214,166,120,0.55), rgba(214,166,120,0) 72%),linear-gradient(160deg,#3A322C 0%,#2B2521 46%,#1E1A18 100%);padding:44px 26px 20px;"><div class="grain"></div><div style="position:relative;"><div class="stash-card" data-component-id="pending-card" role="img" aria-label="Listening… — Ranbir Kapoor" style="width:358px;height:210px;border-radius:20px;box-sizing:border-box;font-family:'Inter','Inter var',system-ui,-apple-system,'Segoe UI',sans-serif;color:#1A1512;position:relative;overflow:hidden;background:rgba(255,255,255,0.62);-webkit-backdrop-filter:blur(20px) saturate(120%);backdrop-filter:blur(20px) saturate(120%);border:1px solid rgba(26,21,18,0.06);box-shadow:0 8px 32px 0 rgba(26,21,18,0.03), 0 2px 10px rgba(26,21,18,0.10);"><p data-component-id="pending-card-title" style="position:absolute;margin:0;top:18px;left:20px;right:20px;font-size:17px;font-weight:600;line-height:22px;color:#1A1512;">Listening…</p><p data-component-id="pending-card-subtitle" style="position:absolute;margin:0;top:40px;left:20px;right:20px;font-size:14px;font-weight:400;line-height:18px;color:#5A5550;">Ranbir Kapoor</p><div style="position:absolute;top:72px;left:20px;width:318px;height:118px;"><div data-component-id="pending-card-skeleton-0" style="position:relative;height:118px;"><div style="position:absolute;top:0px;left:0;width:58%;height:26px;border-radius:6px;background:linear-gradient(90deg,rgba(26,21,18,0.09),rgba(26,21,18,0.045) 60%,rgba(26,21,18,0.09));"></div><div style="position:absolute;top:38px;left:0;width:100%;height:15px;border-radius:6px;background:linear-gradient(90deg,rgba(26,21,18,0.09),rgba(26,21,18,0.045) 60%,rgba(26,21,18,0.09));"></div><div style="position:absolute;top:65px;left:0;width:88%;height:15px;border-radius:6px;background:linear-gradient(90deg,rgba(26,21,18,0.09),rgba(26,21,18,0.045) 60%,rgba(26,21,18,0.09));"></div><div style="position:absolute;top:92px;left:0;width:42%;height:15px;border-radius:6px;background:linear-gradient(90deg,rgba(26,21,18,0.09),rgba(26,21,18,0.045) 60%,rgba(26,21,18,0.09));"></div></div></div><div style="position:absolute;inset:0;border-radius:20px;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.55),inset 0 -1px 0 rgba(26,21,18,0.04);"></div></div></div><div style="position:relative;margin-top:18px;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.95);background:rgba(26,21,18,0.62);border-radius:999px;padding:5px 12px;">Low light</div></div></div></div>
+<dl class="specs"><div class="spec"><dt>Composition</dt><dd>Title (real) + subtitle (real) + skeleton body. Drawn on the placeholder path, not from CardSpec — see the in-video placeholder section.</dd></div><div class="spec"><dt>Type sizes (effective px @720p)</dt><dd>title <span class="num">17/600</span> · subtitle <span class="num">14/400</span>. Skeleton bars are 15–26px tall, matching the type they stand in for.</dd></div><div class="spec"><dt>Accent treatment</dt><dd>None on text. A single 7px <code>#fb8500</code> dot beside “Building card…” is the only accent mark.</dd></div><div class="spec"><dt>Motion</dt><dd>Bars sweep a 1450 ms highlight, staggered 90 ms apart. Reduced motion: the sweep is removed entirely and the bars sit at flat 8.5% espresso — static, never blinking.</dd></div><div class="spec"><dt>Card geometry</dt><dd>width <span class="num">358</span> · height <span class="num">210</span></dd></div></dl>
+</div></body></html>

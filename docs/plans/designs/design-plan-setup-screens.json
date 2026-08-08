@@ -1,0 +1,218 @@
+{
+  "title": "Stash Live — Setup flow and dashboard screens (V1)",
+  "summary": "A guided five-step setup — sign in, install & pair the extension, add an AI key, rehearse, join Meet — rendered in the existing editorial light-mode language (warm alabaster #FBF9F6 canvas, deep espresso #1A1512 type, #fb8500 accent used only for the 'you are here' marker and live/expiring states, Cormorant Garamond display, Inter UI, JetBrains Mono for eyebrows and telemetry). Everything is built from primitives already in src/app/components/ui so implementation is cheap: button, badge, switch, radio-group, tabs, progress, input, alert.\n\nThe spine is a persistent sticky checklist. I offer two shapes for it: a 296px left rail (recommended — it survives long scrolling pages like the six-step install without the progress leaving the viewport, and it reuses the DashboardShell sidebar rhythm) and a full-width top stepper (more editorial, but the progress scrolls away). The complete state is included so the flow visibly ends rather than trailing off.\n\nThe install screen is treated as the highest-risk moment. Two paths sit behind a tab pair: one-click Web Store, and an interim 'install from a file' path rendered as six numbered steps where four of them carry a faithful CSS reproduction of what the user will actually see — chrome://extensions with the Developer mode switch, the same page with the three grey buttons revealed and 'Load unpacked' ringed in accent, and the folder picker with the right directory selected. The failure screen quotes Chrome's own error text in mono, translates it into one sentence of plain English, then gives three numbered actions; three other common failures (admin policy, wrong browser, folder deleted) are covered as secondary notes so there is no dead end.\n\nThe AI-key panel covers all five states asked for. Validation is framed as three visible checks (format → reachable → provider accepted) so a failure says which stage broke; the error copy names the likely cause (partial copy) and gives two ordered fixes, with quota / network / wrong-provider variants below it. The configured state never re-displays the key — only last four, model, added-by and usage, with replace / test / remove. Notion appears only after the key succeeds, badged Optional, with 'Continue to rehearsal' as the primary button and Connect as the outline one, so skipping is the default-looking path rather than a failure.\n\nRehearsal is split into three beats — teaching the chord on physical keys with a hold indicator, the live listening state with transcript and mic level, and the payoff with a real card composited on the user's camera plus a before/after pair — and a fourth degraded state where a clearly labelled static fixture stands in and the CTA routes back to install. Join Meet states the two Meet-side surprises as a pre-flight list before the user clicks anything, then walks the camera re-selection with reproductions of Meet's own kebab menu and device dropdown, and handles the 'camera already busy' case as a calm three-step recovery rather than an error.\n\nTrigger mode presents both modes as equals with a 'Good for' / 'The catch' pair each, sub-settings nested under whichever is active, and a green in-meeting confirmation that the change is already live; a third variation shows the confirm dialog for switching mid-call. The cards library distinguishes ephemeral AI cards by dashed accent edges, a 'Written by AI' badge, a countdown meter and a Keep it / Edit / Discard action row, against solid-edged saved cards with a source badge, phrase chips and an enable switch — recommended as two labelled zones rather than one mixed grid, because the expiry rule only needs explaining once per zone.\n\nAll in-video card previews here deliberately stay minimal; the card visual system itself is owned by the parallel card-system design set.",
+  "sections": [
+    {
+      "title": "Setup checklist shell",
+      "key": "setup-screens-checklist",
+      "description": "The persistent wrapper showing where you are in the five-step flow and what remains.",
+      "variations": [
+        {
+          "title": "Sticky left rail — step 3 of 5",
+          "key": "rail",
+          "html_link": "setup-screens-checklist-rail.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Full-width top stepper — step 3 of 5",
+          "key": "stepper",
+          "html_link": "setup-screens-checklist-stepper.html",
+          "is_recommended": false
+        },
+        {
+          "title": "All five steps complete",
+          "key": "complete",
+          "html_link": "setup-screens-checklist-complete.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Extension install — not installed",
+      "key": "setup-screens-install",
+      "description": "The two install paths and what happens when Chrome refuses the folder.",
+      "variations": [
+        {
+          "title": "Chrome Web Store, one click",
+          "key": "not-installed",
+          "html_link": "setup-screens-install-not-installed.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Load unpacked — six numbered steps",
+          "key": "load-unpacked",
+          "html_link": "setup-screens-install-load-unpacked.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Chrome couldn't read that folder",
+          "key": "error",
+          "html_link": "setup-screens-install-error.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Extension detected and paired",
+      "key": "setup-screens-pairing",
+      "description": "The pairing handshake and the confirmation that this browser is now linked.",
+      "variations": [
+        {
+          "title": "Pairing in progress",
+          "key": "in-progress",
+          "html_link": "setup-screens-pairing-in-progress.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Paired — device confirmed",
+          "key": "success",
+          "html_link": "setup-screens-pairing-success.html",
+          "is_recommended": true
+        }
+      ]
+    },
+    {
+      "title": "Data & AI setup — provider key",
+      "key": "setup-screens-ai-key",
+      "description": "Picking a provider, validating the key with a real test call, and the settled configured state.",
+      "variations": [
+        {
+          "title": "Empty — choose a provider",
+          "key": "empty",
+          "html_link": "setup-screens-ai-key-empty.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Key entered — validating",
+          "key": "validating",
+          "html_link": "setup-screens-ai-key-validating.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Verified — Notion offered as optional",
+          "key": "success",
+          "html_link": "setup-screens-ai-key-success.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Rejected by the provider",
+          "key": "error",
+          "html_link": "setup-screens-ai-key-error.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Already configured — masked summary",
+          "key": "configured",
+          "html_link": "setup-screens-ai-key-configured.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Rehearse on your own camera",
+      "key": "setup-screens-rehearse",
+      "description": "Teaching the hold-to-talk gesture, the live moment, the card landing, and the no-extension fallback.",
+      "variations": [
+        {
+          "title": "Learning the hotkey",
+          "key": "hotkey",
+          "html_link": "setup-screens-rehearse-hotkey.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Holding — listening",
+          "key": "holding",
+          "html_link": "setup-screens-rehearse-holding.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Card on camera — before / after",
+          "key": "card-live",
+          "html_link": "setup-screens-rehearse-card-live.html",
+          "is_recommended": false
+        },
+        {
+          "title": "No extension — static fixture preview",
+          "key": "no-extension",
+          "html_link": "setup-screens-rehearse-no-extension.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Join a real Google Meet",
+      "key": "setup-screens-join-meet",
+      "description": "The hand-off into Meet, re-selecting the intercepted camera, and the camera-already-busy case.",
+      "variations": [
+        {
+          "title": "Pre-flight — before you click",
+          "key": "ready",
+          "html_link": "setup-screens-join-meet-ready.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Selecting the Stash Live camera in Meet",
+          "key": "camera-select",
+          "html_link": "setup-screens-join-meet-camera-select.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Camera already in use",
+          "key": "camera-busy",
+          "html_link": "setup-screens-join-meet-camera-busy.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Settings — trigger mode",
+      "key": "setup-screens-trigger-mode",
+      "description": "Choosing between hold-to-talk and ambient, with the tradeoff stated in plain language.",
+      "variations": [
+        {
+          "title": "Hold-to-talk active (default)",
+          "key": "hold",
+          "html_link": "setup-screens-trigger-mode-hold.html",
+          "is_recommended": true
+        },
+        {
+          "title": "Ambient active",
+          "key": "ambient",
+          "html_link": "setup-screens-trigger-mode-ambient.html",
+          "is_recommended": false
+        },
+        {
+          "title": "Switching mid-meeting — confirm",
+          "key": "switch-confirm",
+          "html_link": "setup-screens-trigger-mode-switch-confirm.html",
+          "is_recommended": false
+        }
+      ]
+    },
+    {
+      "title": "Cards library with AI-generated cards",
+      "key": "setup-screens-cards-library",
+      "description": "How ephemeral AI-written cards and permanent saved cards coexist and what each affords.",
+      "variations": [
+        {
+          "title": "Two zones — expiring above saved",
+          "key": "zoned",
+          "html_link": "setup-screens-cards-library-zoned.html",
+          "is_recommended": true
+        },
+        {
+          "title": "One grid, filtered by type",
+          "key": "unified",
+          "html_link": "setup-screens-cards-library-unified.html",
+          "is_recommended": false
+        },
+        {
+          "title": "First run — no AI cards yet",
+          "key": "empty",
+          "html_link": "setup-screens-cards-library-empty.html",
+          "is_recommended": false
+        }
+      ]
+    }
+  ]
+}
