@@ -943,10 +943,23 @@ export default function App() {
             </nav>
           </div>
 
-          {/* Right Column: Stash Branding (visible on both mobile and desktop) */}
-          <div className="flex items-center pr-2 select-none">
+          {/* Right Column: Stash Branding & Session CTAs */}
+          <div className="flex items-center gap-3 pr-2 select-none">
+            <Link
+              to="/rehearse"
+              className="hidden sm:inline-flex px-3 py-1 text-xs font-medium rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/10 backdrop-blur-sm"
+            >
+              🎙️ Try Rehearsal
+            </Link>
+            <Link
+              to={status === "signed-in" ? "/dashboard" : "/signup"}
+              className="px-3.5 py-1 text-xs font-semibold rounded-full bg-[#fb8500] hover:bg-[#e07600] text-white transition-all shadow-sm flex items-center gap-1"
+            >
+              <span>{status === "signed-in" ? "Dashboard" : "Get Started"}</span>
+              <span className="text-[10px]">→</span>
+            </Link>
             <span
-              className="text-lg font-medium tracking-tight"
+              className="text-lg font-medium tracking-tight ml-1"
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: "1.35rem",
@@ -1073,6 +1086,37 @@ export default function App() {
             >
               Stash Live listens to your voice during Zoom, Google Meet, or Teams calls and automatically projects real-time charts and data from Notion, Airtable, and Google Drive directly onto your camera feed — no screen sharing required.
             </motion.p>
+            <motion.div
+              custom={reducedMotion}
+              variants={itemVariants}
+              className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-3.5"
+            >
+              <Link
+                to={status === "signed-in" ? "/dashboard" : "/signup"}
+                className="px-6 py-3 text-sm font-semibold rounded-full bg-[#fb8500] hover:bg-[#e07600] text-white transition-all shadow-[0_4px_20px_rgba(251,133,0,0.35)] hover:shadow-[0_6px_24px_rgba(251,133,0,0.45)] flex items-center gap-2"
+              >
+                <span>{status === "signed-in" ? "Open Dashboard" : "Get Started Free"}</span>
+                <span>→</span>
+              </Link>
+              <Link
+                to="/rehearse"
+                className="px-5 py-3 text-sm font-medium rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 transition-all flex items-center gap-2"
+              >
+                <span>🎙️</span>
+                <span>Try Rehearsal</span>
+              </Link>
+              <a
+                href={CHROME_WEB_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-3 text-sm font-medium rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-2 border border-white/10"
+              >
+                <svg className="w-4 h-4 fill-current text-white/90" viewBox="0 0 24 24">
+                  <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm0 4.8a7.2 7.2 0 1 1 0 14.4 7.2 7.2 0 0 1 0-14.4z"/>
+                </svg>
+                <span>Add to Chrome</span>
+              </a>
+            </motion.div>
           </motion.div>
 
           {/* Spacer — the center figure lives here */}
