@@ -27,8 +27,8 @@ import type { Ctx2D } from './canvas-factory.js';
 import { rasterize } from './rasterize.js';
 import type { RasterizedCard, RasterizeOptions } from './types.js';
 import { GlassBackdropRenderer } from './glass-backdrop.js';
-import type { BusynessSampler } from './busyness-sampler.js';
-import type { SideSelector } from '@stash/card-core';
+import { BusynessSampler } from './busyness-sampler.js';
+import { SideSelector } from '@stash/card-core';
 import type { PlaceholderKind } from './placeholder.js';
 import { drawPlaceholderCard, PLACEHOLDER_HEIGHT } from './placeholder.js';
 import { CardTtlTimer } from './ttl.js';
@@ -107,8 +107,8 @@ export class CardCompositor {
 
   // Adaptive placement fields
   private autoPlacement: boolean;
-  private sampler: BusynessSampler | null = null;
-  private selector: SideSelector | null = null;
+  private sampler: BusynessSampler;
+  private selector: SideSelector;
   private currentSide: CardSide = 'right';
   private xSpring: Spring;
   private userPosition: CardPosition = 'auto';
@@ -131,8 +131,8 @@ export class CardCompositor {
     this.now = options.now ?? (() => performance.now());
     this.autoPlacement = options.autoPlacement ?? true;
     this.xSpring = new Spring(0, DEFAULT_SPRING);
-    if (options.sampler) this.sampler = options.sampler;
-    if (options.selector) this.selector = options.selector;
+    this.sampler = options.sampler ?? new BusynessSampler();
+    this.selector = options.selector ?? new SideSelector();
   }
 
   /** Starts the enter choreography for a (possibly new) card. */

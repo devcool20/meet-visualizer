@@ -37,7 +37,7 @@ export function useSetupStatus() {
       let aiProviderAvailable = false;
       try {
         const aiState = await api.getAiProvider();
-        aiProviderAvailable = aiState.source !== 'none';
+        aiProviderAvailable = Boolean(aiState.serverKeyAvailable || (aiState.source && aiState.source !== 'none'));
       } catch {
         // Not configured — treat as unavailable.
       }

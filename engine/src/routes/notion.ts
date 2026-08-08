@@ -5,6 +5,8 @@ import { requireAuth, type AuthedRequest } from '../auth/middleware.js';
 import { NotionOAuthService } from '../notion/oauth.js';
 import { NotionSyncService } from '../notion/sync.js';
 
+import { config } from '../config.js';
+
 /** Notion OAuth + sync endpoints (plan §2.6). */
 export function createNotionRouter(
   store: Store,
@@ -24,15 +26,16 @@ export function createNotionRouter(
   // to the initiating user (plan §2.6).
   router.get('/api/notion/callback', async (req, res) => {
     const { state, code } = req.query;
+    const redirectBase = config.productOrigin || 'https://meet-visualizer.vercel.app';
     if (typeof state !== 'string' || typeof code !== 'string') {
-      res.status(400).json({ error: 'missing_state_or_code' });
+      res.redirect(`${redirectBase}/setup/data-setup?notion=error`);
       return;
     }
     try {
       await oauth.handleCallback(state, code);
-      res.json({ ok: true });
+      res.redirect(`${redirectBase}/setup/data-setup?notion=connected`);
     } catch (err) {
-      res.status(400).json({ error: 'oauth_failed', message: (err as Error).message });
+      res.redirect(`${redirectBase}/setup/data-setup?notion=error`);
     }
   });
 

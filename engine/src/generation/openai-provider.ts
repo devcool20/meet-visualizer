@@ -8,6 +8,9 @@ import type { GenerationProvider, AiProviderId, StructuredRequest, StructuredRes
 import { GenerationProviderError } from './provider.js';
 
 interface OpenAiResponse {
+  choices?: Array<{
+    message?: { content?: string | null };
+  }>;
   output_text?: string;
   output?: Array<{
     content?: Array<{ text?: string }>;
@@ -35,7 +38,7 @@ export class OpenAiGenerationProvider implements GenerationProvider {
     const timer = setTimeout(() => controller.abort(), req.timeoutMs);
 
     try {
-      const res = await this.fetch('https://api.openai.com/v1/responses', {
+      const res = await this.fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,19 +46,19 @@ export class OpenAiGenerationProvider implements GenerationProvider {
         },
         body: JSON.stringify({
           model: this.model,
-          input: [
+          messages: [
             { role: 'system', content: req.system },
             { role: 'user', content: req.user },
           ],
-          text: {
-            format: {
-              type: 'json_schema',
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
               name: req.schemaName,
               strict: true,
               schema: req.schema,
             },
           },
-          max_output_tokens: req.maxOutputTokens,
+          max_tokens: req.maxOutputTokens,
         }),
         signal: controller.signal,
       });
@@ -70,7 +73,7 @@ export class OpenAiGenerationProvider implements GenerationProvider {
       }
 
       const data = (await res.json()) as OpenAiResponse;
-      const raw = data.output_text ?? this.extractOutputText(data);
+      const raw = data.choices?.[0]?.message?.content ?? data.output_text ?? this.extractOutputText(data);
       if (!raw) throw new GenerationProviderError('Empty response from OpenAI', false);
 
       let parsed: unknown;
@@ -92,6 +95,7 @@ export class OpenAiGenerationProvider implements GenerationProvider {
   }
 
   private extractOutputText(data: OpenAiResponse): string | null {
+    if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
     if (data.output_text) return data.output_text;
     if (data.output) {
       for (const block of data.output) {

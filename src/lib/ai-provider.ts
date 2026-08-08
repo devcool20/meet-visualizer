@@ -48,8 +48,12 @@ export function maskKey(key: string): string {
  * can do that.
  */
 export function looksLikeKeyFor(provider: AiProvider, key: string): boolean {
+  const trimmed = key.trim();
+  if (provider === 'openai' && trimmed.startsWith('sk-ant-')) {
+    return false;
+  }
   const prefixes = KEY_PREFIXES[provider];
-  return prefixes.some((p) => key.trim().startsWith(p));
+  return prefixes.some((p) => trimmed.startsWith(p));
 }
 
 /**

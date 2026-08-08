@@ -5,6 +5,7 @@
  * repair → assemble → image → result.
  * Never throws — all failures map to GenerateOutcome.
  */
+import { createHash } from 'crypto';
 import { parseCardSpec } from '@stash/card-spec';
 import type { CardSpec } from '@stash/card-spec';
 import type { ICache } from '../services/cache.js';
@@ -70,7 +71,7 @@ export class CardGenerator {
       }
 
       // 2. Cache check
-      const hash = normalize(utterance);
+      const hash = createHash('sha256').update(norm).digest('hex');
       const cacheKey = userKey(userId, 'gen', hash);
       const cached = await this.deps.cache.get(cacheKey);
       if (cached) {

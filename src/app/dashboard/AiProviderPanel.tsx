@@ -7,7 +7,7 @@
  * removing (confirmation dialog).
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
@@ -94,10 +94,11 @@ export function AiProviderPanel({ initialState, onChange }: AiProviderPanelProps
     }
   }
 
-  // If no initial state, fetch on mount.
-  if (!initialState && mode === 'loading') {
-    loadState();
-  }
+  useEffect(() => {
+    if (!initialState) {
+      loadState();
+    }
+  }, []);
 
   async function handleSave() {
     const trimmed = keyInput.trim();

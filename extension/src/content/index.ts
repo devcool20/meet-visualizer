@@ -222,6 +222,14 @@ function main(): void {
   startHud();
   wireBackgroundMessages();
   wireKeyboardShortcuts();
+
+  const isRehearsalPage = window.location.pathname === '/rehearse' || window.location.href.includes('/rehearse');
+  if (isRehearsalPage) {
+    // Stand down extension hold-to-talk hotkeys on the product /rehearse page —
+    // the dashboard's useHoldToTalk hook is the sole speech owner here (plan §11).
+    return;
+  }
+
   // Ambient mode starts speech immediately; hold-to-talk starts with hotkey listeners
   if (currentTriggerMode === 'ambient') {
     startAmbientSpeech();

@@ -8,8 +8,6 @@
  * disabled/tampered storage (tests, locked-down contexts).
  */
 
-const STORAGE_KEY = 'stash_recent_ai_cards';
-
 export interface RecentAiCard {
   id: string;
   title: string;
@@ -20,9 +18,13 @@ export interface RecentAiCard {
 
 const MAX_ENTRIES = 5;
 
-function readStore(): RecentAiCard[] {
+function getStorageKey(userId?: string): string {
+  return userId ? `stash_recent_ai_cards_${userId}` : 'stash_recent_ai_cards';
+}
+
+function readStore(userId?: string): RecentAiCard[] {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(getStorageKey(userId));
     if (!raw) return [];
     const parsed = JSON.parse(raw) as RecentAiCard[];
     return Array.isArray(parsed) ? parsed : [];
@@ -31,9 +33,9 @@ function readStore(): RecentAiCard[] {
   }
 }
 
-function writeStore(cards: RecentAiCard[]): void {
+function writeStore(cards: RecentAiCard[], userId?: string): void {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+    sessionStorage.setItem(getStorageKey(userId), JSON.stringify(cards));
   } catch {
     // Non-critical.
   }
@@ -41,31 +43,31 @@ function writeStore(cards: RecentAiCard[]): void {
 
 let idCounter = 0;
 
-export function recordGeneratedCard(card: Omit<RecentAiCard, 'id' | 'createdAt'>): void {
+export function recordGeneratedCard(card: Omit<RecentAiCard, 'id' | 'createdAt'>, userId?: string): void {
   const entry: RecentAiCard = {
     ...card,
     id: `ai-card-${Date.now()}-${++idCounter}`,
     createdAt: new Date().toISOString(),
   };
-  const existing = readStore();
+  const existing = readStore(userId);
   existing.unshift(entry);
   // Cap at MAX_ENTRIES.
-  writeStore(existing.slice(0, MAX_ENTRIES));
+  writeStore(existing.slice(0, MAX_ENTRIES), userId);
 }
 
-export function listGeneratedCards(): RecentAiCard[] {
-  return readStore();
+export function listGeneratedCards(userId?: string): RecentAiCard[] {
+  return readStore(userId);
 }
 
-export function clearGeneratedCards(): void {
+export function clearGeneratedCards(userId?: string): void {
   try {
-    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(getStorageKey(userId));
   } catch {
     // Non-critical.
   }
 }
 
-export function removeGeneratedCard(id: string): void {
-  const existing = readStore();
-  writeStore(existing.filter((c) => c.id !== id));
+export function removeGeneratedCard(id: string, userId?: string): void {
+  const existing = readStore(userId);
+  writeStore(existing.filter((c) => c.id !== id), userId);
 }

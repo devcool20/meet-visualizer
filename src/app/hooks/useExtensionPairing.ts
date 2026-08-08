@@ -58,9 +58,10 @@ export function useExtensionPairing(opts: UseExtensionPairingOptions = {}) {
     }
   }, [getAccessToken, opts.runtime]);
 
-  const retry = useCallback(() => {
+  const retry = useCallback(async () => {
     dispatch({ type: 'RETRY' });
-  }, []);
+    await pair();
+  }, [pair]);
 
   return { state, probe, pair, retry };
 }

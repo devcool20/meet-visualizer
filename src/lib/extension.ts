@@ -26,8 +26,7 @@ export const DEV_EXTENSION_ID = 'fdeplcogfapfmfpkelllkjbcphmlccll';
 export const EXTENSION_ID = DEV_EXTENSION_ID;
 
 /** Chrome Web Store listing. Opens in a NEW tab per plan §4.2 seam. */
-export const CHROME_WEB_STORE_URL =
-  'https://chromewebstore.google.com/detail/stash-live/' + EXTENSION_ID;
+export const CHROME_WEB_STORE_URL = chromeWebStoreUrl();
 
 /** How long we wait for a presence probe / pairing round trip before giving up. */
 export const PROBE_TIMEOUT_MS = 1200;

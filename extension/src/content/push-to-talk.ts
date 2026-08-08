@@ -126,12 +126,15 @@ export class PushToTalkController {
   }
 
   handleKeyDown(e: KeyEventLike): boolean {
-    if (this._state !== 'idle' && this._state !== 'generating') return false;
+    if (this._state !== 'idle' && this._state !== 'generating' && this._state !== 'error') return false;
     if (e.repeat) return false;
 
     // Match Alt+Shift+Space (no Ctrl, no Meta)
     if (!e.altKey || !e.shiftKey || e.ctrlKey || e.metaKey) return false;
     if (e.code !== 'Space') return false;
+
+    // Clear any pending timers (e.g. grace timer from prior hold)
+    this.clearTimers();
 
     // If we're in a generating state, cancel the in-flight generation
     if (this._state === 'generating' && this._activeCaptureId) {
@@ -203,9 +206,12 @@ export class PushToTalkController {
     this.setState('idle', null);
   }
 
-  noteGenerationError(captureId: string, _message: string): void {
+  noteGenerationError(captureId: string, message: string): void {
     if (captureId !== this._activeCaptureId) return; // stale
-    this.setState('error', 'Generation failed');
+    this.setState('error', message || 'Generation failed');
+    this.deps.setTimer(() => {
+      if (this._state === 'error') this.setState('idle', null);
+    }, 2000);
   }
 
   /**

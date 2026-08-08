@@ -49,7 +49,7 @@ export class GeminiGenerationProvider implements GenerationProvider {
     const timer = setTimeout(() => controller.abort(), req.timeoutMs);
 
     try {
-      const response = await client.models.generateContent({
+      const generatePromise = client.models.generateContent({
         model: this.model,
         contents: [
           { role: 'user', parts: [{ text: req.system }] },
@@ -62,12 +62,36 @@ export class GeminiGenerationProvider implements GenerationProvider {
         },
       });
 
-      const raw = response?.response?.text?.() ?? null;
-      if (!raw && response?.response?.candidates?.length) {
-        const candidate = response.response.candidates[0];
-        const text = candidate?.content?.parts?.[0]?.text;
-        if (text) return { json: JSON.parse(text), raw: text, provider: 'gemini', model: this.model };
+      const abortPromise = new Promise<never>((_, reject) => {
+        if (controller.signal.aborted) {
+          reject(new GenerationProviderError('Gemini request timed out', true));
+          return;
+        }
+        controller.signal.addEventListener('abort', () => {
+          reject(new GenerationProviderError('Gemini request timed out', true));
+        });
+      });
+
+      const response: any = await Promise.race([generatePromise, abortPromise]);
+
+      let raw: string | null = null;
+      if (typeof response?.text === 'string') {
+        raw = response.text;
+      } else if (typeof response?.text === 'function') {
+        raw = response.text();
+      } else if (typeof response?.response?.text === 'string') {
+        raw = response.response.text;
+      } else if (typeof response?.response?.text === 'function') {
+        raw = response.response.text();
       }
+
+      if (!raw) {
+        const candidates = response?.candidates || response?.response?.candidates;
+        if (candidates?.length) {
+          raw = candidates[0]?.content?.parts?.[0]?.text ?? null;
+        }
+      }
+
       if (!raw) throw new GenerationProviderError('Empty response from Gemini', false);
 
       let parsed: unknown;

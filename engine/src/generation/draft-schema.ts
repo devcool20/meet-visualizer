@@ -51,7 +51,7 @@ export const generatedDraftSchema = z.object({
   relevant: z.boolean(),
   sourceIndex: z.number().int().nullable(),
   title: z.string().min(1).max(60),
-  subtitle: z.string().max(90).optional(),
+  subtitle: z.string().max(90).nullable().optional(),
   accent: z.enum(['amber', 'teal', 'indigo', 'rose', 'emerald', 'slate']),
   layout: z.enum(['profile', 'explainer', 'stat', 'list']),
   imageWanted: z.boolean(),
@@ -71,7 +71,7 @@ export function buildDraftJsonSchema(): Record<string, unknown> {
       relevant: { type: 'boolean' },
       sourceIndex: { type: ['integer', 'null'] },
       title: { type: 'string', minLength: 1, maxLength: 60 },
-      subtitle: { type: 'string', maxLength: 90 },
+      subtitle: { type: ['string', 'null'], maxLength: 90 },
       accent: { type: 'string', enum: ['amber', 'teal', 'indigo', 'rose', 'emerald', 'slate'] },
       layout: { type: 'string', enum: ['profile', 'explainer', 'stat', 'list'] },
       imageWanted: { type: 'boolean' },
@@ -83,6 +83,7 @@ export function buildDraftJsonSchema(): Record<string, unknown> {
           type: 'object',
           oneOf: [
             {
+              type: 'object',
               properties: {
                 kind: { type: 'string', const: 'text' },
                 paragraphs: {
@@ -96,6 +97,7 @@ export function buildDraftJsonSchema(): Record<string, unknown> {
               additionalProperties: false,
             },
             {
+              type: 'object',
               properties: {
                 kind: { type: 'string', const: 'bullets' },
                 items: {
@@ -109,6 +111,7 @@ export function buildDraftJsonSchema(): Record<string, unknown> {
               additionalProperties: false,
             },
             {
+              type: 'object',
               properties: {
                 kind: { type: 'string', const: 'metric_row' },
                 items: {
@@ -130,6 +133,7 @@ export function buildDraftJsonSchema(): Record<string, unknown> {
               additionalProperties: false,
             },
             {
+              type: 'object',
               properties: {
                 kind: { type: 'string', const: 'status_list' },
                 rows: {
@@ -142,7 +146,7 @@ export function buildDraftJsonSchema(): Record<string, unknown> {
                       text: { type: 'string', minLength: 1, maxLength: 110 },
                       state: { type: 'string', enum: ['ok', 'warn', 'error', 'info'] },
                     },
-                    required: ['text'],
+                    required: ['text', 'state'],
                     additionalProperties: false,
                   },
                 },
@@ -154,7 +158,7 @@ export function buildDraftJsonSchema(): Record<string, unknown> {
         },
       },
     },
-    required: ['relevant', 'sourceIndex', 'title', 'accent', 'layout', 'imageWanted', 'blocks'],
+    required: ['relevant', 'sourceIndex', 'title', 'subtitle', 'accent', 'layout', 'imageWanted', 'blocks'],
     additionalProperties: false,
   };
 }

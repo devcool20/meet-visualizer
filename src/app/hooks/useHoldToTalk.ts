@@ -173,24 +173,28 @@ export function useHoldToTalk(opts: HoldToTalkOptions = {}) {
     heldRef.current = false;
   }, []);
 
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
   // Keyboard event handlers.
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (isChordPressed(e) && state.phase === 'idle') {
+      const currentPhase = stateRef.current.phase;
+      if (isChordPressed(e) && (currentPhase === 'idle' || currentPhase === 'shown' || currentPhase === 'failed')) {
         e.preventDefault();
         startListening();
       }
     },
-    [state.phase, startListening],
+    [startListening],
   );
 
   const handleKeyUp = useCallback(
     (e: KeyboardEvent) => {
-      if ((e.key === 'Alt' || e.key === 'Shift' || e.code === 'Space') && state.phase === 'listening' && !e.altKey && !e.shiftKey) {
+      if ((e.key === 'Alt' || e.key === 'Shift' || e.code === 'Space') && stateRef.current.phase === 'listening') {
         stopListening();
       }
     },
-    [state.phase, stopListening],
+    [stopListening],
   );
 
   useEffect(() => {
@@ -199,9 +203,8 @@ export function useHoldToTalk(opts: HoldToTalkOptions = {}) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      stopListening();
     };
-  }, [handleKeyDown, handleKeyUp, stopListening]);
+  }, [handleKeyDown, handleKeyUp]);
 
   return {
     state,

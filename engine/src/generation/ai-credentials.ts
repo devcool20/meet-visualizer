@@ -25,6 +25,15 @@ export class AiKeyResolver {
   ) {}
 
   async resolve(userId: string): Promise<ResolvedAiKey | null> {
+    if (config.useMockGeneration || config.isLocal) {
+      return {
+        provider: 'mock',
+        apiKey: '',
+        model: 'mock-model/v0',
+        origin: 'mock',
+      };
+    }
+
     // 1. Per-user encrypted key
     const credential = await this.store.getAiCredential(userId);
     if (credential) {

@@ -147,16 +147,25 @@ export class WebSpeechProvider implements STTProvider {
     recognition.onsoundstart = () => this.machine?.noteActivity();
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       this.machine?.noteActivity();
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      let accumulatedFinals = '';
+      let currentInterim = '';
+      for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i];
         const alt = result[0];
         if (!alt) continue;
+        const text = alt.transcript.trim();
         if (result.isFinal) {
-          this.debouncer.cancel();
-          this.finalCb?.(alt.transcript.trim(), alt.confidence ?? 0);
+          accumulatedFinals = accumulatedFinals ? `${accumulatedFinals} ${text}` : text;
         } else {
-          this.debouncer.push(alt.transcript.trim());
+          currentInterim = currentInterim ? `${currentInterim} ${text}` : text;
         }
+      }
+      const combined = (accumulatedFinals + ' ' + currentInterim).trim();
+      if (accumulatedFinals) {
+        this.debouncer.cancel();
+        this.finalCb?.(combined || accumulatedFinals, 1);
+      } else if (currentInterim) {
+        this.debouncer.push(combined || currentInterim);
       }
     };
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {

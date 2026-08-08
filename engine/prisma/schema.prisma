@@ -28,6 +28,7 @@ model User {
   connections Connection[]
   cards       Card[]
   devices     Device[]
+  aiCredential AiCredential?
 }
 
 model Connection {

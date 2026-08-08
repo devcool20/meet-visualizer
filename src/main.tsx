@@ -97,7 +97,27 @@
             }
           />
           <Route
+            path="/setup/install"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={null}>
+                  <InstallExtensionPage />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/setup/data"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={null}>
+                  <DataSetupPage />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/setup/data-setup"
             element={
               <ProtectedRoute>
                 <Suspense fallback={null}>

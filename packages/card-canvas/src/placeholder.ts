@@ -63,30 +63,33 @@ export function drawPlaceholderCard(
     ctx.clip();
   }
 
+  const padX = Math.max(8, Math.min(20, width * 0.06));
+  const padY = Math.max(8, Math.min(20, height * 0.15));
+
   // Title line
   const titleSize = TYPE.title.size;
   ctx.font = `${TYPE.title.weight} ${titleSize}px sans-serif`;
   ctx.fillStyle = textColor;
   ctx.textBaseline = 'top';
-  const titleY = y + 20;
-  ctx.fillText(title, x + 20, titleY);
+  const titleY = y + padY;
+  ctx.fillText(title, x + padX, titleY);
 
   if (kind === 'generating') {
     // Two rounded shimmer bars
-    const barY1 = titleY + titleSize + 16;
+    const barY1 = titleY + titleSize + 12;
     const barY2 = barY1 + 14;
-    const barW = width - 40;
+    const barW = Math.max(20, width - padX * 2);
     const barH = 12;
 
-    drawShimmerBar(ctx, x + 20, barY1, barW, barH, elapsedMs, mutedColor, reducedMotion);
-    drawShimmerBar(ctx, x + 20, barY2, barW, barH, elapsedMs, mutedColor, reducedMotion);
+    drawShimmerBar(ctx, x + padX, barY1, barW, barH, elapsedMs, mutedColor, reducedMotion);
+    drawShimmerBar(ctx, x + padX, barY2, barW, barH, elapsedMs, mutedColor, reducedMotion);
   } else if (kind === 'error') {
     // Detail line (error message)
     if (detail) {
       ctx.font = `${TYPE.body.weight} ${TYPE.body.size}px sans-serif`;
       ctx.fillStyle = mutedColor;
-      const detailY = titleY + titleSize + 12;
-      ctx.fillText(detail, x + 20, detailY);
+      const detailY = titleY + titleSize + 10;
+      ctx.fillText(detail, x + padX, detailY);
     }
   }
 

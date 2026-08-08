@@ -497,6 +497,9 @@ export class MockApiClient implements ApiClient {
       openai: ['sk-'],
       anthropic: ['sk-ant-'],
     };
+    if (provider === 'openai' && apiKey.startsWith('sk-ant-')) {
+      throw new ApiError(400, 'invalid_key', `Key does not look like a ${provider} key`);
+    }
     const prefixes = knownPrefixes[provider];
     if (prefixes && !prefixes.some((p) => apiKey.startsWith(p))) {
       throw new ApiError(400, 'invalid_key', `Key does not look like a ${provider} key`);

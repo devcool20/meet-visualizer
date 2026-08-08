@@ -31,8 +31,12 @@ export function createAiKeysRouter(store: Store, authProvider: AuthProvider, enc
     });
   });
 
-  /** PUT — store a new key (encrypted at rest). */
-  router.put('/api/me/ai-key', async (req: AuthedRequest, res) => {
+  /** PUT / PATCH — store a new key (encrypted at rest). */
+  const upsertHandler = async (req: AuthedRequest, res: any) => {
+    if (!req.body || typeof req.body !== 'object') {
+      res.status(400).json({ error: 'invalid_body', message: 'Request body must be a JSON object' });
+      return;
+    }
     const { provider, apiKey, model } = req.body as {
       provider: string;
       apiKey: string;
@@ -43,8 +47,8 @@ export function createAiKeysRouter(store: Store, authProvider: AuthProvider, enc
       res.status(400).json({ error: 'invalid_provider', message: `Provider must be one of: ${VALID_PROVIDERS.join(', ')}` });
       return;
     }
-    if (!apiKey || apiKey.length < 20 || apiKey.length > 512) {
-      res.status(400).json({ error: 'invalid_api_key', message: 'API key must be between 20 and 512 characters' });
+    if (!apiKey || apiKey.length < 8 || apiKey.length > 512) {
+      res.status(400).json({ error: 'invalid_api_key', message: 'API key must be between 8 and 512 characters' });
       return;
     }
 
@@ -61,6 +65,27 @@ export function createAiKeysRouter(store: Store, authProvider: AuthProvider, enc
       model: credential.model,
       updatedAt: credential.updatedAt.toISOString(),
     });
+  };
+
+  router.put('/api/me/ai-key', upsertHandler);
+  router.patch('/api/me/ai-key', upsertHandler);
+
+  /** POST /api/me/ai-key/test — validate a key without saving it. */
+  router.post('/api/me/ai-key/test', async (req: AuthedRequest, res: any) => {
+    if (!req.body || typeof req.body !== 'object') {
+      res.status(400).json({ error: 'invalid_body', message: 'Request body must be a JSON object' });
+      return;
+    }
+    const { provider, apiKey } = req.body as { provider: string; apiKey: string };
+    if (!VALID_PROVIDERS.includes(provider as any)) {
+      res.status(400).json({ error: 'invalid_provider', message: `Provider must be one of: ${VALID_PROVIDERS.join(', ')}` });
+      return;
+    }
+    if (!apiKey || apiKey.length < 8 || apiKey.length > 512) {
+      res.status(400).json({ error: 'invalid_api_key', message: 'API key must be between 8 and 512 characters' });
+      return;
+    }
+    res.json({ valid: true, message: 'Key format validated successfully' });
   });
 
   /** DELETE — remove the stored key. */
