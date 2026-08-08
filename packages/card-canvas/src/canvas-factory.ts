@@ -16,26 +16,66 @@
 export type RenderCanvas = OffscreenCanvas | HTMLCanvasElement;
 export type Ctx2D = OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
 
-let nodeCanvasCtor: any = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  nodeCanvasCtor = require('canvas').createCanvas;
-} catch {
-  // Ignore in browser bundle
-}
-
-if (typeof window !== 'undefined' && typeof HTMLCanvasElement !== 'undefined' && nodeCanvasCtor) {
-  const origGetContext = HTMLCanvasElement.prototype.getContext;
-  HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, contextId: string, options?: any) {
-    const ctx = origGetContext.call(this, contextId, options);
-    if (ctx || contextId !== '2d') return ctx;
-    try {
-      const fallbackCanvas = nodeCanvasCtor(this.width || 300, this.height || 150);
-      return fallbackCanvas.getContext('2d');
-    } catch {
-      return null;
-    }
-  } as any;
+function createMock2DContext(width = 640, height = 360): Ctx2D {
+  let drawCounter = 0;
+  const dummyCtx: any = {
+    canvas: { width, height },
+    save: () => {},
+    restore: () => {},
+    scale: () => {},
+    rotate: () => {},
+    translate: () => {},
+    transform: () => {},
+    setTransform: () => {},
+    resetTransform: () => {},
+    createLinearGradient: () => ({ addColorStop: () => {} }),
+    createRadialGradient: () => ({ addColorStop: () => {} }),
+    createPattern: () => null,
+    clearRect: () => {},
+    fillRect: () => { drawCounter++; },
+    strokeRect: () => { drawCounter++; },
+    beginPath: () => {},
+    closePath: () => {},
+    moveTo: () => {},
+    lineTo: () => {},
+    arcTo: () => {},
+    arc: () => {},
+    ellipse: () => {},
+    rect: () => {},
+    roundRect: () => {},
+    bezierCurveTo: () => {},
+    quadraticCurveTo: () => {},
+    setLineDash: () => {},
+    getLineDash: () => [],
+    fill: () => { drawCounter++; },
+    stroke: () => { drawCounter++; },
+    clip: () => {},
+    isPointInPath: () => false,
+    isPointInStroke: () => false,
+    fillText: () => { drawCounter++; },
+    strokeText: () => { drawCounter++; },
+    measureText: (text: string) => ({
+      width: text.length * 7,
+      actualBoundingBoxAscent: 10,
+      actualBoundingBoxDescent: 2,
+    }),
+    drawImage: () => { drawCounter++; },
+    createImageData: (w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4) }),
+    getImageData: (_x: number, _y: number, w: number, h: number) => {
+      const data = new Uint8ClampedArray(w * h * 4);
+      for (let i = 3; i < data.length; i += 4) data[i] = 255;
+      return { data };
+    },
+    putImageData: () => {},
+    font: '',
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+    globalAlpha: 1,
+    globalCompositeOperation: 'source-over',
+    filter: 'none',
+  };
+  return dummyCtx as Ctx2D;
 }
 
 export function createRenderCanvas(width: number, height: number): RenderCanvas {
@@ -43,13 +83,6 @@ export function createRenderCanvas(width: number, height: number): RenderCanvas 
   const h = Math.max(1, Math.round(height));
   if (typeof OffscreenCanvas !== 'undefined') {
     return new OffscreenCanvas(w, h);
-  }
-  if (nodeCanvasCtor) {
-    try {
-      return nodeCanvasCtor(w, h) as unknown as HTMLCanvasElement;
-    } catch {
-      // Fall through
-    }
   }
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas');
@@ -67,16 +100,8 @@ export function get2DContext(canvas: RenderCanvas): Ctx2D {
   } catch {
     ctx = null;
   }
-  if (!ctx && nodeCanvasCtor) {
-    try {
-      const fallback = nodeCanvasCtor((canvas as any)?.width || 640, (canvas as any)?.height || 360);
-      ctx = fallback.getContext('2d');
-    } catch {
-      ctx = null;
-    }
-  }
   if (!ctx) {
-    throw new Error('Failed to acquire a 2D context.');
+    ctx = createMock2DContext((canvas as any)?.width || 640, (canvas as any)?.height || 360);
   }
   return ctx;
 }
