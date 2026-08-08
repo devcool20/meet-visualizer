@@ -1,0 +1,171 @@
+{"kind":"deck","id":"pr/jodp7u","name":"Deck"}
+{"kind":"layout","layoutId":"6c8698cb-0bfd-40ea-98c7-4d971c43d4b1","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"692cf577-04ef-40b5-a90e-ed63c69caa7c","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/ervpbb","slide":1,"title":"STASH LIVE","textShapes":10}
+{"kind":"textbox","id":"sh/pc3ip8vi","slide":1,"text":"STASH LIVE","textPreview":"STASH LIVE","textChars":10,"textLines":1,"bbox":[72,70,500,28]}
+{"kind":"textbox","id":"sh/29czedc7","slide":1,"text":"Voice-triggered proof\nfor sales engineers.","textPreview":"Voice-triggered proof | for sales engineers.","textChars":42,"textLines":2,"bbox":[72,145,760,124]}
+{"kind":"textbox","id":"sh/3al0nidc","slide":1,"text":"Surface approved security and performance proof during live customer calls—without breaking demo flow.","textPreview":"Surface approved security and performance proof during live customer calls—without breaking demo flow.","textChars":102,"textLines":1,"bbox":[76,304,770,60]}
+{"kind":"shape","id":"sh/g7ahc3u1","slide":1,"bbox":[76,420,444,0]}
+{"kind":"textbox","id":"sh/18jil8vm","slide":1,"text":"ICP","textPreview":"ICP","textChars":3,"textLines":1,"bbox":[76,454,80,20]}
+{"kind":"textbox","id":"sh/e5szatcv","slide":1,"text":"Mid-market B2B SaaS teams running security-heavy demos and QBRs.","textPreview":"Mid-market B2B SaaS teams running security-heavy demos and QBRs.","textChars":64,"textLines":1,"bbox":[160,450,650,28]}
+{"kind":"shape","id":"sh/f610jydg","slide":1,"bbox":[900,132,270,380]}
+{"kind":"textbox","id":"sh/sjah8jup","slide":1,"text":"SOC 2\nREADY","textPreview":"SOC 2 | READY","textChars":11,"textLines":2,"bbox":[936,208,190,76]}
+{"kind":"textbox","id":"sh/tkjihova","slide":1,"text":"appears when\n“security” is spoken","textPreview":"appears when | “security” is spoken","textChars":33,"textLines":2,"bbox":[936,330,190,62]}
+{"kind":"textbox","id":"sh/pkfq10by","slide":1,"text":"approved proof  /  low interruption","textPreview":"approved proof  /  low interruption","textChars":35,"textLines":1,"bbox":[936,465,215,20]}
+{"kind":"textbox","id":"sh/oj6psvud","slide":1,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/nix8zqts","slide":1,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/ervpbb","slide":1,"text":""}
+{"kind":"slide","id":"sl/dhc6nr","slide":2,"title":"THE PROBLEM","textShapes":17}
+{"kind":"textbox","id":"sh/x83ux072","slide":2,"text":"THE PROBLEM","textPreview":"THE PROBLEM","textChars":11,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/a5cv2lob","slide":2,"text":"A proof request breaks the presenter’s flow.","textPreview":"A proof request breaks the presenter’s flow.","textChars":44,"textLines":1,"bbox":[72,94,1110,86]}
+{"kind":"textbox","id":"sh/b6lcvqpw","slide":2,"text":"Observed sequence to measure in pilots; numbers below are validation targets, not current claims.","textPreview":"Observed sequence to measure in pilots; numbers below are validation targets, not current claims.","textChars":97,"textLines":1,"bbox":[72,188,1040,42]}
+{"kind":"textbox","id":"sh/kved8f6d","slide":2,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[82,288,48,26]}
+{"kind":"textbox","id":"sh/lwnu1k7y","slide":2,"text":"Prospect asks","textPreview":"Prospect asks","textChars":13,"textLines":1,"bbox":[160,288,230,28]}
+{"kind":"textbox","id":"sh/y9cv65o7","slide":2,"text":"“What is your uptime / SOC 2 status?”","textPreview":"“What is your uptime / SOC 2 status?”","textChars":37,"textLines":1,"bbox":[430,288,650,28]}
+{"kind":"shape","id":"sh/ja5czaps","slide":2,"bbox":[82,340,1028,0]}
+{"kind":"textbox","id":"sh/8zedcf6p","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[82,363,48,26]}
+{"kind":"textbox","id":"sh/t0nu5k7u","slide":2,"text":"Presenter switches","textPreview":"Presenter switches","textChars":18,"textLines":1,"bbox":[160,363,230,28]}
+{"kind":"textbox","id":"sh/587itcni","slide":2,"text":"Target: 20–30 seconds to find the approved answer","textPreview":"Target: 20–30 seconds to find the approved answer","textChars":49,"textLines":1,"bbox":[430,363,650,28]}
+{"kind":"shape","id":"sh/47y1k76x","slide":2,"bbox":[82,415,1028,0]}
+{"kind":"textbox","id":"sh/j6p0r25c","slide":2,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[82,438,48,26]}
+{"kind":"textbox","id":"sh/i5gjixor","slide":2,"text":"Attention breaks","textPreview":"Attention breaks","textChars":16,"textLines":1,"bbox":[160,438,230,28]}
+{"kind":"textbox","id":"sh/twrixcnu","slide":2,"text":"Target: 2 proof interruptions per eligible demo","textPreview":"Target: 2 proof interruptions per eligible demo","textChars":47,"textLines":1,"bbox":[430,438,650,28]}
+{"kind":"shape","id":"sh/sbi1o769","slide":2,"bbox":[82,490,1028,0]}
+{"kind":"textbox","id":"sh/rap0vm5o","slide":2,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[82,513,48,26]}
+{"kind":"textbox","id":"sh/69gjmho3","slide":2,"text":"Proof lands late","textPreview":"Proof lands late","textChars":16,"textLines":1,"bbox":[160,513,230,28]}
+{"kind":"textbox","id":"sh/90nils7a","slide":2,"text":"Target: improve recall / objection handling—measure, don’t assume","textPreview":"Target: improve recall / objection handling—measure, don’t assume","textChars":65,"textLines":1,"bbox":[430,513,650,28]}
+{"kind":"shape","id":"sh/8fe1cn6p","slide":2,"bbox":[82,565,1028,0]}
+{"kind":"textbox","id":"sh/0ji1snel","slide":2,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/lkri1sf6","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/dhc6nr","slide":2,"text":""}
+{"kind":"slide","id":"sl/bg3jio","slide":3,"title":"THE PRODUCT","textShapes":11}
+{"kind":"textbox","id":"sh/4red4jup","slide":3,"text":"THE PRODUCT","textPreview":"THE PRODUCT","textChars":11,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/3q5cvet4","slide":3,"text":"The full demo stays. One proof point appears beside it.","textPreview":"The full demo stays. One proof point appears beside it.","textChars":55,"textLines":1,"bbox":[72,94,1110,86]}
+{"kind":"textbox","id":"sh/2pcv29cj","slide":3,"text":"BEFORE","textPreview":"BEFORE","textChars":6,"textLines":1,"bbox":[92,292,160,22]}
+{"kind":"shape","id":"sh/dgnu1ob6","slide":3,"bbox":[92,330,430,190]}
+{"kind":"textbox","id":"sh/cfed8jul","slide":3,"text":"Presenter pauses\n→ searches Notion\n→ shares a tab","textPreview":"Presenter pauses | → searches Notion | → shares a tab","textChars":49,"textLines":3,"bbox":[125,365,310,110]}
+{"kind":"textbox","id":"sh/re5czytg","slide":3,"text":"AFTER","textPreview":"AFTER","textChars":5,"textLines":1,"bbox":[710,292,160,22]}
+{"kind":"shape","id":"sh/qdwv6tcv","slide":3,"bbox":[710,330,430,190]}
+{"kind":"textbox","id":"sh/lk7e58bi","slide":3,"text":"Presenter keeps talking","textPreview":"Presenter keeps talking","textChars":23,"textLines":1,"bbox":[740,355,280,26]}
+{"kind":"shape","id":"sh/0jydc3ax","slide":3,"bbox":[740,400,310,82]}
+{"kind":"textbox","id":"sh/ad03q94b","slide":3,"text":"99.99% uptime","textPreview":"99.99% uptime","textChars":13,"textLines":1,"bbox":[765,420,250,30]}
+{"kind":"textbox","id":"sh/vy9kje5w","slide":3,"text":"approved card · transient overlay","textPreview":"approved card · transient overlay","textChars":33,"textLines":1,"bbox":[765,462,250,18]}
+{"kind":"textbox","id":"sh/wzilsjmh","slide":3,"text":"Voice/topic match  →  approved asset library  →  transient overlay  →  dismiss + audit trail","textPreview":"Voice/topic match  →  approved asset library  →  transient overlay  →  dismiss + audit trail","textChars":92,"textLines":1,"bbox":[92,590,950,28]}
+{"kind":"textbox","id":"sh/x0rmlon2","slide":3,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/i103ut4n","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/bg3jio","slide":3,"text":""}
+{"kind":"slide","id":"sl/4ujj0p","slide":4,"title":"THE WEDGE","textShapes":12}
+{"kind":"textbox","id":"sh/velcn6dk","slide":4,"text":"THE WEDGE","textPreview":"THE WEDGE","textChars":9,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/gfudwbu5","slide":4,"text":"Start where proof requests are frequent, sensitive, and repeatable.","textPreview":"Start where proof requests are frequent, sensitive, and repeatable.","textChars":67,"textLines":1,"bbox":[72,94,1110,86]}
+{"kind":"textbox","id":"sh/hg3upgvq","slide":4,"text":"Security-heavy demos and QBRs for mid-market B2B SaaS.","textPreview":"Security-heavy demos and QBRs for mid-market B2B SaaS.","textChars":54,"textLines":1,"bbox":[72,188,1040,42]}
+{"kind":"shape","id":"sh/6psbqhw3","slide":4,"bbox":[82,300,310,210]}
+{"kind":"textbox","id":"sh/7q1cjmd8","slide":4,"text":"MOTION","textPreview":"MOTION","textChars":6,"textLines":1,"bbox":[110,330,240,22]}
+{"kind":"textbox","id":"sh/8radsrut","slide":4,"text":"Technical demo\nSecurity review\nQBR","textPreview":"Technical demo | Security review | QBR","textChars":34,"textLines":3,"bbox":[110,372,240,110]}
+{"kind":"shape","id":"sh/tsjulwve","slide":4,"bbox":[442,300,310,210]}
+{"kind":"textbox","id":"sh/ylsbmhwr","slide":4,"text":"PROOF","textPreview":"PROOF","textChars":5,"textLines":1,"bbox":[470,330,240,22]}
+{"kind":"textbox","id":"sh/jm1cfmdc","slide":4,"text":"SOC 2\nUptime\nArchitecture\nCompliance","textPreview":"SOC 2 | Uptime | Architecture | Compliance","textChars":36,"textLines":4,"bbox":[470,372,240,110]}
+{"kind":"shape","id":"sh/r2t4rih0","slide":4,"bbox":[802,300,310,210]}
+{"kind":"textbox","id":"sh/q1k3yd0f","slide":4,"text":"TARGET CATEGORIES","textPreview":"TARGET CATEGORIES","textChars":17,"textLines":1,"bbox":[830,330,240,22]}
+{"kind":"textbox","id":"sh/d4bmtsz6","slide":4,"text":"Dev tools\nData infrastructure\nSecurity software","textPreview":"Dev tools | Data infrastructure | Security software","textChars":47,"textLines":3,"bbox":[830,372,240,110]}
+{"kind":"textbox","id":"sh/s32l0nil","slide":4,"text":"Example target categories—not customer logos or current traction.","textPreview":"Example target categories—not customer logos or current traction.","textChars":65,"textLines":1,"bbox":[82,574,720,24]}
+{"kind":"textbox","id":"sh/f6d4v2hc","slide":4,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/e5k32x0r","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/4ujj0p","slide":4,"text":""}
+{"kind":"slide","id":"sl/q9b4hs","slide":5,"title":"ALTERNATIVES","textShapes":12}
+{"kind":"textbox","id":"sh/dgjm1snq","slide":5,"text":"ALTERNATIVES","textPreview":"ALTERNATIVES","textChars":12,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/qds36x4f","slide":5,"text":"We are not replacing presentation. We remove the interruption around it.","textPreview":"We are not replacing presentation. We remove the interruption around it.","textChars":72,"textLines":1,"bbox":[72,94,1110,86]}
+{"kind":"textbox","id":"sh/re14z25k","slide":5,"text":"SCREEN SHARING","textPreview":"SCREEN SHARING","textChars":14,"textLines":1,"bbox":[90,285,250,24]}
+{"kind":"textbox","id":"sh/4bql4nm9","slide":5,"text":"Rich context, but the presenter leaves the conversation","textPreview":"Rich context, but the presenter leaves the conversation","textChars":55,"textLines":1,"bbox":[380,285,720,28]}
+{"kind":"shape","id":"sh/pczmxsnu","slide":5,"bbox":[90,339,1020,0]}
+{"kind":"textbox","id":"sh/29832d43","slide":5,"text":"TAB STASHING","textPreview":"TAB STASHING","textChars":12,"textLines":1,"bbox":[90,360,250,24]}
+{"kind":"textbox","id":"sh/3ah4vi5o","slide":5,"text":"Fast for the presenter, invisible and inconsistent for the audience","textPreview":"Fast for the presenter, invisible and inconsistent for the audience","textChars":67,"textLines":1,"bbox":[380,360,720,28]}
+{"kind":"shape","id":"sh/g7ql03mx","slide":5,"bbox":[90,414,1020,0]}
+{"kind":"textbox","id":"sh/h8zmt8ni","slide":5,"text":"AI COPILOTS","textPreview":"AI COPILOTS","textChars":11,"textLines":1,"bbox":[90,435,250,24]}
+{"kind":"textbox","id":"sh/pcradgnq","slide":5,"text":"Often private notes or answers—not approved visual proof","textPreview":"Often private notes or answers—not approved visual proof","textChars":56,"textLines":1,"bbox":[380,435,720,28]}
+{"kind":"shape","id":"sh/obi9kbm5","slide":5,"bbox":[90,489,1020,0]}
+{"kind":"textbox","id":"sh/na9sb65k","slide":5,"text":"STASH LIVE","textPreview":"STASH LIVE","textChars":10,"textLines":1,"bbox":[90,510,250,24]}
+{"kind":"textbox","id":"sh/29gri14z","slide":5,"text":"Real-time, approved, transient proof beside the speaker","textPreview":"Real-time, approved, transient proof beside the speaker","textChars":55,"textLines":1,"bbox":[380,510,720,28]}
+{"kind":"shape","id":"sh/187a9wne","slide":5,"bbox":[90,564,1020,0]}
+{"kind":"textbox","id":"sh/07y9grmt","slide":5,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/f6ps7m5o","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/q9b4hs","slide":5,"text":""}
+{"kind":"slide","id":"sl/0zw33x","slide":6,"title":"FEASIBILITY","textShapes":11}
+{"kind":"textbox","id":"sh/vutw7ehw","slide":6,"text":"FEASIBILITY","textPreview":"FEASIBILITY","textChars":11,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/gv2dgjyh","slide":6,"text":"The hard product path is already crossed. Now we need usage proof.","textPreview":"The hard product path is already crossed. Now we need usage proof.","textChars":66,"textLines":1,"bbox":[72,94,1110,86]}
+{"kind":"textbox","id":"sh/hwbe94z2","slide":6,"text":"LIVE","textPreview":"LIVE","textChars":4,"textLines":1,"bbox":[90,298,160,24]}
+{"kind":"textbox","id":"sh/650vap0f","slide":6,"text":"Topic matching, transcript window, cooldown and dismiss controls","textPreview":"Topic matching, transcript window, cooldown and dismiss controls","textChars":64,"textLines":1,"bbox":[300,298,760,28]}
+{"kind":"shape","id":"sh/7q9c3uh0","slide":6,"bbox":[90,352,1020,0]}
+{"kind":"textbox","id":"sh/8ridczil","slide":6,"text":"TRUST","textPreview":"TRUST","textChars":5,"textLines":1,"bbox":[90,380,160,24]}
+{"kind":"textbox","id":"sh/tsru54z6","slide":6,"text":"Approved cards, drafts, privacy controls, activity audit trail","textPreview":"Approved cards, drafts, privacy controls, activity audit trail","textChars":62,"textLines":1,"bbox":[300,380,760,28]}
+{"kind":"shape","id":"sh/y1gv6p0j","slide":6,"bbox":[90,434,1020,0]}
+{"kind":"textbox","id":"sh/j2pczuho","slide":6,"text":"INTEGRATION","textPreview":"INTEGRATION","textChars":11,"textLines":1,"bbox":[90,462,160,24]}
+{"kind":"textbox","id":"sh/3698zi9w","slide":6,"text":"Google Meet extension, Notion sync, rendered overlays","textPreview":"Google Meet extension, Notion sync, rendered overlays","textChars":53,"textLines":1,"bbox":[300,462,760,28]}
+{"kind":"shape","id":"sh/25grqdsb","slide":6,"bbox":[90,516,1020,0]}
+{"kind":"textbox","id":"sh/p8ra18rm","slide":6,"text":"We will keep technical detail in the appendix. The investor question now is repeatability.","textPreview":"We will keep technical detail in the appendix. The investor question now is repeatability.","textChars":90,"textLines":1,"bbox":[90,575,900,28]}
+{"kind":"textbox","id":"sh/47i9snq1","slide":6,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/ra9s3i9s","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/0zw33x","slide":6,"text":""}
+{"kind":"slide","id":"sl/g70n09","slide":7,"title":"BUSINESS MODEL","textShapes":12}
+{"kind":"textbox","id":"sh/zi14j65c","slide":7,"text":"BUSINESS MODEL","textPreview":"BUSINESS MODEL","textChars":14,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/kja5cb6x","slide":7,"text":"Team SaaS, priced against demo productivity and consistency.","textPreview":"Team SaaS, priced against demo productivity and consistency.","textChars":60,"textLines":1,"bbox":[72,94,1110,86]}
+{"kind":"textbox","id":"sh/lkjmlgn2","slide":7,"text":"Initial pricing and TAM are hypotheses to test—not revenue or market claims.","textPreview":"Initial pricing and TAM are hypotheses to test—not revenue or market claims.","textChars":76,"textLines":1,"bbox":[72,188,1040,42]}
+{"kind":"shape","id":"sh/mlcnel4n","slide":7,"bbox":[82,286,450,220]}
+{"kind":"textbox","id":"sh/7ml4n658","slide":7,"text":"PRICING HYPOTHESIS","textPreview":"PRICING HYPOTHESIS","textChars":18,"textLines":1,"bbox":[112,320,260,22]}
+{"kind":"textbox","id":"sh/8nu5gbmt","slide":7,"text":"$1.5k–$3k","textPreview":"$1.5k–$3k","textChars":9,"textLines":1,"bbox":[112,365,310,50]}
+{"kind":"textbox","id":"sh/9o3mpgne","slide":7,"text":"per team / month\n10 seats · two-week pilot first","textPreview":"per team / month | 10 seats · two-week pilot first","textChars":48,"textLines":2,"bbox":[112,430,280,52]}
+{"kind":"shape","id":"sh/2p832hoj","slide":7,"bbox":[610,286,540,220]}
+{"kind":"textbox","id":"sh/nqh4bm54","slide":7,"text":"BOTTOM-UP TAM FORMULA","textPreview":"BOTTOM-UP TAM FORMULA","textChars":21,"textLines":1,"bbox":[642,320,310,22]}
+{"kind":"textbox","id":"sh/zix03apc","slide":7,"text":"target companies × SE seats × $/seat/month × adoption","textPreview":"target companies × SE seats × $/seat/month × adoption","textChars":53,"textLines":1,"bbox":[642,367,430,46]}
+{"kind":"textbox","id":"sh/ehozu58r","slide":7,"text":"Start with one segment and replace assumptions with sourced counts.","textPreview":"Start with one segment and replace assumptions with sourced counts.","textChars":67,"textLines":1,"bbox":[642,444,400,40]}
+{"kind":"textbox","id":"sh/1kfi5k7i","slide":7,"text":"ROI hypothesis: fewer context switches + more consistent approved proof. Measure completion, recall, and SQO impact.","textPreview":"ROI hypothesis: fewer context switches + more consistent approved proof. Measure completion, recall, and SQO impact.","textChars":116,"textLines":1,"bbox":[82,570,980,28]}
+{"kind":"textbox","id":"sh/0j6hwfqx","slide":7,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/rud0zapg","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/g70n09","slide":7,"text":""}
+{"kind":"slide","id":"sl/zmxpo2","slide":8,"title":"VALIDATION","textShapes":13}
+{"kind":"textbox","id":"sh/61k7a1s3","slide":8,"text":"VALIDATION","textPreview":"VALIDATION","textChars":10,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/t4b6lgru","slide":8,"text":"The pilot succeeds only if behavior changes.","textPreview":"The pilot succeeds only if behavior changes.","textChars":44,"textLines":1,"bbox":[72,94,1110,86]}
+{"kind":"shape","id":"sh/s32pcba9","slide":8,"bbox":[82,286,200,54]}
+{"kind":"textbox","id":"sh/fqtonq9k","slide":8,"text":"REPEAT USE","textPreview":"REPEAT USE","textChars":10,"textLines":1,"bbox":[104,303,165,20]}
+{"kind":"textbox","id":"sh/e5k7elsz","slide":8,"text":"3+ SEs at one logo use Stash in 60%+ of eligible moments across 10+ meetings","textPreview":"3+ SEs at one logo use Stash in 60%+ of eligible moments across 10+ meetings","textChars":76,"textLines":1,"bbox":[322,291,790,44]}
+{"kind":"shape","id":"sh/1sv6p0rq","slide":8,"bbox":[82,358,200,54]}
+{"kind":"textbox","id":"sh/grmpgva5","slide":8,"text":"TRIGGER ACCURACY","textPreview":"TRIGGER ACCURACY","textChars":16,"textLines":1,"bbox":[104,375,165,20]}
+{"kind":"textbox","id":"sh/vu9obm9g","slide":8,"text":"90%+ correct card selection; false positives tracked and reviewed","textPreview":"90%+ correct card selection; false positives tracked and reviewed","textChars":65,"textLines":1,"bbox":[322,363,790,44]}
+{"kind":"shape","id":"sh/u90n2hsv","slide":8,"bbox":[82,430,200,54]}
+{"kind":"textbox","id":"sh/s7y1gfex","slide":8,"text":"USER VALUE","textPreview":"USER VALUE","textChars":10,"textLines":1,"bbox":[104,447,165,20]}
+{"kind":"textbox","id":"sh/t87ip0fi","slide":8,"text":"Presenter reports fewer searches and wants to keep the workflow","textPreview":"Presenter reports fewer searches and wants to keep the workflow","textChars":63,"textLines":1,"bbox":[322,435,790,44]}
+{"kind":"shape","id":"sh/65gje5w7","slide":8,"bbox":[82,502,200,54]}
+{"kind":"textbox","id":"sh/r6p0naxs","slide":8,"text":"WILLINGNESS TO PAY","textPreview":"WILLINGNESS TO PAY","textChars":18,"textLines":1,"bbox":[104,519,165,20]}
+{"kind":"textbox","id":"sh/gbi1kfe9","slide":8,"text":"Two-week pilot converts to $1.5k–$3k/team/month paid plan","textPreview":"Two-week pilot converts to $1.5k–$3k/team/month paid plan","textChars":57,"textLines":1,"bbox":[322,507,790,44]}
+{"kind":"textbox","id":"sh/1critkfu","slide":8,"text":"Targets are intentionally demanding; the point is to earn the next segment.","textPreview":"Targets are intentionally demanding; the point is to earn the next segment.","textChars":75,"textLines":1,"bbox":[82,590,760,24]}
+{"kind":"textbox","id":"sh/e9gji5w3","slide":8,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/fa90raxo","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/zmxpo2","slide":8,"text":""}
+{"kind":"slide","id":"sl/iisu9v","slide":9,"title":"RISKS","textShapes":11}
+{"kind":"textbox","id":"sh/18ruts3m","slide":9,"text":"RISKS","textPreview":"RISKS","textChars":5,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/e5gbydkb","slide":9,"text":"Trust is the product. We design for the two ways it can fail.","textPreview":"Trust is the product. We design for the two ways it can fail.","textChars":61,"textLines":1,"bbox":[72,94,1110,86]}
+{"kind":"shape","id":"sh/f6psrilw","slide":9,"bbox":[82,295,500,230]}
+{"kind":"textbox","id":"sh/sjytwn25","slide":9,"text":"WRONG MOMENT","textPreview":"WRONG MOMENT","textChars":12,"textLines":1,"bbox":[110,330,300,22]}
+{"kind":"textbox","id":"sh/d47ap83q","slide":9,"text":"False positive or stale card","textPreview":"False positive or stale card","textChars":28,"textLines":1,"bbox":[110,370,410,34]}
+{"kind":"textbox","id":"sh/qhgbudkz","slide":9,"text":"Mitigation: confidence thresholds, cooldowns, one-click dismiss, presenter override","textPreview":"Mitigation: confidence thresholds, cooldowns, one-click dismiss, presenter override","textChars":83,"textLines":1,"bbox":[110,440,420,48]}
+{"kind":"shape","id":"sh/ripsnilk","slide":9,"bbox":[652,295,500,230]}
+{"kind":"textbox","id":"sh/4fets329","slide":9,"text":"WRONG DATA","textPreview":"WRONG DATA","textChars":10,"textLines":1,"bbox":[680,330,300,22]}
+{"kind":"textbox","id":"sh/5g7al83e","slide":9,"text":"Sensitive or unapproved information appears","textPreview":"Sensitive or unapproved information appears","textChars":43,"textLines":1,"bbox":[680,370,410,34]}
+{"kind":"textbox","id":"sh/x0felsra","slide":9,"text":"Mitigation: approved asset library, drafts, access controls, audit trail","textPreview":"Mitigation: approved asset library, drafts, access controls, audit trail","textChars":72,"textLines":1,"bbox":[680,440,420,48]}
+{"kind":"textbox","id":"sh/wz6dcnqp","slide":9,"text":"The prototype already includes cooldown, dismiss, approval, and activity-control primitives.","textPreview":"The prototype already includes cooldown, dismiss, approval, and activity-control primitives.","textChars":92,"textLines":1,"bbox":[82,585,960,26]}
+{"kind":"textbox","id":"sh/bexwji94","slide":9,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/adovad8z","slide":9,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/iisu9v","slide":9,"text":""}
+{"kind":"slide","id":"sl/ul19vn","slide":10,"title":"THE ASK","textShapes":11}
+{"kind":"textbox","id":"sh/rmxk32xs","slide":10,"text":"THE ASK","textPreview":"THE ASK","textChars":7,"textLines":1,"bbox":[72,70,500,20]}
+{"kind":"textbox","id":"sh/sn6lc7ed","slide":10,"text":"Help us find the first\n10 teams that need this.","textPreview":"Help us find the first | 10 teams that need this.","textChars":47,"textLines":2,"bbox":[72,124,820,112]}
+{"kind":"textbox","id":"sh/dofm5sfi","slide":10,"text":"We are looking for introductions to Heads of Sales Engineering at mid-market SaaS companies selling security-sensitive products.","textPreview":"We are looking for introductions to Heads of Sales Engineering at mid-market SaaS companies selling security-sensitive products.","textChars":128,"textLines":1,"bbox":[76,290,820,62]}
+{"kind":"shape","id":"sh/ix436dgv","slide":10,"bbox":[76,420,444,0]}
+{"kind":"textbox","id":"sh/3ydkzixg","slide":10,"text":"PILOT","textPreview":"PILOT","textChars":5,"textLines":1,"bbox":[76,456,100,22]}
+{"kind":"textbox","id":"sh/4jml8ne1","slide":10,"text":"Two weeks · 10 seats · success criteria agreed upfront","textPreview":"Two weeks · 10 seats · success criteria agreed upfront","textChars":54,"textLines":1,"bbox":[160,452,700,28]}
+{"kind":"textbox","id":"sh/5kf21sfm","slide":10,"text":"PAID CONVERSION","textPreview":"PAID CONVERSION","textChars":15,"textLines":1,"bbox":[76,516,150,22]}
+{"kind":"textbox","id":"sh/ut432dgz","slide":10,"text":"$1.5k–$3k per team / month hypothesis","textPreview":"$1.5k–$3k per team / month hypothesis","textChars":37,"textLines":1,"bbox":[260,512,600,28]}
+{"kind":"textbox","id":"sh/vudkvixk","slide":10,"text":"STASH LIVE","textPreview":"STASH LIVE","textChars":10,"textLines":1,"bbox":[936,570,220,28]}
+{"kind":"textbox","id":"sh/f65orid0","slide":10,"text":"Proof, at the moment it matters.","textPreview":"Proof, at the moment it matters.","textChars":32,"textLines":1,"bbox":[936,610,250,24]}
+{"kind":"textbox","id":"sh/u5wnydcf","slide":10,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/h8n6tsv6","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/ul19vn","slide":10,"text":""}

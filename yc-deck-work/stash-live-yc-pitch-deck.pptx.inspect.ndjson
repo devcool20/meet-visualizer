@@ -1,0 +1,167 @@
+{"kind":"deck","id":"pr/gll9la","name":"Deck"}
+{"kind":"layout","layoutId":"031cfed8-d35c-463f-817b-9f30eac0839b","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"f8774c92-322c-4d0b-9c89-d9ab2a8e4c00","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/63f54i","slide":1,"title":"STASH LIVE","textShapes":10}
+{"kind":"textbox","id":"sh/9of218j2","slide":1,"text":"STASH LIVE","textPreview":"STASH LIVE","textChars":10,"textLines":1,"bbox":[72,70,500,28]}
+{"kind":"textbox","id":"sh/ml4j6tkb","slide":1,"text":"Make the important\npoint impossible to miss.","textPreview":"Make the important | point impossible to miss.","textChars":44,"textLines":2,"bbox":[72,150,780,170]}
+{"kind":"textbox","id":"sh/nmdkzy1w","slide":1,"text":"Contextual visual reinforcement for live conversations.","textPreview":"Contextual visual reinforcement for live conversations.","textChars":55,"textLines":1,"bbox":[76,352,660,34]}
+{"kind":"shape","id":"sh/wr61c32d","slide":1,"bbox":[76,435,444,0]}
+{"kind":"textbox","id":"sh/xsf258jy","slide":1,"text":"YC APPLICATION  ·  PRE-TRACTION","textPreview":"YC APPLICATION  ·  PRE-TRACTION","textChars":31,"textLines":1,"bbox":[76,462,500,24]}
+{"kind":"textbox","id":"sh/apojadkn","slide":1,"text":"A voice-triggered layer that surfaces the right proof point\nwhile the presenter keeps talking.","textPreview":"A voice-triggered layer that surfaces the right proof point | while the presenter keeps talking.","textChars":94,"textLines":2,"bbox":[76,510,660,60]}
+{"kind":"shape","id":"sh/vqxk3y18","slide":1,"bbox":[900,132,270,380]}
+{"kind":"textbox","id":"sh/kv61gn2p","slide":1,"text":"“99.99%\nuptime”","textPreview":"“99.99% | uptime”","textChars":15,"textLines":2,"bbox":[936,210,200,90]}
+{"kind":"textbox","id":"sh/5wz29sja","slide":1,"text":"appears when\nthe presenter says it","textPreview":"appears when | the presenter says it","textChars":34,"textLines":2,"bbox":[936,340,190,65]}
+{"kind":"textbox","id":"sh/l436twne","slide":1,"text":"live proof  /  low interruption","textPreview":"live proof  /  low interruption","textChars":31,"textLines":1,"bbox":[936,465,205,20]}
+{"kind":"textbox","id":"sh/0ju50r6t","slide":1,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/zilorm58","slide":1,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/63f54i","slide":1,"text":""}
+{"kind":"slide","id":"sl/5qyk6d","slide":2,"title":"THE INSIGHT","textShapes":14}
+{"kind":"textbox","id":"sh/6dsbipgv","slide":2,"text":"THE INSIGHT","textPreview":"THE INSIGHT","textChars":11,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/tgjat4zm","slide":2,"text":"Meetings do not lack information. They lack timing.","textPreview":"Meetings do not lack information. They lack timing.","textChars":51,"textLines":1,"bbox":[72,94,1080,88]}
+{"kind":"textbox","id":"sh/sfatkzy1","slide":2,"text":"The data exists. The presenter has to find it at the exact moment it matters.","textPreview":"The data exists. The presenter has to find it at the exact moment it matters.","textChars":77,"textLines":1,"bbox":[72,188,980,44]}
+{"kind":"shape","id":"sh/ja1snuh4","slide":2,"bbox":[72,286,330,220]}
+{"kind":"textbox","id":"sh/i98rupgz","slide":2,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[100,316,80,30]}
+{"kind":"textbox","id":"sh/5cjapkza","slide":2,"text":"A claim is spoken","textPreview":"A claim is spoken","textChars":17,"textLines":1,"bbox":[100,360,260,40]}
+{"kind":"textbox","id":"sh/kbatgzyp","slide":2,"text":"“Our uptime is 99.99%.”","textPreview":"“Our uptime is 99.99%.”","textChars":23,"textLines":1,"bbox":[100,422,240,30]}
+{"kind":"shape","id":"sh/36lszeho","slide":2,"bbox":[475,286,330,220]}
+{"kind":"textbox","id":"sh/25cbq9g3","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[503,316,80,30]}
+{"kind":"textbox","id":"sh/cjq9czml","slide":2,"text":"The presenter\nleaves the flow","textPreview":"The presenter | leaves the flow","textChars":29,"textLines":2,"bbox":[503,360,250,70]}
+{"kind":"textbox","id":"sh/d4zal43q","slide":2,"text":"search · switch tabs · share","textPreview":"search · switch tabs · share","textChars":28,"textLines":1,"bbox":[503,452,250,24]}
+{"kind":"shape","id":"sh/qh8ra94f","slide":2,"bbox":[878,286,330,220]}
+{"kind":"textbox","id":"sh/rihsju50","slide":2,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[906,316,80,30]}
+{"kind":"textbox","id":"sh/4fq98zm9","slide":2,"text":"One proof point\nlands in context","textPreview":"One proof point | lands in context","textChars":32,"textLines":2,"bbox":[906,360,250,70]}
+{"kind":"textbox","id":"sh/pgzah4nu","slide":2,"text":"without replacing the full demo","textPreview":"without replacing the full demo","textChars":31,"textLines":1,"bbox":[906,452,250,24]}
+{"kind":"textbox","id":"sh/2dor6p43","slide":2,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/3ehsfu5o","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/5qyk6d","slide":2,"text":""}
+{"kind":"slide","id":"sl/2lpv4l","slide":3,"title":"THE PRODUCT","textShapes":13}
+{"kind":"textbox","id":"sh/yhkb2hcn","slide":3,"text":"THE PRODUCT","textPreview":"THE PRODUCT","textChars":11,"textLines":1,"bbox":[72,58,500,20]}
+{"kind":"textbox","id":"sh/lkbuxcve","slide":3,"text":"The audience sees the signal.\nThe presenter keeps the flow.","textPreview":"The audience sees the signal. | The presenter keeps the flow.","textChars":59,"textLines":2,"bbox":[72,100,850,100]}
+{"kind":"textbox","id":"sh/kj2t47ut","slide":3,"text":"Stash Live listens for a topic, retrieves an approved visual, and places it briefly beside the speaker.","textPreview":"Stash Live listens for a topic, retrieves an approved visual, and places it briefly beside the speaker.","textChars":103,"textLines":1,"bbox":[72,220,800,45]}
+{"kind":"shape","id":"sh/bu9sr2dc","slide":3,"bbox":[90,355,270,170]}
+{"kind":"textbox","id":"sh/at0byxcr","slide":3,"text":"VOICE","textPreview":"VOICE","textChars":5,"textLines":1,"bbox":[122,390,180,22]}
+{"kind":"textbox","id":"sh/xgbutcv2","slide":3,"text":"“security”","textPreview":"“security”","textChars":10,"textLines":1,"bbox":[122,430,190,32]}
+{"kind":"shape","id":"sh/wf2t07uh","slide":3,"bbox":[360,440,110,0]}
+{"kind":"shape","id":"sh/vadc3mtg","slide":3,"bbox":[470,355,270,170]}
+{"kind":"textbox","id":"sh/up4ba1cv","slide":3,"text":"CONTEXT","textPreview":"CONTEXT","textChars":7,"textLines":1,"bbox":[502,390,180,22]}
+{"kind":"textbox","id":"sh/cz25kjy9","slide":3,"text":"Notion / CRM","textPreview":"Notion / CRM","textChars":12,"textLines":1,"bbox":[502,430,190,32]}
+{"kind":"shape","id":"sh/x0b6dozu","slide":3,"bbox":[740,440,110,0]}
+{"kind":"shape","id":"sh/ax0ni9g3","slide":3,"bbox":[850,315,300,250]}
+{"kind":"textbox","id":"sh/bytobeho","slide":3,"text":"APPROVED PROOF","textPreview":"APPROVED PROOF","textChars":14,"textLines":1,"bbox":[884,355,220,22]}
+{"kind":"textbox","id":"sh/ovi5gzyx","slide":3,"text":"99.99%","textPreview":"99.99%","textChars":6,"textLines":1,"bbox":[884,400,220,60]}
+{"kind":"textbox","id":"sh/pwr694zi","slide":3,"text":"uptime · SOC 2 · 2026","textPreview":"uptime · SOC 2 · 2026","textChars":21,"textLines":1,"bbox":[884,480,220,24]}
+{"kind":"textbox","id":"sh/290nepgr","slide":3,"text":"No screen-share replacement. A contextual reinforcement layer.","textPreview":"No screen-share replacement. A contextual reinforcement layer.","textChars":62,"textLines":1,"bbox":[72,612,700,28]}
+{"kind":"textbox","id":"sh/na9o7uhc","slide":3,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/07i5czy1","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/2lpv4l","slide":3,"text":""}
+{"kind":"slide","id":"sl/som9ch","slide":4,"title":"WHY THIS WEDGE","textShapes":13}
+{"kind":"textbox","id":"sh/ni18jal0","slide":4,"text":"WHY THIS WEDGE","textPreview":"WHY THIS WEDGE","textChars":14,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/ojapcvml","slide":4,"text":"Start with the people who repeat the moment every day.","textPreview":"Start with the people who repeat the moment every day.","textChars":54,"textLines":1,"bbox":[72,94,1080,88]}
+{"kind":"textbox","id":"sh/9kjql036","slide":4,"text":"Our working hypothesis: sales engineers and technical account executives at B2B SaaS companies.","textPreview":"Our working hypothesis: sales engineers and technical account executives at B2B SaaS companies.","textChars":95,"textLines":1,"bbox":[72,188,980,44]}
+{"kind":"textbox","id":"sh/als7e54b","slide":4,"text":"USER","textPreview":"USER","textChars":4,"textLines":1,"bbox":[90,290,180,24]}
+{"kind":"textbox","id":"sh/bm18nalw","slide":4,"text":"Sales engineer / technical AE","textPreview":"Sales engineer / technical AE","textChars":29,"textLines":1,"bbox":[300,290,760,28]}
+{"kind":"shape","id":"sh/wnapgfmh","slide":4,"bbox":[90,338,1040,0]}
+{"kind":"textbox","id":"sh/xo3qpk32","slide":4,"text":"MOMENT","textPreview":"MOMENT","textChars":6,"textLines":1,"bbox":[90,368,180,24]}
+{"kind":"textbox","id":"sh/ypcrip4n","slide":4,"text":"A live demo, QBR, or security conversation","textPreview":"A live demo, QBR, or security conversation","textChars":42,"textLines":1,"bbox":[300,368,760,28]}
+{"kind":"shape","id":"sh/jal8rul8","slide":4,"bbox":[90,416,1040,0]}
+{"kind":"textbox","id":"sh/7ydg721k","slide":4,"text":"SOURCE","textPreview":"SOURCE","textChars":6,"textLines":1,"bbox":[90,446,180,24]}
+{"kind":"textbox","id":"sh/mxkfyxkf","slide":4,"text":"Notion, CRM, demo knowledge base","textPreview":"Notion, CRM, demo knowledge base","textChars":32,"textLines":1,"bbox":[300,446,760,28]}
+{"kind":"shape","id":"sh/90vy9cjq","slide":4,"bbox":[90,494,1040,0]}
+{"kind":"textbox","id":"sh/8zmx0725","slide":4,"text":"OUTCOME","textPreview":"OUTCOME","textChars":7,"textLines":1,"bbox":[90,524,180,24]}
+{"kind":"textbox","id":"sh/zutg321o","slide":4,"text":"The right proof point appears without breaking the conversation","textPreview":"The right proof point appears without breaking the conversation","textChars":63,"textLines":1,"bbox":[300,524,760,28]}
+{"kind":"shape","id":"sh/ytkfuxk3","slide":4,"bbox":[90,572,1040,0]}
+{"kind":"textbox","id":"sh/lwby5sju","slide":4,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/kv2xwn29","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/som9ch","slide":4,"text":""}
+{"kind":"slide","id":"sl/rfx7js","slide":5,"title":"THE DIFFERENCE","textShapes":9}
+{"kind":"textbox","id":"sh/k72xo7yx","slide":5,"text":"THE DIFFERENCE","textPreview":"THE DIFFERENCE","textChars":14,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/j69gf2xc","slide":5,"text":"Full dashboards explain. Small cues reinforce.","textPreview":"Full dashboards explain. Small cues reinforce.","textChars":46,"textLines":1,"bbox":[72,94,1080,88]}
+{"kind":"textbox","id":"sh/y50fmxgr","slide":5,"text":"SCREEN SHARE","textPreview":"SCREEN SHARE","textChars":12,"textLines":1,"bbox":[100,300,260,20]}
+{"kind":"textbox","id":"sh/x4redcf6","slide":5,"text":"Complete context\nfor deep inspection","textPreview":"Complete context | for deep inspection","textChars":36,"textLines":2,"bbox":[100,344,320,70]}
+{"kind":"textbox","id":"sh/w3ixk7yl","slide":5,"text":"STASH LIVE","textPreview":"STASH LIVE","textChars":10,"textLines":1,"bbox":[700,300,260,20]}
+{"kind":"textbox","id":"sh/b29wb2h0","slide":5,"text":"One relevant signal\nat the right moment","textPreview":"One relevant signal | at the right moment","textChars":39,"textLines":2,"bbox":[700,344,360,70]}
+{"kind":"shape","id":"sh/a10fixgv","slide":5,"bbox":[610,278,0,212]}
+{"kind":"textbox","id":"sh/90re9sza","slide":5,"text":"The product is additive—not a new way to present everything.","textPreview":"The product is additive—not a new way to present everything.","textChars":60,"textLines":1,"bbox":[100,544,850,30]}
+{"kind":"textbox","id":"sh/ozyxgnyp","slide":5,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/658zexsf","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/rfx7js","slide":5,"text":""}
+{"kind":"slide","id":"sl/l1yaik","slide":6,"title":"WHAT EXISTS TODAY","textShapes":20}
+{"kind":"textbox","id":"sh/xkjipkfy","slide":6,"text":"WHAT EXISTS TODAY","textPreview":"WHAT EXISTS TODAY","textChars":17,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/ax8zepgn","slide":6,"text":"The prototype already crosses the hard product boundaries.","textPreview":"The prototype already crosses the hard product boundaries.","textChars":58,"textLines":1,"bbox":[72,94,1080,88]}
+{"kind":"textbox","id":"sh/vy10nux8","slide":6,"text":"The next step is proving repeated value in real meetings.","textPreview":"The next step is proving repeated value in real meetings.","textChars":57,"textLines":1,"bbox":[72,188,980,44]}
+{"kind":"textbox","id":"sh/8vqhcfyh","slide":6,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[80,285,48,26]}
+{"kind":"textbox","id":"sh/9wzilkz2","slide":6,"text":"LIVE MATCHING","textPreview":"LIVE MATCHING","textChars":13,"textLines":1,"bbox":[150,285,250,24]}
+{"kind":"textbox","id":"sh/mt8za5gb","slide":6,"text":"Transcript window, tiered matching, cooldowns","textPreview":"Transcript window, tiered matching, cooldowns","textChars":45,"textLines":1,"bbox":[440,285,650,24]}
+{"kind":"shape","id":"sh/nuhgjahw","slide":6,"bbox":[80,331,1030,0]}
+{"kind":"textbox","id":"sh/0rqh8vyl","slide":6,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[80,352,48,26]}
+{"kind":"textbox","id":"sh/lszyh0zq","slide":6,"text":"RENDERING","textPreview":"RENDERING","textChars":9,"textLines":1,"bbox":[150,352,250,24]}
+{"kind":"textbox","id":"sh/tw3y9g7u","slide":6,"text":"Editable card specs, canvas compositor, degradation ladder","textPreview":"Editable card specs, canvas compositor, degradation ladder","textChars":58,"textLines":1,"bbox":[440,352,650,24]}
+{"kind":"shape","id":"sh/svah0bq9","slide":6,"bbox":[80,398,1030,0]}
+{"kind":"textbox","id":"sh/7u1g76po","slide":6,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[80,419,48,26]}
+{"kind":"textbox","id":"sh/6tszyl83","slide":6,"text":"MEET INTEGRATION","textPreview":"MEET INTEGRATION","textChars":16,"textLines":1,"bbox":[150,419,250,24]}
+{"kind":"textbox","id":"sh/58jy5g7y","slide":6,"text":"Chrome extension and webcam-feed composition","textPreview":"Chrome extension and webcam-feed composition","textChars":44,"textLines":1,"bbox":[440,419,650,24]}
+{"kind":"shape","id":"sh/k7ahwbqd","slide":6,"bbox":[80,465,1030,0]}
+{"kind":"textbox","id":"sh/j61g36ps","slide":6,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[80,486,48,26]}
+{"kind":"textbox","id":"sh/i5szu187","slide":6,"text":"WORKSPACE DATA","textPreview":"WORKSPACE DATA","textChars":14,"textLines":1,"bbox":[150,486,250,24]}
+{"kind":"textbox","id":"sh/x4zy1w7m","slide":6,"text":"Notion OAuth, sync, drafts, approval flow","textPreview":"Notion OAuth, sync, drafts, approval flow","textChars":41,"textLines":1,"bbox":[440,486,650,24]}
+{"kind":"shape","id":"sh/w3qxsrq1","slide":6,"bbox":[80,532,1030,0]}
+{"kind":"textbox","id":"sh/onuhoryx","slide":6,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[80,553,48,26]}
+{"kind":"textbox","id":"sh/9o3yhwfi","slide":6,"text":"CONTROL","textPreview":"CONTROL","textChars":7,"textLines":1,"bbox":[150,553,250,24]}
+{"kind":"textbox","id":"sh/mlczm1gr","slide":6,"text":"Pairing, auth, dismiss, activity events, privacy controls","textPreview":"Pairing, auth, dismiss, activity events, privacy controls","textChars":57,"textLines":1,"bbox":[440,553,650,24]}
+{"kind":"shape","id":"sh/nmlgf6xc","slide":6,"bbox":[80,599,1030,0]}
+{"kind":"textbox","id":"sh/0juhkry1","slide":6,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/1k3ydwfm","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/l1yaik","slide":6,"text":""}
+{"kind":"slide","id":"sl/zl5j9n","slide":7,"title":"THE HONEST STATUS","textShapes":11}
+{"kind":"textbox","id":"sh/ozyl8fq5","slide":7,"text":"THE HONEST STATUS","textPreview":"THE HONEST STATUS","textChars":17,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/nep4zapk","slide":7,"text":"We have zero customers—and that is the next thing to solve.","textPreview":"We have zero customers—and that is the next thing to solve.","textChars":59,"textLines":1,"bbox":[72,94,1080,88]}
+{"kind":"shape","id":"sh/2dg36p8z","slide":7,"bbox":[72,286,510,232]}
+{"kind":"textbox","id":"sh/1c7mxk7u","slide":7,"text":"TODAY","textPreview":"TODAY","textChars":5,"textLines":1,"bbox":[106,320,150,24]}
+{"kind":"textbox","id":"sh/0byl4fq9","slide":7,"text":"0","textPreview":"0","textChars":1,"textLines":1,"bbox":[106,370,160,72]}
+{"kind":"textbox","id":"sh/fap4vapo","slide":7,"text":"customers","textPreview":"customers","textChars":9,"textLines":1,"bbox":[270,414,190,30]}
+{"kind":"textbox","id":"sh/e9g32583","slide":7,"text":"No invented traction. No vanity metrics.","textPreview":"No invented traction. No vanity metrics.","textChars":40,"textLines":1,"bbox":[106,476,320,22]}
+{"kind":"shape","id":"sh/d8nmt07i","slide":7,"bbox":[650,286,510,232]}
+{"kind":"textbox","id":"sh/s7el0vqx","slide":7,"text":"NEXT PROOF","textPreview":"NEXT PROOF","textChars":10,"textLines":1,"bbox":[684,320,180,24]}
+{"kind":"textbox","id":"sh/i9gj2h8r","slide":7,"text":"10 design partners","textPreview":"10 design partners","textChars":18,"textLines":1,"bbox":[684,370,360,40]}
+{"kind":"textbox","id":"sh/japkb2pc","slide":7,"text":"50 real meetings · repeated usage\nmeasured trigger accuracy · willingness to pay","textPreview":"50 real meetings · repeated usage | measured trigger accuracy · willingness to pay","textChars":80,"textLines":2,"bbox":[684,430,350,52]}
+{"kind":"textbox","id":"sh/kby147qh","slide":7,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/5c72dc72","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/zl5j9n","slide":7,"text":""}
+{"kind":"slide","id":"sl/v72d03","slide":8,"title":"VALIDATION PLAN","textShapes":20}
+{"kind":"textbox","id":"sh/q54zqt4z","slide":8,"text":"VALIDATION PLAN","textPreview":"VALIDATION PLAN","textChars":15,"textLines":1,"bbox":[72,54,600,20]}
+{"kind":"textbox","id":"sh/x8vy18nq","slide":8,"text":"We will earn the right to broaden the market.","textPreview":"We will earn the right to broaden the market.","textChars":45,"textLines":1,"bbox":[72,94,1080,88]}
+{"kind":"textbox","id":"sh/c7mhs3m5","slide":8,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[82,300,50,50]}
+{"kind":"textbox","id":"sh/zadg3y5w","slide":8,"text":"Interview","textPreview":"Interview","textChars":9,"textLines":1,"bbox":[82,374,160,28]}
+{"kind":"textbox","id":"sh/y94zud4b","slide":8,"text":"10 sales engineers about their last five demos","textPreview":"10 sales engineers about their last five demos","textChars":46,"textLines":1,"bbox":[82,420,170,120]}
+{"kind":"shape","id":"sh/lcfi58nm","slide":8,"bbox":[262,325,50,0]}
+{"kind":"textbox","id":"sh/kbmhw3mh","slide":8,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[307,300,50,50]}
+{"kind":"textbox","id":"sh/fetgre5c","slide":8,"text":"Observe","textPreview":"Observe","textChars":7,"textLines":1,"bbox":[307,374,160,28]}
+{"kind":"textbox","id":"sh/edkzi94r","slide":8,"text":"Watch the moments where they search or switch","textPreview":"Watch the moments where they search or switch","textChars":45,"textLines":1,"bbox":[307,420,170,120]}
+{"kind":"shape","id":"sh/gji1s7up","slide":8,"bbox":[487,325,50,0]}
+{"kind":"textbox","id":"sh/1kri1cba","slide":8,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[532,300,50,50]}
+{"kind":"textbox","id":"sh/eh0jqxcj","slide":8,"text":"Pilot","textPreview":"Pilot","textChars":5,"textLines":1,"bbox":[532,374,160,28]}
+{"kind":"textbox","id":"sh/fi90z2t4","slide":8,"text":"Run Stash Live in real Google Meet calls","textPreview":"Run Stash Live in real Google Meet calls","textChars":40,"textLines":1,"bbox":[532,420,170,120]}
+{"kind":"shape","id":"sh/on21wra1","slide":8,"bbox":[712,325,50,0]}
+{"kind":"textbox","id":"sh/p8bi5cb6","slide":8,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[757,300,50,50]}
+{"kind":"textbox","id":"sh/2l0juhcv","slide":8,"text":"Measure","textPreview":"Measure","textChars":7,"textLines":1,"bbox":[757,374,160,28]}
+{"kind":"textbox","id":"sh/3mt03mtg","slide":8,"text":"Accuracy, repeat use, time saved, viewer recall","textPreview":"Accuracy, repeat use, time saved, viewer recall","textChars":47,"textLines":1,"bbox":[757,420,170,120]}
+{"kind":"shape","id":"sh/4ryhknuh","slide":8,"bbox":[937,325,50,0]}
+{"kind":"textbox","id":"sh/5s7itsb2","slide":8,"text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[982,300,50,50]}
+{"kind":"textbox","id":"sh/lwf61kzu","slide":8,"text":"Charge","textPreview":"Charge","textChars":6,"textLines":1,"bbox":[982,374,160,28]}
+{"kind":"textbox","id":"sh/0v6p8fi9","slide":8,"text":"Convert the strongest team into a paid pilot","textPreview":"Convert the strongest team into a paid pilot","textChars":44,"textLines":1,"bbox":[982,420,170,120]}
+{"kind":"textbox","id":"sh/zaxozaho","slide":8,"text":"The first success metric is not impressions. It is “I used it again without being asked.”","textPreview":"The first success metric is not impressions. It is “I used it again without being asked.”","textChars":89,"textLines":1,"bbox":[82,590,900,30]}
+{"kind":"textbox","id":"sh/y9o76503","slide":8,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/90zq54zq","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/v72d03","slide":8,"text":""}
+{"kind":"slide","id":"sl/8qmmnp","slide":9,"title":"THE ASK","textShapes":9}
+{"kind":"textbox","id":"sh/7ylcrypg","slide":9,"text":"THE ASK","textPreview":"THE ASK","textChars":7,"textLines":1,"bbox":[72,70,500,20]}
+{"kind":"textbox","id":"sh/8zudk361","slide":9,"text":"Help us prove that\ntiming is a product.","textPreview":"Help us prove that | timing is a product.","textChars":39,"textLines":2,"bbox":[72,125,760,110]}
+{"kind":"textbox","id":"sh/90nut876","slide":9,"text":"We are building the contextual layer for live communication—starting with sales engineers, then expanding anywhere an important point needs to land.","textPreview":"We are building the contextual layer for live communication—starting with sales engineers, then expanding anywhere an important point nee...","textChars":148,"textLines":1,"bbox":[76,286,760,72]}
+{"kind":"shape","id":"sh/ytcvetoj","slide":9,"bbox":[76,420,444,0]}
+{"kind":"textbox","id":"sh/zulcnep4","slide":9,"text":"NEXT 90 DAYS","textPreview":"NEXT 90 DAYS","textChars":12,"textLines":1,"bbox":[76,458,220,22]}
+{"kind":"textbox","id":"sh/kvudgj6p","slide":9,"text":"10 design partners  ·  50 real meetings  ·  first paid pilot","textPreview":"10 design partners  ·  50 real meetings  ·  first paid pilot","textChars":60,"textLines":1,"bbox":[76,500,720,30]}
+{"kind":"textbox","id":"sh/lw3upo7a","slide":9,"text":"STASH LIVE","textPreview":"STASH LIVE","textChars":10,"textLines":1,"bbox":[936,570,220,28]}
+{"kind":"textbox","id":"sh/q5sva9on","slide":9,"text":"Context, at the moment it matters.","textPreview":"Context, at the moment it matters.","textChars":34,"textLines":1,"bbox":[936,610,250,24]}
+{"kind":"textbox","id":"sh/b61cjep8","slide":9,"text":"STASH LIVE  /  YC APPLICATION","textPreview":"STASH LIVE  /  YC APPLICATION","textChars":29,"textLines":1,"bbox":[72,676,400,18]}
+{"kind":"textbox","id":"sh/jat8z25w","slide":9,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1180,676,28,18]}
+{"kind":"notes","id":"nt/8qmmnp","slide":9,"text":""}

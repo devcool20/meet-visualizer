@@ -419,7 +419,7 @@ function InstallFromSourceSteps() {
           and open it in a new tab.
         </li>
         <li>Toggle <strong>Developer mode</strong> (top-right corner).</li>
-        <li>Click <strong>Load unpacked</strong> and select the extension folder.</li>
+        <li>Click <strong>Load unpacked</strong> and select the <code>extension/dist</code> folder.</li>
         <li>Come back to this tab — pairing will happen automatically.</li>
       </ol>
       <p className="text-xs" style={{ color: '#5A5550' }}>
