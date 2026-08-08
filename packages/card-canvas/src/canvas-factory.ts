@@ -16,30 +16,6 @@
 export type RenderCanvas = OffscreenCanvas | HTMLCanvasElement;
 export type Ctx2D = OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
 
-let nodeCanvasCtor: any = null;
-if (typeof window === 'undefined' || typeof process !== 'undefined') {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    nodeCanvasCtor = require('canvas').createCanvas;
-  } catch {
-    // Ignore in browser bundle
-  }
-}
-
-if (typeof window !== 'undefined' && typeof HTMLCanvasElement !== 'undefined' && nodeCanvasCtor) {
-  const origGetContext = HTMLCanvasElement.prototype.getContext;
-  HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, contextId: string, options?: any) {
-    const ctx = origGetContext.call(this, contextId, options);
-    if (ctx || contextId !== '2d') return ctx;
-    try {
-      const fallbackCanvas = nodeCanvasCtor(this.width || 300, this.height || 150);
-      return fallbackCanvas.getContext('2d');
-    } catch {
-      return null;
-    }
-  } as any;
-}
-
 function createMock2DContext(width = 640, height = 360): Ctx2D {
   const dummyCtx: any = {
     canvas: { width, height },
@@ -84,7 +60,11 @@ function createMock2DContext(width = 640, height = 360): Ctx2D {
     }),
     drawImage: () => {},
     createImageData: (w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4) }),
-    getImageData: (_x: number, _y: number, w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4) }),
+    getImageData: (_x: number, _y: number, w: number, h: number) => {
+      const data = new Uint8ClampedArray(w * h * 4);
+      for (let i = 3; i < data.length; i += 4) data[i] = 255;
+      return { data };
+    },
     putImageData: () => {},
     font: '',
     fillStyle: '',
@@ -103,13 +83,6 @@ export function createRenderCanvas(width: number, height: number): RenderCanvas 
   if (typeof OffscreenCanvas !== 'undefined') {
     return new OffscreenCanvas(w, h);
   }
-  if (nodeCanvasCtor) {
-    try {
-      return nodeCanvasCtor(w, h) as unknown as HTMLCanvasElement;
-    } catch {
-      // Fall through to jsdom
-    }
-  }
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas');
     canvas.width = w;
@@ -120,17 +93,14 @@ export function createRenderCanvas(width: number, height: number): RenderCanvas 
 }
 
 export function get2DContext(canvas: RenderCanvas): Ctx2D {
-  let ctx = canvas.getContext('2d');
-  if (!ctx && nodeCanvasCtor) {
-    try {
-      const c = nodeCanvasCtor((canvas as any).width || 300, (canvas as any).height || 150);
-      ctx = c.getContext('2d');
-    } catch {
-      // Ignore
-    }
+  let ctx: Ctx2D | null = null;
+  try {
+    ctx = canvas.getContext('2d') as Ctx2D | null;
+  } catch {
+    ctx = null;
   }
   if (!ctx) {
-    ctx = createMock2DContext((canvas as any).width || 640, (canvas as any).height || 360);
+    ctx = createMock2DContext((canvas as any)?.width || 640, (canvas as any)?.height || 360);
   }
-  return ctx as Ctx2D;
+  return ctx;
 }
