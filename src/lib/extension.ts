@@ -25,6 +25,9 @@ export const DEV_EXTENSION_ID = 'fdeplcogfapfmfpkelllkjbcphmlccll';
  */
 export const EXTENSION_ID = DEV_EXTENSION_ID;
 
+// Test-only injection point for env vars.
+let __testEnv: Record<string, string> | null = null;
+
 /** Chrome Web Store listing. Opens in a NEW tab per plan §4.2 seam. */
 export const CHROME_WEB_STORE_URL = chromeWebStoreUrl();
 
@@ -52,9 +55,6 @@ function getChromeRuntime(): ChromeRuntimeLike | null {
 export function hasChromeRuntime(): boolean {
   return getChromeRuntime() !== null;
 }
-
-// Test-only injection point for env vars.
-let __testEnv: Record<string, string> | null = null;
 
 /** @internal — only for tests. */
 export function __setTestEnv(env: Record<string, string> | null): void {
