@@ -129,7 +129,10 @@ export function extensionZipUrl(): string | undefined {
 }
 
 export function chromeWebStoreUrl(): string {
-  return 'https://chromewebstore.google.com/detail/stash-live/' + resolveExtensionId();
+  if (extensionSourceMode() === 'webstore') {
+    return 'https://chromewebstore.google.com/detail/stash-live/' + resolveExtensionId();
+  }
+  return '/setup/extension';
 }
 
 /** The expected product origin from env, or a dev fallback. */

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/app/auth/AuthContext";
-import { CHROME_WEB_STORE_URL } from "@/lib/extension";
+import { chromeWebStoreUrl } from "@/lib/extension";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import heroBg from "@/imports/hero.jpg";
 import orangeTexture from "@/imports/orange.jpg";
@@ -910,7 +910,7 @@ export default function App() {
                     }
                   />
                 )}
-                <span className="relative z-10">docs</span>
+                <span className="relative z-10">Docs</span>
               </Link>
               {/* Dashboard nav item — only shown once signed in */}
               {status === "signed-in" && (
@@ -937,29 +937,16 @@ export default function App() {
                       }
                     />
                   )}
-                  <span className="relative z-10">dashboard</span>
+                  <span className="relative z-10">Dashboard</span>
                 </Link>
               )}
             </nav>
           </div>
 
-          {/* Right Column: Stash Branding & Session CTAs */}
-          <div className="flex items-center gap-3 pr-2 select-none">
-            <Link
-              to="/rehearse"
-              className="hidden sm:inline-flex px-3 py-1 text-xs font-medium rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/10 backdrop-blur-sm"
-            >
-              🎙️ Try Rehearsal
-            </Link>
-            <Link
-              to={status === "signed-in" ? "/dashboard" : "/signup"}
-              className="px-3.5 py-1 text-xs font-semibold rounded-full bg-[#fb8500] hover:bg-[#e07600] text-white transition-all shadow-sm flex items-center gap-1"
-            >
-              <span>{status === "signed-in" ? "Dashboard" : "Get Started"}</span>
-              <span className="text-[10px]">→</span>
-            </Link>
+          {/* Right Column: Stash Branding (visible on both mobile and desktop) */}
+          <div className="flex items-center pr-2 select-none">
             <span
-              className="text-lg font-medium tracking-tight ml-1"
+              className="text-lg font-medium tracking-tight"
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: "1.35rem",
@@ -1012,7 +999,7 @@ export default function App() {
                 onClick={() => setIsMenuOpen(false)}
                 className="px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)]"
               >
-                docs
+                Docs
               </Link>
               {status === "signed-in" && (
                 <Link
@@ -1020,7 +1007,7 @@ export default function App() {
                   onClick={() => setIsMenuOpen(false)}
                   className="px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)]"
                 >
-                  dashboard
+                  Dashboard
                 </Link>
               )}
             </motion.div>
@@ -1105,17 +1092,15 @@ export default function App() {
                 <span>🎙️</span>
                 <span>Try Rehearsal</span>
               </Link>
-              <a
-                href={CHROME_WEB_STORE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to={chromeWebStoreUrl()}
                 className="px-5 py-3 text-sm font-medium rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-2 border border-white/10"
               >
                 <svg className="w-4 h-4 fill-current text-white/90" viewBox="0 0 24 24">
                   <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm0 4.8a7.2 7.2 0 1 1 0 14.4 7.2 7.2 0 0 1 0-14.4z"/>
                 </svg>
                 <span>Add to Chrome</span>
-              </a>
+              </Link>
             </motion.div>
           </motion.div>
 
@@ -1828,15 +1813,13 @@ export default function App() {
               </p>
             </div>
             <div className="mt-10 flex items-center gap-6">
-              <a
-                href={CHROME_WEB_STORE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to={chromeWebStoreUrl()}
                 className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
                 style={{ background: "#1A1512", color: "#FBF9F6" }}
               >
                 Add to Chrome
-              </a>
+              </Link>
               <a
                 href="#"
                 className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
@@ -2256,10 +2239,8 @@ export default function App() {
           >
             Ready to integrate this into your team meetings?
           </h2>
-          <a
-            href={CHROME_WEB_STORE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to={chromeWebStoreUrl()}
             className="px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 select-none hover:opacity-90 shadow-sm inline-block"
             style={{
               background: "#1A1512",
@@ -2268,7 +2249,7 @@ export default function App() {
             }}
           >
             Add to Chrome
-          </a>
+          </Link>
         </div>
 
         {/* Link grid */}

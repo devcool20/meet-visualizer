@@ -130,12 +130,17 @@ describe('chromeWebStoreUrl', () => {
     __setTestEnv(null);
   });
 
-  it('tracks the resolved extension ID', () => {
+  it('returns /setup/extension in unpacked mode', () => {
+    expect(chromeWebStoreUrl()).toBe('/setup/extension');
+  });
+
+  it('tracks the resolved extension ID in webstore mode', () => {
+    __setTestEnv({ VITE_STASH_EXT_SOURCE: 'webstore' });
     expect(chromeWebStoreUrl()).toContain('fdeplcogfapfmfpkelllkjbcphmlccll');
   });
 
-  it('uses the env ID when set', () => {
-    __setTestEnv({ VITE_STASH_EXTENSION_ID: 'store-id' });
+  it('uses the env ID when set in webstore mode', () => {
+    __setTestEnv({ VITE_STASH_EXT_SOURCE: 'webstore', VITE_STASH_EXTENSION_ID: 'store-id' });
     expect(chromeWebStoreUrl()).toContain('store-id');
   });
 });
