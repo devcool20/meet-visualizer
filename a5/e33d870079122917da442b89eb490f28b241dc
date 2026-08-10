@@ -1,0 +1,14 @@
+README.md
+  h_19ce13e54ae879 1-2,4-16,42-64,66-92,95-102,104-123,125-128,132-151,153-172,174-175,177-184,188-211,213-221,225-232,234,236-240,244-247,260-264,271-297
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "a5e33d870079122917da442b89eb490f28b241dc",
+  "prompts": {},
+  "humans": {
+    "h_19ce13e54ae879": {
+      "author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
