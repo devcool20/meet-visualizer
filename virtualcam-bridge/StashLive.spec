@@ -3,12 +3,20 @@ from PyInstaller.utils.hooks import collect_all
 
 datas = []
 binaries = []
-hiddenimports = []
+hiddenimports = ['speech_recognition', 'pyvirtualcam', 'PIL', 'cv2', 'requests', 'numpy', 'keyboard']
+
 tmp_ret = collect_all('pyvirtualcam')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+
 tmp_ret = collect_all('speech_recognition')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
+excluded_modules = [
+    'torch', 'torchvision', 'torchaudio', 'onnxruntime', 'matplotlib', 
+    'pandas', 'scipy', 'IPython', 'pytest', 'tkinter', 'nbformat', 
+    'jupyter', 'tornado', 'zmq', 'sqlalchemy', 'openpyxl', 'pyarrow',
+    'transformers', 'huggingface_hub', 'safetensors', 'accelerate'
+]
 
 a = Analysis(
     ['app.py'],
@@ -19,7 +27,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=excluded_modules,
     noarchive=False,
     optimize=0,
 )

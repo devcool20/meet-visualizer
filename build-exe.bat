@@ -9,11 +9,8 @@ echo.
 
 cd /d "%~dp0\virtualcam-bridge"
 
-echo Packaging StashLive into a portable executable...
-pyinstaller --noconfirm --onedir --console --name "StashLive" ^
-  --collect-all pyvirtualcam ^
-  --collect-all speech_recognition ^
-  app.py
+echo Packaging StashLive into a portable executable (fast build)...
+pyinstaller --noconfirm StashLive.spec
 
 echo.
 echo ==================================================================
