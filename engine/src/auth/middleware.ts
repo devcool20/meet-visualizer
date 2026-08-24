@@ -17,7 +17,7 @@ export function requireAuth(authProvider: AuthProvider) {
     const header = req.headers.authorization;
     if (!header?.startsWith('Bearer ')) {
       if (config.isLocal) {
-        req.user = { id: 'local-dev-user', email: 'dev@stash.live' };
+        req.user = { id: 'local-dev-user', email: 'dev@stash.live', name: 'Local Dev User' };
         next();
         return;
       }
@@ -28,7 +28,7 @@ export function requireAuth(authProvider: AuthProvider) {
     const user = await authProvider.verifyAccessToken(jwt);
     if (!user) {
       if (config.isLocal) {
-        req.user = { id: 'local-dev-user', email: 'dev@stash.live' };
+        req.user = { id: 'local-dev-user', email: 'dev@stash.live', name: 'Local Dev User' };
         next();
         return;
       }

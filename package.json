@@ -12,6 +12,8 @@
     "test:all": "npm run test && npm run test --workspace engine && npm run test --workspace extension",
     "typecheck:all": "npm run typecheck && npm run typecheck --workspace engine && npm run typecheck --workspace extension",
     "verify": "npm run typecheck:all && npm run test:all && npm run build",
+    "build:engine": "npm run build --workspace engine",
+    "start:engine": "node engine/dist/server.js",
     "virtualcam": "python virtualcam-bridge/app.py",
     "virtualcam:install": "cmd /c scripts\\install-virtualcam.bat"
   },
