@@ -7,7 +7,7 @@
  * Anthropic, Mock — follow the same interface+Real/Mock pattern as
  * `engine/src/matching/embedding-provider.ts`.
  */
-export type AiProviderId = 'gemini' | 'openai' | 'anthropic' | 'mock';
+export type AiProviderId = 'gemini' | 'openai' | 'anthropic' | 'bedrock' | 'mock';
 
 export interface StructuredRequest {
   system: string;

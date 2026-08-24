@@ -169,11 +169,40 @@ export default function InstallExtensionPage() {
           className="leading-tight"
           style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 300 }}
         >
-          Install the extension
+          Setup your presentation mode
         </h1>
         <p className="text-sm" style={{ color: '#5A5550' }}>
-          Step 2 of 5 — Stash Live needs the Chrome extension to composite cards into your video.
+          Step 2 of 5 — Choose your meeting mode. Google Meet Add-on and Web Studio require zero installation.
         </p>
+      </div>
+
+      {/* Recommended Zero-Install Option */}
+      <div
+        className="rounded-2xl p-6 space-y-3 mb-6 text-left"
+        style={{
+          background: 'rgba(251,133,0,0.06)',
+          border: '1px solid rgba(251,133,0,0.3)',
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#fb8500]">
+            ⚡ Recommended (Zero Install)
+          </span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#fb8500] text-white font-medium">
+            New
+          </span>
+        </div>
+        <h3 className="text-sm font-semibold text-[#1A1512]">
+          Google Meet Add-on & Web Studio
+        </h3>
+        <p className="text-xs text-[#5A5550] leading-relaxed">
+          Present directly in Google Meet without installing Chrome extensions or browser add-ons. Works in the Side Panel, Main Stage, or Web Studio tab.
+        </p>
+        <div className="pt-2">
+          <Button onClick={handleContinue} className="bg-[#fb8500] hover:bg-[#ea7700] text-white text-xs h-9">
+            Continue with Zero-Install →
+          </Button>
+        </div>
       </div>
 
       {/* Origin mismatch */}
@@ -326,9 +355,12 @@ export default function InstallExtensionPage() {
             </div>
           )}
 
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-4 pt-2">
             <Button variant="outline" onClick={handleSkip}>
               Skip for now
+            </Button>
+            <Button onClick={handleContinue}>
+              Continue Setup →
             </Button>
           </div>
         </div>

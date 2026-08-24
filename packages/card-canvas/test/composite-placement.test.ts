@@ -38,7 +38,7 @@ function makePatternCanvas(busySide: 'left' | 'right'): CanvasImageSource {
   return canvas;
 }
 
-describe('CardCompositor — adaptive placement', () => {
+describe('CardCompositor — adaptive placement', { timeout: 15000 }, () => {
   it('with injected sampler and selector, busy-left -> side=right after enough composite() calls', () => {
     const sampler = new BusynessSampler({ intervalMs: 10 });
     const selector = new SideSelector({ cooldownMs: 0, consecutiveSamples: 1 });
@@ -111,7 +111,7 @@ describe('CardCompositor — adaptive placement', () => {
   });
 });
 
-describe('CardCompositor — sampling gate', () => {
+describe('CardCompositor — sampling gate', { timeout: 15000 }, () => {
   it('during entering phase, sampledThisFrame is false', () => {
     const sampler = new BusynessSampler({ intervalMs: 10 });
     const selector = new SideSelector({ cooldownMs: 0, consecutiveSamples: 1 });

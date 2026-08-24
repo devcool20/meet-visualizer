@@ -156,7 +156,13 @@ export function engineOrigin(): string {
 }
 
 export function isProductOrigin(): boolean {
-  return window.location.origin === expectedProductOrigin();
+  if (typeof window === 'undefined') return true;
+  const origin = window.location.origin;
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local')) {
+    return true;
+  }
+  return origin === expectedProductOrigin();
 }
 
 function sendMessageWithTimeout(

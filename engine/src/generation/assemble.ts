@@ -47,7 +47,7 @@ export function assembleCardSpec(draft: GeneratedDraft, ctx: AssembleContext): V
 
   // Sort content blocks by the layout recipe's blockOrder preference
   const blockOrderMap = new Map<string, number>();
-  recipe.blockOrder.forEach((kind, i) => blockOrderMap.set(kind, i));
+  recipe.blockOrder.forEach((kind: string, i: number) => blockOrderMap.set(kind, i));
 
   const contentBlocks = [...draft.blocks].sort(
     (a, b) => (blockOrderMap.get(a.kind) ?? 99) - (blockOrderMap.get(b.kind) ?? 99),
@@ -56,9 +56,9 @@ export function assembleCardSpec(draft: GeneratedDraft, ctx: AssembleContext): V
   // Truncate to maxContentBlocks
   const truncated = contentBlocks.slice(0, recipe.maxContentBlocks);
 
-  // Prepend image block when applicable
+  // Prepend image block when available
   const finalBlocks: CardBlock[] = [];
-  if (ctx.imageUrl && recipe.preferImage) {
+  if (ctx.imageUrl) {
     finalBlocks.push({ kind: 'image', url: ctx.imageUrl });
   }
   finalBlocks.push(...truncated);
@@ -87,8 +87,15 @@ export function assembleCardSpec(draft: GeneratedDraft, ctx: AssembleContext): V
 }
 
 function getSourceInfo(draft: GeneratedDraft, candidates: GroundingCandidate[]): string {
-  if (draft.sourceIndex !== null && candidates[draft.sourceIndex]) {
-    return `Source: Wikipedia · ${candidates[draft.sourceIndex].title}`;
+  if (typeof draft.sourceIndex === 'number' && candidates[draft.sourceIndex]) {
+    const cand = candidates[draft.sourceIndex];
+    if (cand.pageUrl?.includes('docs.google.com') || cand.description?.toLowerCase().includes('google drive')) {
+      return `Source: Google Drive · ${cand.title}`;
+    }
+    if (cand.pageUrl?.includes('wikipedia.org') || cand.pageUrl?.includes('wikimedia.org')) {
+      return `Source: Wikipedia · ${cand.title}`;
+    }
+    return `Source: ${cand.title}`;
   }
   return 'Unverified · AI-generated';
 }

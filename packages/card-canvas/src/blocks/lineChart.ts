@@ -77,6 +77,31 @@ export function drawLineChart(
     ctx.fill();
   }
 
+  // Draw axis period labels (e.g. Jan, Mar, Jun) inside bottom padding if present
+  const labeled = block.series
+    .map((s, idx) => ({ x: points[idx]?.x ?? 0, y: points[idx]?.y ?? 0, label: s.label }))
+    .filter((p) => p.label && p.label.trim());
+
+  if (labeled.length > 0) {
+    ctx.font = '500 13px Inter, -apple-system, sans-serif';
+    ctx.fillStyle = theme.textMuted;
+    ctx.textBaseline = 'middle';
+    const labelY = CHART.height - 12;
+
+    labeled.forEach((p, idx) => {
+      if (idx === 0) {
+        ctx.textAlign = 'left';
+        ctx.fillText(p.label!, 6, labelY);
+      } else if (idx === labeled.length - 1) {
+        ctx.textAlign = 'right';
+        ctx.fillText(p.label!, contentWidth - 6, labelY);
+      } else {
+        ctx.textAlign = 'center';
+        ctx.fillText(p.label!, p.x, labelY);
+      }
+    });
+  }
+
   ctx.restore();
   ctx.restore();
 }

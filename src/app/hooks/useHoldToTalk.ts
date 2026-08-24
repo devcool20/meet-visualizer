@@ -77,7 +77,9 @@ export interface HoldToTalkOptions {
 }
 
 function isChordPressed(e: KeyboardEvent): boolean {
-  return e.altKey && e.shiftKey && e.code === 'Space';
+  // Support Alt+Space, Ctrl+Space, Alt+Shift+Space, or Ctrl+Shift+Space (avoids OS Alt+Space system menu conflict)
+  if (e.code !== 'Space') return false;
+  return (e.altKey && !e.ctrlKey) || (e.ctrlKey && !e.altKey) || (e.altKey && e.shiftKey);
 }
 
 export function useHoldToTalk(opts: HoldToTalkOptions = {}) {
@@ -110,23 +112,32 @@ export function useHoldToTalk(opts: HoldToTalkOptions = {}) {
       recognition.lang = 'en-US';
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        const result = event.results[event.results.length - 1];
-        if (result.isFinal) {
-          setTranscript(result[0].transcript);
+        let fullTranscript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          fullTranscript += event.results[i][0].transcript;
+        }
+        if (fullTranscript.trim()) {
+          setTranscript(fullTranscript.trim());
+        }
+        const lastResult = event.results[event.results.length - 1];
+        if (lastResult.isFinal) {
           setState({ phase: 'transcribing' });
-        } else {
-          setTranscript(result[0].transcript);
         }
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         heldRef.current = false;
+        // Ignore 'no-speech' or 'aborted' if we already captured transcript
+        if (event.error === 'no-speech' || event.error === 'aborted') {
+          setState((prev) => (prev.phase === 'listening' ? { phase: 'transcribing' } : prev));
+          return;
+        }
         setState({ phase: 'failed', error: event.error || 'recognition error' });
       };
 
       recognition.onend = () => {
         heldRef.current = false;
-        // If we were listening and never got a final result, keep transcript.
+        // If we were listening, transition to transcribing so generation triggers
         setState((prev) => (prev.phase === 'listening' ? { phase: 'transcribing' } : prev));
       };
 
@@ -190,7 +201,7 @@ export function useHoldToTalk(opts: HoldToTalkOptions = {}) {
 
   const handleKeyUp = useCallback(
     (e: KeyboardEvent) => {
-      if ((e.key === 'Alt' || e.key === 'Shift' || e.code === 'Space') && stateRef.current.phase === 'listening') {
+      if ((e.key === 'Alt' || e.key === 'Shift' || e.key === 'Control' || e.code === 'Space') && stateRef.current.phase === 'listening') {
         stopListening();
       }
     },

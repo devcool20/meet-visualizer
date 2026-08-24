@@ -32,6 +32,7 @@ export default defineConfig({
       '@stash/card-spec': path.resolve(__dirname, './packages/card-spec/src/index.ts'),
       '@stash/card-core': path.resolve(__dirname, './packages/card-core/src/index.ts'),
       '@stash/card-react': path.resolve(__dirname, './packages/card-react/src/index.ts'),
+      '@stash/card-canvas': path.resolve(__dirname, './packages/card-canvas/src/index.ts'),
     },
   },
 

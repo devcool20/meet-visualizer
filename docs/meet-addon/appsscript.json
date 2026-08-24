@@ -1,0 +1,26 @@
+{
+  "timeZone": "Etc/GMT",
+  "dependencies": {},
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "addOns": {
+    "common": {
+      "name": "Stash Live",
+      "logoUrl": "https://app.stashlive.com/icons/icon128.png",
+      "layoutProperties": {
+        "primaryColor": "#fb8500",
+        "secondaryColor": "#1a1512"
+      }
+    },
+    "meet": {
+      "webScreens": {
+        "sidePanel": {
+          "url": "https://app.stashlive.com/meet-addon?frame=side_panel"
+        },
+        "mainStage": {
+          "url": "https://app.stashlive.com/meet-addon?frame=main_stage"
+        }
+      }
+    }
+  }
+}

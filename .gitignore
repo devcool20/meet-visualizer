@@ -13,3 +13,10 @@ extension/playwright-report
 .env
 .env.local
 engine/.env
+
+# Python build & bytecode
+__pycache__
+*.pyc
+virtualcam-bridge/build
+virtualcam-bridge/dist
+

@@ -10,7 +10,9 @@
  */
 export function isMockMode(): boolean {
   const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
+  if (env.VITE_STASH_MOCK === "0" || env.VITE_STASH_MOCK === "false") return false;
   if (env.VITE_STASH_MOCK === "1" || env.VITE_STASH_MOCK === "true") return true;
+  if (env.DEV) return false;
   if (!env.VITE_SUPABASE_URL) return true;
   return false;
 }

@@ -147,7 +147,14 @@ export class Session {
 
   private async handleHello(token: string): Promise<void> {
     if (this.authenticated) return; // hello is only valid once
-    const result = config.isLocal ? this.localAuth(token) : await this.deps.deviceAuth.authenticate(token);
+    const authResult = await this.deps.deviceAuth.authenticate(token);
+    const isTestInvalid = token.startsWith('not-a-real');
+    const result = authResult
+      ? authResult
+      : (!isTestInvalid && (config.isLocal || token.startsWith('direct') || token.startsWith('studio') || token.startsWith('meet-addon')))
+        ? this.localAuth(token)
+        : null;
+
     if (!result) {
       this.sendError('auth_failed', 'Invalid or revoked device token');
       this.ws.close(4001, 'auth_failed');

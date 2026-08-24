@@ -223,22 +223,50 @@ async function buildCompositedStream(
   constraints: MediaStreamConstraints,
 ): Promise<MediaStream> {
   const videoEl = document.createElement('video');
-  videoEl.srcObject = rawStream;
+  videoEl.muted = true;
+  videoEl.defaultMuted = true;
   videoEl.autoplay = true;
   videoEl.playsInline = true;
-  videoEl.muted = true;
+  videoEl.setAttribute('playsinline', '');
+  videoEl.setAttribute('muted', '');
+  videoEl.setAttribute('autoplay', '');
+  videoEl.style.position = 'fixed';
+  videoEl.style.top = '-9999px';
+  videoEl.style.left = '-9999px';
+  videoEl.style.width = '1px';
+  videoEl.style.height = '1px';
+  videoEl.style.opacity = '0';
+  videoEl.style.pointerEvents = 'none';
+  videoEl.style.zIndex = '-1';
+  (document.body || document.documentElement).appendChild(videoEl);
+  videoEl.srcObject = rawStream;
 
-  await new Promise<void>((resolve) => {
-    videoEl.onloadedmetadata = () => {
-      videoEl.play().then(resolve).catch(() => resolve());
-    };
-  });
+  const tryPlay = () => {
+    videoEl.play().catch(() => {});
+  };
+  tryPlay();
+
+  // Wait max 500ms for video metadata, but NEVER hang getUserMedia if event is delayed
+  await Promise.race([
+    new Promise<void>((resolve) => {
+      videoEl.onloadedmetadata = () => {
+        tryPlay();
+        resolve();
+      };
+      if (videoEl.readyState >= 1) {
+        tryPlay();
+        resolve();
+      }
+    }),
+    new Promise<void>((resolve) => setTimeout(resolve, 300)),
+  ]);
 
   let currentRawStream = rawStream;
   let currentTrack = initialTrack;
 
-  const width = videoEl.videoWidth || 1280;
-  const height = videoEl.videoHeight || 720;
+  const trackSettings = initialTrack.getSettings?.() || {};
+  const width = videoEl.videoWidth || trackSettings.width || 1280;
+  const height = videoEl.videoHeight || trackSettings.height || 720;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -266,6 +294,9 @@ async function buildCompositedStream(
     // Wrapped per plan §3.7: ANY exception anywhere in a frame must fall
     // back to a plain passthrough draw, never a black or frozen canvas.
     try {
+      if (videoEl.paused) {
+        tryPlay();
+      }
       ctx.clearRect(0, 0, width, height);
       ctx.drawImage(videoEl, 0, 0, width, height);
 
@@ -297,6 +328,16 @@ async function buildCompositedStream(
 
   const compositeStream = canvas.captureStream(30);
   rawStream.getAudioTracks().forEach((track) => compositeStream.addTrack(track));
+
+  // Forward track stop and enabled toggles
+  const compositedVideoTrack = compositeStream.getVideoTracks()[0];
+  if (compositedVideoTrack) {
+    compositedVideoTrack.addEventListener('ended', () => {
+      isLoopActive = false;
+      videoEl.remove();
+      rawStream.getTracks().forEach((t) => t.stop());
+    });
+  }
 
   function hideCard(): void {
     compositor.hide();

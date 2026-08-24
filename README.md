@@ -256,6 +256,7 @@ Rendering third-party images onto the web-camera canvas risks taint blocks that 
 | `STASH_AI_MODEL_OPENAI` | `gpt-4.1-mini` | OpenAI model override |
 | `STASH_AI_MODEL_ANTHROPIC` | `claude-sonnet-4-5` | Anthropic model override |
 | `STASH_GROUNDING_LANG` | `en` | Wikipedia search language |
+| `STASH_MOCK_GENERATION` | `0` | Force mock LLM/grounding/images even outside `STASH_LOCAL=1`. Mock is never implicit in production — with no keys configured, generation fails with `no_provider` ("Add a key in Settings"). |
 
 </details>
 
@@ -291,6 +292,10 @@ npm run typecheck:all
 
 # Run all test suites
 npm run test:all
+
+# End-to-end engine flow check (health, WS auth, generate→show, virtualcam, Drive)
+# Terminal 1:  cd engine && STASH_LOCAL=1 npm run dev
+# Terminal 2:  cd engine && npm run test:e2e
 
 # Verify workspace (compilation, typechecking, tests, & build)
 npm run verify

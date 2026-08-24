@@ -64,7 +64,7 @@ export class MatchPipeline {
   }
 
   private thresholds() {
-    return SENSITIVITY_THRESHOLDS[this.settings.sensitivity];
+    return SENSITIVITY_THRESHOLDS[this.settings.sensitivity as keyof typeof SENSITIVITY_THRESHOLDS] || SENSITIVITY_THRESHOLDS.balanced;
   }
 
   private buildOutcome(kind: MatchOutcomeKind, cardId: string | null, matchedPhrase: string | null, score: number | null, tier: 1 | 2 | 3 | null): MatchOutcome {

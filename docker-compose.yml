@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  engine:
+    build:
+      context: .
+      dockerfile: engine/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - STASH_AI_PROVIDER=bedrock
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BEARER_TOKEN_BEDROCK=${AWS_BEARER_TOKEN_BEDROCK}
+      - BEDROCK_MODEL_ID=qwen.qwen3-32b-v1:0
+      - IMAGE_PROXY_PUBLIC_ORIGIN=http://localhost:5000
+    restart: unless-stopped
+

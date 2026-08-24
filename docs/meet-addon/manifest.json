@@ -1,0 +1,21 @@
+{
+  "name": "Stash Live",
+  "version": "1.0.0",
+  "description": "Ambient Broadcast Presenter Overlays for Google Meet — contextual data cards, charts, and entity stills projected into your meeting stage.",
+  "developer": {
+    "name": "Stash Live Team",
+    "url": "https://stashlive.app"
+  },
+  "meetAddon": {
+    "sidePanelUri": "https://app.stashlive.com/meet-addon?frame=side_panel",
+    "mainStageUri": "https://app.stashlive.com/meet-addon?frame=main_stage",
+    "darkThemeSidePanelUri": "https://app.stashlive.com/meet-addon?frame=side_panel&theme=dark",
+    "darkThemeMainStageUri": "https://app.stashlive.com/meet-addon?frame=main_stage&theme=dark",
+    "logoUri": "https://app.stashlive.com/icons/icon128.png",
+    "supportsCoDoing": true,
+    "supportsCoWatching": false
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/meetings.space.readonly"
+  ]
+}

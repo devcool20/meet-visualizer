@@ -886,6 +886,56 @@ export default function App() {
                   </a>
                 );
               })}
+              <Link
+                to="/studio"
+                onMouseEnter={() => setHoveredNav("studio")}
+                onMouseLeave={() => setHoveredNav(null)}
+                className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
+                style={{
+                  color: hoveredNav === "studio" ? hoverColor : inactiveColor,
+                  letterSpacing: "0.01em",
+                }}
+              >
+                {hoveredNav === "studio" && (
+                  <motion.div
+                    layoutId="hover-pill"
+                    className={`absolute inset-0 rounded-full -z-10 ${
+                      isHeroFold ? "bg-white/10" : "bg-[rgba(26,21,18,0.06)]"
+                    }`}
+                    transition={
+                      reducedMotion
+                        ? { duration: 0.01 }
+                        : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
+                    }
+                  />
+                )}
+                <span className="relative z-10">Studio</span>
+              </Link>
+              <Link
+                to="/virtualcam"
+                onMouseEnter={() => setHoveredNav("virtualcam")}
+                onMouseLeave={() => setHoveredNav(null)}
+                className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium text-emerald-400"
+                style={{
+                  color: hoveredNav === "virtualcam" ? "#10b981" : "#34d399",
+                  letterSpacing: "0.01em",
+                }}
+              >
+                {hoveredNav === "virtualcam" && (
+                  <motion.div
+                    layoutId="hover-pill"
+                    className={`absolute inset-0 rounded-full -z-10 ${
+                      isHeroFold ? "bg-white/10" : "bg-[rgba(26,21,18,0.06)]"
+                    }`}
+                    transition={
+                      reducedMotion
+                        ? { duration: 0.01 }
+                        : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
+                    }
+                  />
+                )}
+                <span className="relative z-10 font-bold">🎥 Virtual Cam</span>
+              </Link>
               {/* Docs route link — navigates to /docs instead of scrolling */}
               <Link
                 to="/docs"
@@ -1079,27 +1129,23 @@ export default function App() {
               className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-3.5"
             >
               <Link
-                to={status === "signed-in" ? "/dashboard" : "/signup"}
+                to="/virtualcam"
                 className="px-6 py-3 text-sm font-semibold rounded-full bg-[#fb8500] hover:bg-[#e07600] text-white transition-all shadow-[0_4px_20px_rgba(251,133,0,0.35)] hover:shadow-[0_6px_24px_rgba(251,133,0,0.45)] flex items-center gap-2"
               >
-                <span>{status === "signed-in" ? "Open Dashboard" : "Get Started Free"}</span>
+                <span>🎥 Launch Virtual Cam</span>
                 <span>→</span>
               </Link>
               <Link
-                to="/rehearse"
+                to="/studio"
                 className="px-5 py-3 text-sm font-medium rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 transition-all flex items-center gap-2"
               >
-                <span>🎙️</span>
-                <span>Try Rehearsal</span>
+                <span>🎛️ Studio Preview</span>
               </Link>
               <Link
-                to={chromeWebStoreUrl()}
+                to="/rehearse"
                 className="px-5 py-3 text-sm font-medium rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-2 border border-white/10"
               >
-                <svg className="w-4 h-4 fill-current text-white/90" viewBox="0 0 24 24">
-                  <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm0 4.8a7.2 7.2 0 1 1 0 14.4 7.2 7.2 0 0 1 0-14.4z"/>
-                </svg>
-                <span>Add to Chrome</span>
+                <span>🎙️ Rehearse</span>
               </Link>
             </motion.div>
           </motion.div>

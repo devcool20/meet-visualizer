@@ -25,16 +25,7 @@ export class AiKeyResolver {
   ) {}
 
   async resolve(userId: string): Promise<ResolvedAiKey | null> {
-    if (config.useMockGeneration || config.isLocal) {
-      return {
-        provider: 'mock',
-        apiKey: '',
-        model: 'mock-model/v0',
-        origin: 'mock',
-      };
-    }
-
-    // 1. Per-user encrypted key
+    // 1. Per-user encrypted key (highest precedence)
     const credential = await this.store.getAiCredential(userId);
     if (credential) {
       try {
@@ -53,7 +44,7 @@ export class AiKeyResolver {
       }
     }
 
-    // 2. Server env key
+    // 3. Server env key
     const envProvider = config.aiProviderDefault;
     const envKey = config.aiKeys[envProvider];
     if (envKey) {
@@ -65,8 +56,8 @@ export class AiKeyResolver {
       };
     }
 
-    // 3. Mock — local only
-    if (config.isLocal) {
+    // 4. Explicit Mock generation mode (when explicitly enabled and no keys)
+    if (config.useMockGeneration) {
       return {
         provider: 'mock',
         apiKey: '',
@@ -75,7 +66,7 @@ export class AiKeyResolver {
       };
     }
 
-    // 4. Nothing available
+    // 5. Nothing available
     return null;
   }
 }

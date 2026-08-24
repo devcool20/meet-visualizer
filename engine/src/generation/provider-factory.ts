@@ -10,6 +10,7 @@ import type { GenerationProvider, AiProviderId } from './provider.js';
 import { GeminiGenerationProvider } from './gemini-provider.js';
 import { OpenAiGenerationProvider } from './openai-provider.js';
 import { AnthropicGenerationProvider } from './anthropic-provider.js';
+import { BedrockGenerationProvider } from './bedrock-provider.js';
 import { MockGenerationProvider } from './mock-provider.js';
 import type { ResolvedAiKey } from './ai-credentials.js';
 
@@ -34,6 +35,9 @@ export function providerFactory(key: ResolvedAiKey): GenerationProvider {
       break;
     case 'anthropic':
       provider = new AnthropicGenerationProvider(key.apiKey, key.model);
+      break;
+    case 'bedrock':
+      provider = new BedrockGenerationProvider(key.model);
       break;
     case 'mock':
       provider = new MockGenerationProvider();

@@ -129,9 +129,15 @@ export class PushToTalkController {
     if (this._state !== 'idle' && this._state !== 'generating' && this._state !== 'error') return false;
     if (e.repeat) return false;
 
-    // Match Alt+Shift+Space (no Ctrl, no Meta)
-    if (!e.altKey || !e.shiftKey || e.ctrlKey || e.metaKey) return false;
+    // Match Space with Alt or Ctrl modifier (supports Alt+Space, Ctrl+Space, Alt+Shift+Space)
     if (e.code !== 'Space') return false;
+    const hasModifier = (e.altKey && !e.ctrlKey) || (e.ctrlKey && !e.altKey) || (e.altKey && e.shiftKey);
+    if (!hasModifier) return false;
+
+    // Prevent default OS window menu / popup
+    if (typeof (e as any).preventDefault === 'function') {
+      (e as any).preventDefault();
+    }
 
     // Clear any pending timers (e.g. grace timer from prior hold)
     this.clearTimers();
@@ -159,8 +165,8 @@ export class PushToTalkController {
   handleKeyUp(e: KeyEventLike): boolean {
     if (!this.held) return false;
 
-    // Match: Space keyup, or Alt/Shift keyup (modifier released before Space)
-    const isChordKey = e.code === 'Space' || e.key === 'Alt' || e.key === 'Shift';
+    // Match: Space keyup, or Alt/Shift/Ctrl keyup (modifier released before Space)
+    const isChordKey = e.code === 'Space' || e.key === 'Alt' || e.key === 'Shift' || e.key === 'Control';
     if (!isChordKey) return false;
 
     this.endCapture('keyup');

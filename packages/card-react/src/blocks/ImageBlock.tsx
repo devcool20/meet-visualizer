@@ -17,17 +17,31 @@ export function ImageBlock({
   const aspect = block.aspect ?? IMAGE.defaultAspect;
   const height = Math.min(contentWidth / aspect, IMAGE.maxHeight);
   return (
-    <img
-      src={block.url}
-      alt={block.alt ?? ''}
+    <div
       style={{
         width: contentWidth,
         height,
-        objectFit: 'cover',
         borderRadius: IMAGE.radius,
-        border: `1px solid ${theme.border}`,
-        display: 'block',
+        border: `1px solid ${theme.border || 'rgba(26,21,18,0.08)'}`,
+        overflow: 'hidden',
+        position: 'relative',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.4), rgba(240,230,220,0.4))',
       }}
-    />
+    >
+      <img
+        src={block.url}
+        alt={block.alt ?? ''}
+        loading="eager"
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+        }}
+        onError={(e) => {
+          (e.currentTarget as HTMLElement).style.display = 'none';
+        }}
+      />
+    </div>
   );
 }

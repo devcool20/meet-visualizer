@@ -8,8 +8,14 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "rootDir": "src",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@stash/card-spec": ["../packages/card-spec/src/index.ts"],
+      "@stash/card-core": ["../packages/card-core/src/index.ts"],
+      "@stash/card-react": ["../packages/card-react/src/index.ts"],
+      "@stash/card-canvas": ["../packages/card-canvas/src/index.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

@@ -1,0 +1,7 @@
+pyvirtualcam>=0.15.0
+opencv-python>=4.8.0
+pillow>=10.0.0
+requests>=2.31.0
+websockets>=12.0
+keyboard>=0.13.5
+numpy>=1.24.0

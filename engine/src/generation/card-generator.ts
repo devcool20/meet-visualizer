@@ -19,7 +19,7 @@ import { providerFactory } from './provider-factory.js';
 import type { GroundingProvider } from './grounding.js';
 import { extractSearchQuery } from './grounding.js';
 import type { ImageResolver } from '../images/image-fetcher.js';
-import { generatedDraftSchema, type GeneratedDraft } from './draft-schema.js';
+import { generatedDraftSchema, normalizeDraftInput, type GeneratedDraft } from './draft-schema.js';
 import { buildSystemPrompt, buildUserPrompt, buildRepairPrompt } from './prompt.js';
 import { assembleCardSpec, type AssembleContext } from './assemble.js';
 import { buildDraftJsonSchema } from './draft-schema.js';
@@ -66,8 +66,9 @@ export class CardGenerator {
       // 1. Normalize and check minimum length
       const norm = normalize(utterance);
       const tokens = norm.split(/\s+/).filter(Boolean);
-      if (tokens.length < 3) {
-        return { kind: 'failed', code: 'empty', message: 'Utterance too short (minimum 3 tokens)' };
+      const trivialGreetings = new Set(['hi', 'hello', 'hey', 'hi there', 'hello there', 'hey there', 'testing testing', 'one two', 'test']);
+      if (tokens.length === 0 || trivialGreetings.has(norm) || norm.length < 2) {
+        return { kind: 'failed', code: 'empty', message: 'Utterance too short (minimum topic query required)' };
       }
 
       // 2. Cache check
@@ -100,7 +101,7 @@ export class CardGenerator {
       // 5. Grounding
       const searchQuery = extractSearchQuery(utterance);
       const groundingBudget = Math.min(config.groundingTimeoutMs, deadline - this.now());
-      const candidates = await this.deps.grounding.search(searchQuery, 3, groundingBudget);
+      const candidates = await (this.deps.grounding as any).search(searchQuery, 3, groundingBudget, userId);
 
       // 6. Provider call
       const provider = (this.deps.providerFactory ?? providerFactory)(key);
@@ -129,7 +130,8 @@ export class CardGenerator {
         currentProvider = genResult.provider;
         currentModel = genResult.model;
 
-        const parsed = generatedDraftSchema.safeParse(genResult.json);
+        const normalized = normalizeDraftInput(genResult.json);
+        const parsed = generatedDraftSchema.safeParse(normalized);
         if (!parsed.success) {
           // 7. One repair attempt if budget allows
           const remaining = deadline - this.now();
@@ -145,7 +147,7 @@ export class CardGenerator {
             });
             currentProvider = repairResult.provider;
             currentModel = repairResult.model;
-            const reparsed = generatedDraftSchema.safeParse(repairResult.json);
+            const reparsed = generatedDraftSchema.safeParse(normalizeDraftInput(repairResult.json));
             if (!reparsed.success) {
               return { kind: 'failed', code: 'invalid_output', message: 'Model output failed validation after repair attempt' };
             }
@@ -173,12 +175,15 @@ export class CardGenerator {
         return { kind: 'failed', code: 'empty', message: 'Topic not relevant enough for a card' };
       }
 
-      // 8. Image resolution
+      // 8. Image resolution (for person, place, historical events, individual items)
       let imageUrl: string | null = null;
       if (result.imageWanted && candidates.length > 0) {
-        const targetCandidate = result.sourceIndex !== null ? candidates[result.sourceIndex] : candidates[0];
+        const targetCandidate =
+          typeof result.sourceIndex === 'number' && candidates[result.sourceIndex]
+            ? candidates[result.sourceIndex]
+            : candidates[0];
         if (targetCandidate?.imageUrl) {
-          const imageBudget = Math.min(config.imageVerifyTimeoutMs, deadline - this.now());
+          const imageBudget = Math.min(config.imageVerifyTimeoutMs, Math.max(1000, deadline - this.now()));
           imageUrl = await this.deps.images.resolve(targetCandidate.imageUrl, imageBudget);
         }
       }

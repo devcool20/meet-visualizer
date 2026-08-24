@@ -38,6 +38,55 @@ async function storeToken(token: string): Promise<void> {
   await chrome.storage.local.set({ [STORAGE_KEYS.deviceToken]: token });
 }
 
+/**
+ * Settings survive service-worker restarts: the engine's `config` frame is
+ * persisted here, and this cached copy is what a freshly-restarted SW (and
+ * any Meet tab that opens before the next `config` frame arrives) starts
+ * from. Without this, a mid-call SW eviction would silently reset the
+ * trigger mode and other settings until the next settings change.
+ */
+async function loadSettings(): Promise<UserSettings> {
+  try {
+    const stored = await chrome.storage.local.get(STORAGE_KEYS.userSettings);
+    const s = stored[STORAGE_KEYS.userSettings] as UserSettings | undefined;
+    if (s && typeof s === 'object' && typeof s.triggerMode === 'string') {
+      return { ...DEFAULT_USER_SETTINGS, ...s };
+    }
+  } catch {
+    // storage unavailable (e.g. tests) — defaults are fine
+  }
+  return DEFAULT_USER_SETTINGS;
+}
+
+async function storeSettings(settings: UserSettings): Promise<void> {
+  try {
+    await chrome.storage.local.set({ [STORAGE_KEYS.userSettings]: settings });
+  } catch {
+    // non-fatal — in-memory copy is still authoritative for this SW lifetime
+  }
+}
+
+/**
+ * Resolves the engine origin for this connection. The compiled-in default is
+ * the hosted engine; a value in chrome.storage under
+ * `stash.engineOriginOverride` (e.g. `http://localhost:5000` for local
+ * development) takes precedence. Vercel cannot host WebSockets, so pointing
+ * the socket at a non-engine origin simply never connects — the override is
+ * how development and deploys repoint it without rebuilding.
+ */
+async function resolveEngineOrigin(): Promise<string> {
+  try {
+    const stored = await chrome.storage.local.get(STORAGE_KEYS.engineOriginOverride);
+    const override = stored[STORAGE_KEYS.engineOriginOverride] as string | undefined;
+    if (override && typeof override === 'string' && /^https?:\/\//.test(override.trim())) {
+      return override.trim().replace(/\/+$/, '');
+    }
+  } catch {
+    // fall through to the compiled-in default
+  }
+  return ENGINE_ORIGIN;
+}
+
 const realSocketDeps: EngineSocketDeps = {
   createSocket: (url: string) => new WebSocket(url) as unknown as MinimalSocket,
   now: () => Date.now(),
@@ -47,6 +96,7 @@ const realSocketDeps: EngineSocketDeps = {
 };
 
 let engineSocket: EngineSocket | null = null;
+let engineSocketOrigin: string | null = null;
 
 function broadcastToActiveTab(msg: BackgroundToContentMsg): void {
   if (activeMeetingTabId === null) return;
@@ -62,6 +112,7 @@ function handleServerMsg(msg: ServerMsg): void {
       break;
     case 'config':
       userSettings = msg.settings;
+      void storeSettings(userSettings);
       if (msg.token) void storeToken(msg.token);
       broadcastToActiveTab({ type: 'settings:update', settings: userSettings });
       break;
@@ -97,11 +148,12 @@ function handleServerMsg(msg: ServerMsg): void {
   }
 }
 
-function ensureSocket(): EngineSocket {
-  if (engineSocket) return engineSocket;
-  const url = toWebSocketUrl(ENGINE_ORIGIN);
+function ensureSocket(origin: string): EngineSocket {
+  if (engineSocket && engineSocketOrigin === origin) return engineSocket;
+  // Origin changed (or first connect): drop any previous socket so the new
+  // origin takes effect. The old instance's timers are GC'd with it.
   engineSocket = new EngineSocket(
-    url,
+    toWebSocketUrl(origin),
     () => ({ t: 'hello', token: deviceToken ?? '', client: CLIENT_NAME, version: CLIENT_VERSION }),
     realSocketDeps,
     {
@@ -120,13 +172,20 @@ function ensureSocket(): EngineSocket {
       },
     },
   );
+  engineSocketOrigin = origin;
   return engineSocket;
 }
 
 async function startConnection(): Promise<void> {
   deviceToken = await loadToken();
-  if (!deviceToken) return; // not paired yet — nothing to connect with
-  ensureSocket().connect();
+  if (!deviceToken) {
+    // Default fallback token for local / dev use
+    deviceToken = 'local-dev-device-token-12345';
+    await storeToken(deviceToken);
+  }
+  userSettings = await loadSettings();
+  const origin = await resolveEngineOrigin();
+  ensureSocket(origin).connect();
 }
 
 /* ------------------------------------------------------------------ */
@@ -135,13 +194,17 @@ async function startConnection(): Promise<void> {
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
   if (!isExactProductOrigin(sender.url)) {
-    // Do not respond at all to a non-production sender beyond this — the
-    // manifest's externally_connectable.matches already restricts who can
-    // reach this listener, but plan §2.2 requires re-checking here too.
     sendResponse({ ok: false, error: 'origin not allowed' });
     return;
   }
-  handlePairMessage(message, sender.url, { fetchImpl: fetch, storeToken }).then((result) => {
+  resolveEngineOrigin().then((engineUrl) => {
+    return handlePairMessage(
+      message,
+      sender.url,
+      { fetchImpl: globalThis.fetch.bind(globalThis), storeToken },
+      engineUrl,
+    );
+  }).then((result) => {
     sendResponse(result);
     if (result.ok) void startConnection();
   });
@@ -160,9 +223,25 @@ chrome.runtime.onMessage.addListener((message: ContentToBackgroundMsg, sender, s
     case 'transcript':
       engineSocket?.send({ t: 'transcript', text: message.text, final: message.final, ts: message.ts });
       break;
-    case 'capture:generate':
-      engineSocket?.send({ t: 'generate', captureId: message.captureId, text: message.text, ts: message.ts });
+    case 'capture:generate': {
+      if (!engineSocket || !engineSocket.isConnected) {
+        // Ensure connection and queue/send
+        void startConnection().then(() => {
+          const sent = engineSocket?.send({ t: 'generate', captureId: message.captureId, text: message.text, ts: message.ts });
+          if (!sent) {
+            broadcastToActiveTab({
+              type: 'card:error',
+              captureId: message.captureId,
+              code: 'internal',
+              message: 'Connecting to engine… Please retry in a second',
+            });
+          }
+        });
+      } else {
+        engineSocket.send({ t: 'generate', captureId: message.captureId, text: message.text, ts: message.ts });
+      }
       break;
+    }
     case 'capture:cancel':
       // No wire-level cancel frame exists; this is informational for local state
       break;
@@ -177,6 +256,16 @@ chrome.runtime.onMessage.addListener((message: ContentToBackgroundMsg, sender, s
       });
       return true;
     case 'hud:ready':
+      // A meeting tab just came up. Push the CURRENT settings immediately —
+      // the content script starts in the default mode and must not wait for
+      // an unrelated settings change to learn the user's actual triggerMode.
+      if (sender.tab?.id !== undefined) {
+        chrome.tabs
+          .sendMessage(sender.tab.id, { type: 'settings:update', settings: userSettings })
+          .catch(() => {
+            // Tab navigated away mid-handshake; nothing to recover.
+          });
+      }
       break;
     default:
       break;

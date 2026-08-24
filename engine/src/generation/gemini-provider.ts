@@ -4,16 +4,20 @@
  * Uses `@google/genai` structured output with `responseJsonSchema`.
  * Injectable client so tests never hit the real API.
  */
+import { createRequire } from 'node:module';
 import type { GenerationProvider, AiProviderId, StructuredRequest, StructuredResult } from './provider.js';
 import { GenerationProviderError } from './provider.js';
+
+const require = createRequire(import.meta.url);
 
 /** Minimal shape we call on the genai client. */
 export interface GenaiLike {
   models: {
     generateContent(config: {
       model: string;
-      contents: Array<{ role: string; parts: Array<{ text: string }> }>;
+      contents: any;
       config?: {
+        systemInstruction?: string | unknown;
         responseMimeType?: string;
         responseJsonSchema?: Record<string, unknown>;
         maxOutputTokens?: number;
@@ -37,7 +41,6 @@ export class GeminiGenerationProvider implements GenerationProvider {
   private getClient(): GenaiLike {
     if (this.deps?.client) return this.deps.client;
     // Lazy import so tests never need the real package resolved.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { GoogleGenAI } = require('@google/genai');
     const client = new GoogleGenAI({ apiKey: this.apiKey });
     return client as GenaiLike;
@@ -51,11 +54,9 @@ export class GeminiGenerationProvider implements GenerationProvider {
     try {
       const generatePromise = client.models.generateContent({
         model: this.model,
-        contents: [
-          { role: 'user', parts: [{ text: req.system }] },
-          { role: 'user', parts: [{ text: req.user }] },
-        ],
+        contents: req.user,
         config: {
+          systemInstruction: req.system,
           responseMimeType: 'application/json',
           responseJsonSchema: req.schema as Record<string, unknown>,
           maxOutputTokens: req.maxOutputTokens,

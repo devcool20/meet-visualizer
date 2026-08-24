@@ -6,7 +6,7 @@
  * `externally_connectable` only restricts who CAN message us — the plan is
  * explicit that the origin check must still happen inside the handler.
  */
-import { ENGINE_ORIGIN, PRODUCT_ORIGIN } from '../shared/constants.js';
+import { ALLOWED_PRODUCT_ORIGINS, ENGINE_ORIGIN } from '../shared/constants.js';
 
 export interface PairRequest {
   type: 'pair';
@@ -22,7 +22,7 @@ export function isExactProductOrigin(url: string | undefined): boolean {
   if (!url) return false;
   try {
     const parsed = new URL(url);
-    return parsed.origin === PRODUCT_ORIGIN;
+    return ALLOWED_PRODUCT_ORIGINS.includes(parsed.origin);
   } catch {
     return false;
   }
@@ -51,6 +51,7 @@ export async function handlePairMessage(
   msg: unknown,
   senderUrl: string | undefined,
   deps: PairDeps,
+  engineOrigin: string = ENGINE_ORIGIN,
 ): Promise<PairResult> {
   if (!isExactProductOrigin(senderUrl)) {
     return { ok: false, error: 'sender origin is not the production origin' };
@@ -60,7 +61,7 @@ export async function handlePairMessage(
   }
 
   try {
-    const res = await deps.fetchImpl(`${ENGINE_ORIGIN}/api/extension/pair`, {
+    const res = await deps.fetchImpl(`${engineOrigin}/api/extension/pair`, {
       method: 'POST',
       credentials: 'omit', // no cookies (plan §2.2) — the nonce is the credential
       headers: { 'content-type': 'application/json' },

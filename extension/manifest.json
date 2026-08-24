@@ -9,7 +9,8 @@
   "permissions": ["storage", "scripting", "offscreen"],
   "host_permissions": [
     "https://meet.google.com/*",
-    "https://meet-visualizer.vercel.app/*"
+    "https://meet-visualizer.vercel.app/*",
+    "http://localhost:5173/*"
   ],
   "background": {
     "service_worker": "src/background/index.ts",
@@ -17,7 +18,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://meet.google.com/*", "https://meet-visualizer.vercel.app/*"],
+      "matches": ["https://meet.google.com/*", "https://meet-visualizer.vercel.app/*", "http://localhost:5173/*"],
       "js": ["src/content/index.ts"],
       "run_at": "document_idle"
     }
@@ -25,11 +26,11 @@
   "web_accessible_resources": [
     {
       "resources": ["fonts/*"],
-      "matches": ["https://meet.google.com/*", "https://meet-visualizer.vercel.app/*"]
+      "matches": ["https://meet.google.com/*", "https://meet-visualizer.vercel.app/*", "http://localhost:5173/*"]
     }
   ],
   "externally_connectable": {
-    "matches": ["https://meet-visualizer.vercel.app/*"]
+    "matches": ["https://meet-visualizer.vercel.app/*", "http://localhost:5173/*"]
   },
   "action": {
     "default_popup": "src/popup/popup.html",

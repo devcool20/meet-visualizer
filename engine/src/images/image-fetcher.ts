@@ -133,8 +133,10 @@ export class ProxyImageResolver implements ImageResolver {
   ) {}
 
   async resolve(upstreamUrl: string, timeoutMs: number): Promise<string | null> {
-    // Non-https origin means local dev — cannot produce a valid image URL in the spec
-    if (!this.publicOrigin.startsWith('https://')) return null;
+    // In production require https, allow http in local development
+    if (!this.publicOrigin.startsWith('https://') && !this.publicOrigin.startsWith('http://localhost') && !this.publicOrigin.startsWith('http://127.0.0.1')) {
+      return null;
+    }
 
     const cached = this.byteCache.get(upstreamUrl);
     if (cached) {

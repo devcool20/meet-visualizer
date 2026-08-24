@@ -34,6 +34,14 @@ import { createImageProxyRouter } from './routes/image-proxy.js';
 import { createAiKeysRouter } from './routes/ai-keys.js';
 import { createGenerateCardRouter } from './routes/generate-card.js';
 import { cacheService } from './services/cache.js';
+// Google Drive Docs Aggregator imports
+import { driveDocsAggregator } from './drive/aggregator.js';
+import { DriveGroundingProvider, CompositeGroundingProvider } from './drive/grounding.js';
+import { createDriveRouter } from './routes/drive.js';
+// Virtual Camera Engine imports
+import { VirtualCamEngine } from './virtualcam/engine.js';
+import { createVirtualCamRouter, attachVirtualCamWs } from './routes/virtualcam.js';
+
 
 /**
  * Local/no-config fallback key. STASH_ENCRYPTION_KEY MUST be set to a real
@@ -81,11 +89,14 @@ export async function buildApp() {
   }
   const notionOAuth = new NotionOAuthService(store, new MockNotionOAuthClient(), encryptor);
 
-  // AI generation stack
+  // AI generation & Drive Docs aggregation stack
   const aiKeyResolver = new AiKeyResolver(store, encryptor);
-  const groundingProvider = config.useMockGeneration
+  const baseGroundingProvider = config.useMockGeneration
     ? new MockGroundingProvider()
     : new WikipediaGroundingProvider();
+  const driveGrounding = new DriveGroundingProvider(driveDocsAggregator);
+  const groundingProvider = new CompositeGroundingProvider(driveGrounding, baseGroundingProvider);
+
   const imageFetcher = config.useMockGeneration
     ? new MockImageFetcher()
     : new HttpImageFetcher();
@@ -98,30 +109,38 @@ export async function buildApp() {
     cache: cacheService,
   });
 
+  const virtualCamEngine = new VirtualCamEngine({
+    cardGenerator,
+  });
+
   const app = express();
   app.use(
     cors({
-      origin: config.isLocal ? true : [config.productOrigin],
+      origin: true,
+      credentials: true,
     }),
   );
   app.use(express.json());
 
   app.use(createHealthRouter());
+  app.use(createImageProxyRouter(imageFetcher, imageByteCache));
   app.use(createPairingRouter(store, authProvider));
   app.use(createCardsRouter(store, authProvider));
   app.use(createUserRouter(store, authProvider));
   app.use(createNotionRouter(store, authProvider, notionOAuth, notionSync));
-  app.use(createImageProxyRouter(imageFetcher, imageByteCache));
+  app.use(createDriveRouter(driveDocsAggregator, authProvider));
+  app.use(createVirtualCamRouter(virtualCamEngine, authProvider));
   app.use(createAiKeysRouter(store, authProvider, encryptor));
   app.use(createGenerateCardRouter(authProvider, cardGenerator));
 
   const httpServer = http.createServer(app);
   attachWsServer(httpServer, { store, deviceAuth, tier2, tier3, generator: cardGenerator });
+  attachVirtualCamWs(httpServer, virtualCamEngine);
 
   const reconciliation = new ReconciliationSweep(store, notionSync);
   const activitySweep = new ActivitySnippetSweep(store);
 
-  return { app, httpServer, reconciliation, activitySweep, store };
+  return { app, httpServer, reconciliation, activitySweep, store, virtualCamEngine };
 }
 
 function buildRealNotionApi(): NotionApi {
@@ -162,10 +181,17 @@ async function main() {
   process.on('SIGINT', shutdown);
 }
 
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+// Start server when run directly (e.g. tsx watch / node) and not in Vitest test runner
+const isMain =
+  !process.env.VITEST &&
+  (process.argv.some((arg) => /server\.(ts|js)/i.test(arg)) ||
+    process.argv[1]?.includes('tsx') ||
+    import.meta.url.includes('server'));
+
 if (isMain) {
   main().catch((err) => {
     console.error('[Stash Live Engine] failed to start:', err);
     process.exit(1);
   });
 }
+

@@ -96,16 +96,18 @@ export const config = {
   useMockSupabase: isLocal || bool(process.env.STASH_MOCK_SUPABASE, !process.env.SUPABASE_URL),
 
   // AI generation
-  aiProviderDefault: (process.env.STASH_AI_PROVIDER || 'gemini') as 'gemini' | 'openai' | 'anthropic',
+  aiProviderDefault: (process.env.STASH_AI_PROVIDER || (process.env.AWS_BEARER_TOKEN_BEDROCK || process.env.AWS_ACCESS_KEY_ID ? 'bedrock' : 'gemini')) as 'gemini' | 'openai' | 'anthropic' | 'bedrock',
   aiKeys: {
     gemini: process.env.GEMINI_API_KEY || '',
     openai: process.env.OPENAI_API_KEY || '',
     anthropic: process.env.ANTHROPIC_API_KEY || '',
+    bedrock: process.env.AWS_BEARER_TOKEN_BEDROCK || process.env.AWS_ACCESS_KEY_ID || '',
   },
   aiModels: {
-    gemini: process.env.STASH_AI_MODEL_GEMINI || 'gemini-flash-latest',
+    gemini: process.env.STASH_AI_MODEL_GEMINI || 'gemini-1.5-flash',
     openai: process.env.STASH_AI_MODEL_OPENAI || 'gpt-4.1-mini',
     anthropic: process.env.STASH_AI_MODEL_ANTHROPIC || 'claude-sonnet-4-5',
+    bedrock: process.env.BEDROCK_MODEL_ID || 'anthropic.claude-3-haiku-20240307-v1:0',
   },
   generationTotalBudgetMs: 8_000,
   generationProviderTimeoutMs: 6_000,
@@ -120,14 +122,16 @@ export const config = {
   groundingUserAgent: 'StashLive/0.1 (https://meet-visualizer.vercel.app)',
 
   // Image proxy
-  imageProxyPublicOrigin: process.env.STASH_IMAGE_PROXY_ORIGIN || (process.env.STASH_PRODUCT_ORIGIN || 'https://meet-visualizer.vercel.app'),
+  imageProxyPublicOrigin: process.env.STASH_IMAGE_PROXY_ORIGIN || (isLocal || !process.env.STASH_PRODUCT_ORIGIN ? 'http://localhost:5000' : process.env.STASH_PRODUCT_ORIGIN),
   imageProxyMaxBytes: 5_000_000,
   imageProxyFetchTimeoutMs: 4_000,
   imageProxyCacheTtlSeconds: 86_400,
   imageProxyCacheMaxEntries: 200,
   imageProxyTokenTtlSeconds: 7 * 24 * 3600,
 
-  useMockGeneration: isLocal || (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY),
+  // Mock generation is an EXPLICIT mode: STASH_MOCK_GENERATION=1.
+  // It allows live testing of real AI keys in local development.
+  useMockGeneration: bool(process.env.STASH_MOCK_GENERATION, false),
 };
 
 export type Config = typeof config;

@@ -1,34 +1,30 @@
 import type { CardTheme } from '@stash/card-spec';
-import { TYPE, contentWidth, layoutParagraphs, type TextMeasurer } from '@stash/card-core';
+import { TYPE, type TextMeasurer } from '@stash/card-core';
 
 export function TextBlock({
   block,
   theme,
-  measure,
 }: {
   block: { paragraphs: string[] };
   theme: CardTheme;
-  measure: TextMeasurer;
+  measure?: TextMeasurer;
 }) {
-  const { lines } = layoutParagraphs(block.paragraphs, contentWidth, measure);
   return (
-    <div style={{ position: 'relative' }}>
-      {lines.map((line, i) => (
-        <span
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {block.paragraphs.map((p, i) => (
+        <p
           key={i}
           style={{
-            position: 'absolute',
-            top: line.y,
-            left: 0,
-            right: 0,
-            fontSize: TYPE.body.size,
+            margin: 0,
+            fontSize: `${TYPE.body.size}px`,
             fontWeight: TYPE.body.weight,
             lineHeight: `${TYPE.body.lineHeight}px`,
             color: theme.text,
+            wordBreak: 'break-word',
           }}
         >
-          {line.text}
-        </span>
+          {p}
+        </p>
       ))}
     </div>
   );

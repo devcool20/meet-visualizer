@@ -113,7 +113,7 @@ describe('NotionSyncService', () => {
 
     expect(imageCache.cached.size).toBe(1);
     const cards = await store.listCards('u1');
-    const imageBlock = cards[0].spec.blocks.find((b) => b.kind === 'image');
+    const imageBlock = cards[0].spec.blocks.find((b: any) => b.kind === 'image');
     expect(imageBlock).toBeDefined();
     // The stored CardSpec must reference the cached CDN url, never the raw signed Notion url.
     expect((imageBlock as any).url).toContain('cdn.stash.local');

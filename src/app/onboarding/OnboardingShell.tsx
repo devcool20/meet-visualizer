@@ -12,17 +12,19 @@ export function OnboardingShell({
   children,
   step,
   totalSteps = 5,
+  maxWidth = 'max-w-xl',
 }: {
   children: ReactNode;
   step: number;
   totalSteps?: number;
+  maxWidth?: string;
 }) {
   return (
     <div
       className="min-h-screen w-full flex flex-col items-center px-6 py-10"
       style={{ background: '#FBF9F6', color: '#1A1512' }}
     >
-      <div className="w-full max-w-xl flex items-center justify-between mb-10">
+      <div className={`w-full ${maxWidth} flex items-center justify-between mb-8 transition-all duration-300`}>
         <span
           className="text-lg font-medium tracking-tight"
           style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.35rem' }}
@@ -42,7 +44,7 @@ export function OnboardingShell({
           ))}
         </div>
       </div>
-      <div className="w-full max-w-xl">{children}</div>
+      <div className={`w-full ${maxWidth} transition-all duration-300`}>{children}</div>
     </div>
   );
 }

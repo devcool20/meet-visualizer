@@ -15,6 +15,9 @@
   const MeetStepPage = lazy(() => import("./app/onboarding/MeetStepPage"));
   const InstallExtensionPage = lazy(() => import("./app/onboarding/InstallExtensionPage"));
   const DataSetupPage = lazy(() => import("./app/onboarding/DataSetupPage"));
+  const MeetAddonApp = lazy(() => import("./app/meet-addon/MeetAddonApp"));
+  const StudioPage = lazy(() => import("./app/studio/StudioPage"));
+  const VirtualCamDashboard = lazy(() => import("./app/virtualcam/VirtualCamDashboard").then(m => ({ default: m.VirtualCamDashboard })));
 
   const DashboardShell = lazy(() =>
     import("./app/dashboard/DashboardShell").then((m) => ({ default: m.DashboardShell })),
@@ -45,6 +48,38 @@
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/help" element={<HelpPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route
+            path="/meet-addon"
+            element={
+              <Suspense fallback={null}>
+                <MeetAddonApp />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/meet-app"
+            element={
+              <Suspense fallback={null}>
+                <MeetAddonApp />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/studio"
+            element={
+              <Suspense fallback={null}>
+                <StudioPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/virtualcam"
+            element={
+              <Suspense fallback={null}>
+                <VirtualCamDashboard />
+              </Suspense>
+            }
+          />
 
           <Route
             path="/welcome"

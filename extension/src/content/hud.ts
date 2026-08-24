@@ -101,7 +101,10 @@ export class Hud {
     pill.appendChild(messageEl);
 
     root.appendChild(pill);
-    document.body.appendChild(root);
+    const target = document.body || document.documentElement;
+    if (target) {
+      target.appendChild(root);
+    }
 
     this.root = root;
     this.pill = pill;

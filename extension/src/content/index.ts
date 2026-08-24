@@ -170,6 +170,9 @@ function wireBackgroundMessages(): void {
       hud.update({ phase: 'idle', lastPhrase: null, tokenWarning: true, message: null });
     } else if (msg.type === 'settings:update') {
       setTriggerMode(msg.settings.triggerMode);
+    } else if (msg.type === 'card:show') {
+      pushToTalkController?.noteCardShown(msg.captureId ?? null);
+      hud.update({ phase: 'idle', lastPhrase: msg.matchedPhrase || null, tokenWarning: false, message: null });
     } else if (msg.type === 'card:generating') {
       pushToTalkController?.noteGenerating(msg.captureId);
       hud.update({ phase: 'generating', lastPhrase: null, tokenWarning: false, message: 'Generating card…' });
@@ -210,6 +213,9 @@ function injectMainWorldScript(): void {
 
 function startHud(): void {
   hud.mount();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => hud.mount());
+  }
   send({ type: 'hud:ready' });
 }
 

@@ -57,6 +57,29 @@ export function LineChart({
         {areaPath && <path d={areaPath} fill={`url(#${gradientId})`} stroke="none" />}
         <path d={linePath} fill="none" stroke={theme.accent} strokeWidth={CHART.lineWidth} strokeLinecap="round" />
         {last && <circle cx={last.x} cy={last.y} r={CHART.dotRadius} fill={theme.accent} />}
+        {block.series
+          .map((s, idx) => ({ x: points[idx]?.x ?? 0, y: points[idx]?.y ?? 0, label: s.label }))
+          .filter((p) => p.label && p.label.trim())
+          .map((p, idx, arr) => {
+            const isFirst = idx === 0;
+            const isLast = idx === arr.length - 1;
+            const xPos = isFirst ? 6 : isLast ? contentWidth - 6 : p.x;
+            const textAnchor = isFirst ? 'start' : isLast ? 'end' : 'middle';
+            return (
+              <text
+                key={idx}
+                x={xPos}
+                y={CHART.height - 8}
+                fill={theme.textMuted}
+                fontSize={13}
+                fontWeight={500}
+                textAnchor={textAnchor}
+                fontFamily="Inter, -apple-system, sans-serif"
+              >
+                {p.label}
+              </text>
+            );
+          })}
       </svg>
     </div>
   );

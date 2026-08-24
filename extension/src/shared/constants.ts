@@ -12,7 +12,13 @@
  * host_permissions, and the pairing-origin check in the service worker all
  * key off this EXACT string — no wildcard, no subdomain match (plan §2.2).
  */
-export const PRODUCT_ORIGIN = 'https://meet-visualizer.vercel.app';
+export const PRODUCT_ORIGIN = 'http://localhost:5173';
+export const ALLOWED_PRODUCT_ORIGINS = [
+  'https://meet-visualizer.vercel.app',
+  'https://stashlive.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+];
 
 /**
  * The hosted engine's HTTP(S) origin. The WebSocket URL and the
@@ -20,7 +26,7 @@ export const PRODUCT_ORIGIN = 'https://meet-visualizer.vercel.app';
  * local engine (e.g. `http://localhost:5000`) for development by overriding
  * `ENGINE_ORIGIN_OVERRIDE` in `chrome.storage.local` — see background/config.ts.
  */
-export const ENGINE_ORIGIN = 'https://meet-visualizer.vercel.app';
+export const ENGINE_ORIGIN = 'http://localhost:5000';
 
 /** Derives a `ws(s)://` URL from an `http(s)://` origin. */
 export function toWebSocketUrl(httpOrigin: string, path = '/ws'): string {

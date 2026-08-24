@@ -547,14 +547,156 @@ export class MockApiClient implements ApiClient {
     return { ok: true, model: this.mockAiProvider.provider, latencyMs: 320 };
   }
 
-  async generateCard(_transcript: string, _context?: 'rehearsal' | 'meeting'): Promise<GenerateCardResult> {
+  async generateCard(transcript: string, _context?: 'rehearsal' | 'meeting'): Promise<GenerateCardResult> {
     if (!this.mockAiProvider.provider && !this.mockAiProvider.serverKeyAvailable) {
       throw new ApiError(400, 'no_provider', 'No AI provider configured');
     }
-    // Return a fixture-derived card as the mock result.
-    const fixture = SAMPLE_CARDS[0];
+
+    const lower = (transcript || '').toLowerCase();
+    const cleanTitle = (transcript || 'Ambient Insight')
+      .split(' ')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+
+    let generatedSpec: CardSpec;
+
+    if (lower.includes('fable') || lower.includes('game') || lower.includes('rpg')) {
+      generatedSpec = {
+        v: 1,
+        id: `gen_${Date.now()}`,
+        revision: 1,
+        title: cleanTitle.includes('Fable') ? 'Fable (Reboot)' : cleanTitle,
+        subtitle: 'Playground Games · Action RPG',
+        theme: { accent: '#0F766E' },
+        blocks: [
+          {
+            kind: 'metric_row',
+            items: [
+              { label: 'ENGINE', value: 'ForzaTech', emphasis: true },
+              { label: 'PLATFORM', value: 'XSX/PC' },
+              { label: 'RATING', value: '94%', delta: { value: '+12%', direction: 'up' } },
+            ],
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Action RPG reboot developed by Playground Games',
+              'Set in dynamic open world of Albion',
+              'Published by Xbox Game Studios',
+            ],
+          },
+          {
+            kind: 'status_list',
+            rows: [
+              { text: 'Developer: Playground Games', state: 'ok' },
+              { text: 'Source: Wikipedia Knowledge Graph', state: 'info' },
+            ],
+          },
+        ],
+      };
+    } else if (lower.includes('ranbir') || lower.includes('kapoor') || lower.includes('actor')) {
+      generatedSpec = {
+        v: 1,
+        id: `gen_${Date.now()}`,
+        revision: 1,
+        title: cleanTitle,
+        subtitle: 'Indian Actor & Film Producer',
+        theme: { accent: '#6D28D9' },
+        blocks: [
+          {
+            kind: 'metric_row',
+            items: [
+              { label: 'AWARDS', value: '6 Filmfare', emphasis: true },
+              { label: 'DEBUT', value: '2007' },
+              { label: 'BOX OFFICE', value: '₹917 Cr', delta: { value: 'Peak', direction: 'up' } },
+            ],
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Leading Indian actor known for diverse dramatic roles',
+              'Starred in Rockstar, Barfi!, Sanju, and Animal',
+              'Among the highest-paid actors in Hindi cinema',
+            ],
+          },
+          {
+            kind: 'status_list',
+            rows: [{ text: 'Source: Wikipedia Knowledge Graph', state: 'info' }],
+          },
+        ],
+      };
+    } else if (lower.includes('arr') || lower.includes('revenue') || lower.includes('margin') || lower.includes('growth')) {
+      generatedSpec = {
+        v: 1,
+        id: `gen_${Date.now()}`,
+        revision: 1,
+        title: cleanTitle || 'Revenue & Traction',
+        subtitle: 'Stash Live · YC W25 Performance',
+        theme: { accent: '#fb8500' },
+        blocks: [
+          {
+            kind: 'metric_row',
+            items: [
+              { label: 'ARR', value: '$148K', emphasis: true },
+              { label: 'GROWTH', value: '+28%', delta: { value: 'MoM', direction: 'up' } },
+              { label: 'MARGIN', value: '84%' },
+            ],
+          },
+          {
+            kind: 'line_chart',
+            series: [
+              { label: 'Jan', value: 35 },
+              { label: '', value: 48 },
+              { label: 'Mar', value: 72 },
+              { label: '', value: 95 },
+              { label: '', value: 120 },
+              { label: 'Jun', value: 148 },
+            ],
+          },
+          {
+            kind: 'status_list',
+            rows: [
+              { text: '18 active enterprise pilots', state: 'ok' },
+              { text: 'Source: Google Drive · Pitch Deck', state: 'info' },
+            ],
+          },
+        ],
+      };
+    } else {
+      generatedSpec = {
+        v: 1,
+        id: `gen_${Date.now()}`,
+        revision: 1,
+        title: cleanTitle,
+        subtitle: 'Ambient Contextual Intelligence',
+        theme: { accent: '#0F766E' },
+        blocks: [
+          {
+            kind: 'metric_row',
+            items: [
+              { label: 'CONFIDENCE', value: '98.4%', emphasis: true },
+              { label: 'LATENCY', value: '380ms' },
+              { label: 'GROUNDING', value: 'Active' },
+            ],
+          },
+          {
+            kind: 'bullets',
+            items: [
+              `Live briefing for "${transcript}"`,
+              'Synthesized from knowledge aggregator & AI provider',
+              'Broadcast overlay positioned over presenter shoulder',
+            ],
+          },
+          {
+            kind: 'status_list',
+            rows: [{ text: 'Grounded in speech utterance', state: 'ok' }],
+          },
+        ],
+      };
+    }
+
     return {
-      card: cloneSpec(fixture.spec),
+      card: generatedSpec,
       provider: this.mockAiProvider.provider ?? 'gemini',
       source: 'ai',
     };

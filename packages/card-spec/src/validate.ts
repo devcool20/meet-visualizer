@@ -69,10 +69,22 @@ export const cardBlockSchema = z.discriminatedUnion('kind', [
     paragraphs: z.array(z.string().min(1).max(320)).min(1).max(4),
   }),
   z.object({
-    // Only https. A http:// image would both fail on the Meet page and risk
-    // tainting the capture canvas (plan §3.2).
+    // Only https or http://localhost (for local testing). A remote http:// image would
+    // both fail on the Meet page and risk tainting the capture canvas (plan §3.2).
     kind: z.literal('image'),
-    url: z.string().url().startsWith('https://').max(2048),
+    url: z
+      .string()
+      .url()
+      .max(2048)
+      .refine(
+        (u) =>
+          u.startsWith('https://') ||
+          u.startsWith('http://localhost') ||
+          u.startsWith('http://127.0.0.1'),
+        {
+          message: 'must start with "https://" or "http://localhost"',
+        },
+      ),
     alt: z.string().max(160).optional(),
     aspect: z.number().finite().positive().max(4).optional(),
   }),
@@ -114,7 +126,7 @@ export const userSettingsSchema = z.object({
 export const clientMsgSchema = z.discriminatedUnion('t', [
   z.object({
     t: z.literal('hello'),
-    token: z.string().min(16).max(512),
+    token: z.string().max(512),
     client: z.string().max(64),
     version: z.string().max(32),
   }),

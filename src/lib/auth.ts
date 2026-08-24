@@ -171,7 +171,7 @@ let cachedClient: AuthClient | null = null;
  */
 export function getAuthClient(): AuthClient {
   if (cachedClient) return cachedClient;
-  if (isMockMode()) {
+  if (isMockMode() || !supabaseUrl() || !supabaseAnonKey()) {
     cachedClient = new MockAuthClient();
     return cachedClient;
   }

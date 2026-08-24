@@ -47,7 +47,7 @@ export function createUserRouter(store: Store, authProvider: AuthProvider): Rout
     const merged: UserSettings = { ...existing.settings, ...settings };
     const parsed = userSettingsSchema.safeParse(merged);
     if (!parsed.success) {
-      res.status(400).json({ error: 'invalid_settings', message: parsed.error.errors.map((e) => e.message).join(', ') });
+      res.status(400).json({ error: 'invalid_settings', message: parsed.error.errors.map((e: any) => e.message).join(', ') });
       return;
     }
     const updated = await store.updateUserSettings(req.user!.id, parsed.data);
