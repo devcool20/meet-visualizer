@@ -131,7 +131,7 @@ class StashVirtualCamBridge:
         self.audio_level = 0.0
         self.last_card_id = ""
 
-        self.renderer = CardOverlayRenderer(screen_width=width, screen_height=height)
+        self.renderer = CardOverlayRenderer(screen_width=width, screen_height=height, engine_url=self.engine_url)
         self.camera: Optional[ThreadedCamera] = None
 
     def get_camera_frame(self) -> np.ndarray:

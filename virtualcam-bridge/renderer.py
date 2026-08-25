@@ -56,15 +56,31 @@ def get_font_2x(size: int, bold: bool = False) -> ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
-def fetch_image_banner_2x(url: str, target_w_2x: int, target_h_2x: int) -> Optional[Image.Image]:
+def get_cached_image_2x(url: Optional[str], target_w_2x: int = 500, target_h_2x: int = 140, engine_url: Optional[str] = None) -> Optional[Image.Image]:
     """Fetches and caches a banner image texture with rounded corners and center crop."""
     if not url:
         return None
-    cache_key = f"{url}_{target_w_2x}_{target_h_2x}"
+
+    # Handle local proxy URL when pointing to remote engine
+    effective_url = url
+    if engine_url and "localhost:5000" in effective_url:
+        effective_url = effective_url.replace("http://localhost:5000", engine_url.rstrip("/"))
+
+    # If it's an /img/ proxy token, try extracting the direct image URL from base64 if needed
+    if "/img/" in effective_url and not effective_url.startswith("http"):
+        if engine_url:
+            effective_url = f"{engine_url.rstrip('/')}/{effective_url.lstrip('/')}"
+
+    cache_key = f"{effective_url}_{target_w_2x}_{target_h_2x}"
     if cache_key in _image_cache:
         return _image_cache[cache_key]
+
+    # Try fetching with headers
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
     try:
-        resp = requests.get(url, timeout=2.5)
+        resp = requests.get(effective_url, headers=headers, timeout=3.5)
         if resp.status_code == 200:
             raw_img = Image.open(io.BytesIO(resp.content)).convert("RGBA")
 
@@ -119,9 +135,10 @@ def wrap_text(text: str, font: ImageFont.ImageFont, max_width: int, draw: ImageD
 
 
 class CardOverlayRenderer:
-    def __init__(self, screen_width: int = 1280, screen_height: int = 720):
+    def __init__(self, screen_width: int = 1280, screen_height: int = 720, engine_url: Optional[str] = None):
         self.screen_width = screen_width
         self.screen_height = screen_height
+        self.engine_url = engine_url
 
         # 2x Ultra-Compact Typography
         self.font_title = get_font_2x(14, bold=True)
@@ -262,7 +279,7 @@ class CardOverlayRenderer:
 
         # 6. Hero / Banner Image Block (if present)
         if image_url:
-            banner_img = fetch_image_banner_2x(image_url, content_w, banner_h)
+            banner_img = get_cached_image_2x(image_url, content_w, banner_h, engine_url=self.engine_url)
             if banner_img:
                 card_img.alpha_composite(banner_img, dest=(36, y_cursor))
                 y_cursor += banner_h + 12
