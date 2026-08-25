@@ -146,7 +146,7 @@ class HttpApiClient implements ApiClient {
       'Content-Type': 'application/json',
       ...(init?.headers as Record<string, string> | undefined),
     };
-    if (token) headers.Authorization = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token || 'local-dev-token'}`;
     const res = await fetch(this.baseUrl + path, { ...init, headers });
     if (res.status === 204) return undefined as T;
     const body = await res.json().catch(() => ({}));
@@ -302,13 +302,13 @@ export class MockApiClient implements ApiClient {
 
   /** Mock AI provider state for testing. */
   private mockAiProvider: AiProviderState = {
-    provider: null,
-    source: 'none',
-    keyPreview: null,
-    validatedAt: null,
+    provider: 'bedrock',
+    source: 'server',
+    keyPreview: 'AKIA...YQSF',
+    validatedAt: nowIso(),
     lastError: null,
-    serverKeyAvailable: false,
-    serverProvider: null,
+    serverKeyAvailable: true,
+    serverProvider: 'bedrock',
   };
 
   private id(prefix: string): string {

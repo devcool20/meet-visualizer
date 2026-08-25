@@ -107,7 +107,7 @@ export default function StudioPage() {
 
   // 2. Connect to Engine WebSocket
   useEffect(() => {
-    const defaultEngineUrl = (import.meta.env.VITE_ENGINE_WS_URL || 'ws://localhost:5000').replace(/^http/, 'ws');
+    const defaultEngineUrl = (import.meta.env.VITE_ENGINE_WS_URL || 'wss://stash-live-engine.onrender.com').replace(/^http/, 'ws');
     let socket: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
