@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from "react";
-import { motion, AnimatePresence, type Variants } from "motion/react";
+import { useState, useRef, useEffect, useMemo, type ReactNode, type CSSProperties } from "react";
+import { motion, AnimatePresence, useScroll, useSpring, useTransform, type Variants } from "motion/react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/app/auth/AuthContext";
 import { chromeWebStoreUrl } from "@/lib/extension";
@@ -52,6 +52,41 @@ const CHART_DATA = [
 ];
 
 const MAX_VAL = 100;
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+function Reveal({
+  children,
+  reducedMotion,
+  delay = 0,
+  y = 28,
+  className,
+  style,
+}: {
+  children: ReactNode;
+  reducedMotion: boolean;
+  delay?: number;
+  y?: number;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <motion.div
+      className={className}
+      style={style}
+      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y, filter: "blur(6px)" }}
+      whileInView={
+        reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, filter: "blur(0px)" }
+      }
+      viewport={{ once: true, margin: "-10% 0px -10% 0px" }}
+      transition={
+        reducedMotion ? { duration: 0.01 } : { duration: 0.75, ease: EASE, delay }
+      }
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 const containerVariants: Variants = {
   hidden: {},
@@ -502,6 +537,24 @@ export default function App() {
   const [hideNavbar, setHideNavbar] = useState(false);
   const footerRef = useRef<HTMLElement>(null);
 
+  // Scroll-linked motion: page progress thread + hero parallax depth
+  const { scrollYProgress } = useScroll();
+  const progressBarScale = useSpring(scrollYProgress, {
+    stiffness: 140,
+    damping: 30,
+    mass: 0.4,
+  });
+
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: heroProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroBgY = useTransform(heroProgress, [0, 1], ["0%", "22%"]);
+  const heroBgScale = useTransform(heroProgress, [0, 1], [1.05, 1.2]);
+  const heroContentY = useTransform(heroProgress, [0, 1], ["0%", "-10%"]);
+  const heroContentOpacity = useTransform(heroProgress, [0, 0.8], [1, 0]);
+
   const desktopDotsConfig = useMemo(() => {
     return Array.from({ length: 20 * 7 }).map(() => {
       const driftX = [0, Math.random() * 8 - 4, Math.random() * 8 - 4, 0];
@@ -785,9 +838,20 @@ export default function App() {
         color: "#1A1512",
       }}
     >
+      {/* ─── SCROLL PROGRESS THREAD ─── */}
+      <div className="fixed top-0 left-0 right-0 h-[2px] z-[60] pointer-events-none">
+        <motion.div
+          className="h-full w-full origin-left"
+          style={{
+            scaleX: progressBarScale,
+            background: "linear-gradient(90deg, rgba(251,133,0,0.2), #fb8500)",
+          }}
+        />
+      </div>
+
       {/* ─── HEADER ─── */}
       <motion.header 
-        className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl rounded-full z-50 px-4 py-2.5 md:px-8 md:py-3.5"
+        className="fixed top-5 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl rounded-full z-50 px-3 py-2 md:px-4 md:py-2.5"
         animate={{
           y: hideNavbar ? -120 : 0,
           opacity: hideNavbar ? 0 : 1,
@@ -797,22 +861,24 @@ export default function App() {
           pointerEvents: hideNavbar ? "none" : "auto",
         }}
       >
-        {/* Glass background with hardware accelerated clipping */}
+        {/* Glass background — dark glass over the hero, warm white once scrolled */}
         <div 
-          className="absolute inset-0 rounded-full -z-10 overflow-hidden border border-[rgba(26,21,18,0.06)]"
+          className="absolute inset-0 rounded-full -z-10 overflow-hidden border"
           style={{
-            background: "rgba(255, 255, 255, 0.45)",
-            backdropFilter: "blur(20px) saturate(120%)",
-            WebkitBackdropFilter: "blur(20px) saturate(120%)",
-            boxShadow: "0 8px 32px 0 rgba(26, 21, 18, 0.03)",
+            background: isHeroFold ? "rgba(22, 17, 14, 0.42)" : "rgba(255, 255, 255, 0.55)",
+            borderColor: isHeroFold ? "rgba(251, 249, 246, 0.14)" : "rgba(26, 21, 18, 0.06)",
+            backdropFilter: "blur(20px) saturate(140%)",
+            WebkitBackdropFilter: "blur(20px) saturate(140%)",
+            boxShadow: isHeroFold
+              ? "0 8px 32px 0 rgba(0, 0, 0, 0.25)"
+              : "0 8px 32px 0 rgba(26, 21, 18, 0.04)",
             transform: "translateZ(0)",
             WebkitTransform: "translateZ(0)",
           }}
         />
         <div className="flex items-center justify-between w-full relative">
-          {/* Left Column (Desktop: Nav links, Mobile: Hamburger button) */}
-          <div className="flex items-center gap-3">
-            {/* Hamburger Button (visible only on mobile) */}
+          {/* Left: hamburger (mobile only) + brand */}
+          <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden p-1.5 rounded-full hover:bg-[rgba(26,21,18,0.06)] transition-colors focus:outline-none flex items-center justify-center z-50"
@@ -834,8 +900,21 @@ export default function App() {
               </svg>
             </button>
 
-            {/* Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center gap-8 relative">
+            <span
+              className="font-medium tracking-tight whitespace-nowrap select-none"
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "1.3rem",
+                lineHeight: 1,
+                color: isHeroFold ? "#FBF9F6" : "#1A1512",
+              }}
+            >
+              Stash Live
+            </span>
+          </div>
+
+          {/* Right: Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1 relative">
               {navItems.map((item) => {
                 const isActive = activeSection === item.id;
                 const showPill = hoveredNav === item.id || (hoveredNav === null && isActive);
@@ -862,7 +941,7 @@ export default function App() {
                         }
                       }, 800);
                     }}
-                    className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
+                    className="relative px-3 py-1.5 text-[13px] rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
                     style={{
                       color: textColor,
                       fontWeight: isActive ? 600 : 400,
@@ -890,7 +969,7 @@ export default function App() {
                 to="/studio"
                 onMouseEnter={() => setHoveredNav("studio")}
                 onMouseLeave={() => setHoveredNav(null)}
-                className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
+                className="relative px-3 py-1.5 text-[13px] rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
                 style={{
                   color: hoveredNav === "studio" ? hoverColor : inactiveColor,
                   letterSpacing: "0.01em",
@@ -911,37 +990,12 @@ export default function App() {
                 )}
                 <span className="relative z-10">Studio</span>
               </Link>
-              <Link
-                to="/virtualcam"
-                onMouseEnter={() => setHoveredNav("virtualcam")}
-                onMouseLeave={() => setHoveredNav(null)}
-                className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium text-emerald-400"
-                style={{
-                  color: hoveredNav === "virtualcam" ? "#10b981" : "#34d399",
-                  letterSpacing: "0.01em",
-                }}
-              >
-                {hoveredNav === "virtualcam" && (
-                  <motion.div
-                    layoutId="hover-pill"
-                    className={`absolute inset-0 rounded-full -z-10 ${
-                      isHeroFold ? "bg-white/10" : "bg-[rgba(26,21,18,0.06)]"
-                    }`}
-                    transition={
-                      reducedMotion
-                        ? { duration: 0.01 }
-                        : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
-                    }
-                  />
-                )}
-                <span className="relative z-10 font-bold">🎥 Virtual Cam</span>
-              </Link>
               {/* Docs route link — navigates to /docs instead of scrolling */}
               <Link
                 to="/docs"
                 onMouseEnter={() => setHoveredNav("docs")}
                 onMouseLeave={() => setHoveredNav(null)}
-                className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
+                className="relative px-3 py-1.5 text-[13px] rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
                 style={{
                   color: hoveredNav === "docs" ? hoverColor : inactiveColor,
                   letterSpacing: "0.01em",
@@ -962,50 +1016,7 @@ export default function App() {
                 )}
                 <span className="relative z-10">Docs</span>
               </Link>
-              {/* Dashboard nav item — only shown once signed in */}
-              {status === "signed-in" && (
-                <Link
-                  to="/dashboard"
-                  onMouseEnter={() => setHoveredNav("dashboard")}
-                  onMouseLeave={() => setHoveredNav(null)}
-                  className="relative px-3.5 py-1.5 text-sm rounded-full transition-colors duration-200 whitespace-nowrap font-medium"
-                  style={{
-                    color: hoveredNav === "dashboard" ? hoverColor : inactiveColor,
-                    letterSpacing: "0.01em",
-                  }}
-                >
-                  {hoveredNav === "dashboard" && (
-                    <motion.div
-                      layoutId="hover-pill"
-                      className={`absolute inset-0 rounded-full -z-10 ${
-                        isHeroFold ? "bg-white/10" : "bg-[rgba(26,21,18,0.06)]"
-                      }`}
-                      transition={
-                        reducedMotion
-                          ? { duration: 0.01 }
-                          : { ease: [0.16, 1, 0.3, 1], duration: 0.5 }
-                      }
-                    />
-                  )}
-                  <span className="relative z-10">Dashboard</span>
-                </Link>
-              )}
             </nav>
-          </div>
-
-          {/* Right Column: Stash Branding (visible on both mobile and desktop) */}
-          <div className="flex items-center pr-2 select-none">
-            <span
-              className="text-lg font-medium tracking-tight"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "1.35rem",
-                color: isHeroFold ? "#FBF9F6" : "#1A1512",
-              }}
-            >
-              Stash Live
-            </span>
-          </div>
         </div>
 
         {/* Mobile Dropdown Dialog */}
@@ -1051,28 +1062,17 @@ export default function App() {
               >
                 Docs
               </Link>
-              {status === "signed-in" && (
-                <Link
-                  to="/dashboard"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)]"
-                >
-                  Dashboard
-                </Link>
-              )}
             </motion.div>
           )}
         </AnimatePresence>
       </motion.header>
 
       {/* ─── HERO ─── */}
-      <section id="about" className="relative w-full min-h-screen lg:h-screen overflow-x-hidden lg:overflow-hidden">
-        {/* Background */}
+      <section id="about" ref={heroRef} className="relative w-full min-h-screen lg:h-screen overflow-x-hidden lg:overflow-hidden">
+        {/* Background — slow parallax drift + settle-zoom for depth */}
         <motion.div
           className="absolute inset-0 w-full h-full overflow-hidden"
-          initial={reducedMotion ? { opacity: 1 } : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={reducedMotion ? { duration: 0.01 } : { duration: 0.5, ease: "easeOut" }}
+          style={{ y: heroBgY, scale: heroBgScale }}
         >
           <ImageWithFallback
             src={heroBg}
@@ -1087,8 +1087,11 @@ export default function App() {
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#FBF9F6]/[0.05] to-transparent pointer-events-none z-10" />
 
 
-        {/* Content layer */}
-        <div className="relative z-10 min-h-screen lg:h-full flex flex-col lg:flex-row items-center justify-between px-6 md:px-16 lg:px-24 pt-28 pb-16 lg:pt-32 lg:pb-16">
+        {/* Content layer — drifts up and fades as the hero scrolls away */}
+        <motion.div
+          className="relative z-10 min-h-screen lg:h-full flex flex-col lg:flex-row items-center justify-between px-6 md:px-16 lg:px-24 pt-28 pb-16 lg:pt-32 lg:pb-16"
+          style={reducedMotion ? undefined : { y: heroContentY, opacity: heroContentOpacity }}
+        >
           {/* Left wing */}
           <motion.div
             className="w-full lg:w-[36%] pr-0 lg:pr-8 text-center lg:text-left mb-8 lg:mb-0"
@@ -1108,9 +1111,11 @@ export default function App() {
                 letterSpacing: "-0.03em",
                 lineHeight: 1.15,
                 color: "#FBF9F6",
+                textWrap: "balance",
               }}
             >
-              Project live metrics, charts, and docs as you speak.
+              Project live metrics, charts, and docs{" "}
+              <span style={{ fontStyle: "italic", color: "#fb8500" }}>as you speak.</span>
             </motion.h1>
             <motion.p
               custom={reducedMotion}
@@ -1130,22 +1135,9 @@ export default function App() {
             >
               <Link
                 to="/virtualcam"
-                className="px-6 py-3 text-sm font-semibold rounded-full bg-[#fb8500] hover:bg-[#e07600] text-white transition-all shadow-[0_4px_20px_rgba(251,133,0,0.35)] hover:shadow-[0_6px_24px_rgba(251,133,0,0.45)] flex items-center gap-2"
+                className="px-7 py-3 text-sm font-semibold rounded-full bg-[#fb8500] hover:bg-[#e07600] text-white transition-all duration-300 shadow-[0_4px_20px_rgba(251,133,0,0.35)] hover:shadow-[0_8px_28px_rgba(251,133,0,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] inline-block"
               >
-                <span>🎥 Launch Virtual Cam</span>
-                <span>→</span>
-              </Link>
-              <Link
-                to="/studio"
-                className="px-5 py-3 text-sm font-medium rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 transition-all flex items-center gap-2"
-              >
-                <span>🎛️ Studio Preview</span>
-              </Link>
-              <Link
-                to="/rehearse"
-                className="px-5 py-3 text-sm font-medium rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-2 border border-white/10"
-              >
-                <span>🎙️ Rehearse</span>
+                Launch Virtual Cam
               </Link>
             </motion.div>
           </motion.div>
@@ -1162,7 +1154,7 @@ export default function App() {
             custom={reducedMotion}
           >
             {/* Presenter Webcam HUD Card */}
-            <div className="relative w-full aspect-[4/3] rounded-2xl shadow-[0_24px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-[#141210] p-2 flex flex-col gap-1.5 sm:gap-2">
+            <div className="relative w-full aspect-[4/3] rounded-2xl shadow-[0_24px_50px_rgba(0,0,0,0.3)] border border-white/10 bg-[#141210] p-2 flex flex-col gap-1.5 sm:gap-2 overflow-hidden">
               {/* Meeting Header Bar (Simulating Zoom/Meet layout controls) */}
               <div className="flex items-center justify-between px-2 py-1 bg-white/5 rounded-lg text-[7px] xs:text-[8px] font-mono text-white/60">
                 <div className="flex items-center gap-1.5">
@@ -1286,9 +1278,9 @@ export default function App() {
                     initial={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.65, left: "13%", top: "32%", filter: "blur(2px)" }}
                     animate={reducedMotion ? { opacity: 1 } : {
                       opacity: [0, 1, 1, 1],
-                      scale: [0.65, 0.65, 1.3, 1.3],
-                      left: ["13%", "13%", "48%", "48%"],
-                      top: ["32%", "32%", "-15%", "-15%"],
+                      scale: [0.65, 0.65, 1.15, 1.15],
+                      left: ["13%", "13%", "20%", "20%"],
+                      top: ["32%", "32%", "4%", "4%"],
                       filter: ["blur(2px)", "blur(0px)", "blur(0px)", "blur(0px)"]
                     }}
                     exit={
@@ -1296,19 +1288,14 @@ export default function App() {
                         ? { opacity: 0 }
                         : {
                             opacity: [1, 1, 0],
-                            scale: [1.3, 0.65, 0.65],
-                            left: ["48%", "13%", "13%"],
-                            top: ["-15%", "32%", "32%"],
+                            scale: [1.15, 0.65, 0.65],
+                            left: ["20%", "13%", "13%"],
+                            top: ["4%", "32%", "32%"],
                             filter: ["blur(0px)", "blur(2px)", "blur(2px)"],
                             transition: { duration: 0.5, times: [0, 0.6, 1.0], ease: "easeInOut" }
                           }
                     }
-                    transition={
-                      reducedMotion
-                        ? { duration: 0.01 }
-                        : { duration: 3.6, times: [0, 0.083, 0.167, 1.0], ease: "easeInOut" }
-                    }
-                    className="absolute w-[140px] xs:w-[170px] sm:w-[210px] md:w-[240px] rounded-xl p-3 border border-[rgba(26,21,18,0.12)] shadow-2xl pointer-events-auto flex flex-col gap-1.5 sm:gap-2"
+                    className="absolute w-[140px] xs:w-[160px] sm:w-[180px] md:w-[190px] rounded-xl p-3 border border-[rgba(26,21,18,0.12)] shadow-2xl pointer-events-auto flex flex-col gap-1.5 sm:gap-2"
                     style={{
                       background: "rgba(255, 255, 255, 0.45)",
                       backdropFilter: "blur(20px) saturate(130%)",
@@ -1472,7 +1459,7 @@ export default function App() {
               </div>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ─── VIDEO DEMO SECTION ─── */}
@@ -1502,10 +1489,13 @@ export default function App() {
                 backdropFilter: "blur(20px) saturate(120%)",
                 WebkitBackdropFilter: "blur(20px) saturate(120%)",
               }}
+              initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 36 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-10% 0px -10% 0px" }}
               transition={
                 reducedMotion
                   ? { duration: 0.01 }
-                  : { ease: [0.16, 1, 0.3, 1], duration: 0.6 }
+                  : { ease: EASE, duration: 0.8 }
               }
             >
               <div>
@@ -1735,15 +1725,17 @@ export default function App() {
             </motion.div>
 
             {/* Relocated description text, styled light-colored for dark background */}
-            <p
-              className="text-sm text-center mt-6"
-              style={{
-                color: "rgba(251, 249, 246, 0.85)",
-                lineHeight: 1.7,
-              }}
-            >
-              Our real-time cloud engine listens to your stream, matches spoken topics with your connected tools, and projects responsive data overlays directly into your meeting feed.
-            </p>
+            <Reveal reducedMotion={reducedMotion} delay={0.15}>
+              <p
+                className="text-sm text-center mt-6"
+                style={{
+                  color: "rgba(251, 249, 246, 0.85)",
+                  lineHeight: 1.7,
+                }}
+              >
+                Our real-time cloud engine listens to your stream, matches spoken topics with your connected tools, and projects responsive data overlays directly into your meeting feed.
+              </p>
+            </Reveal>
           </div>
         </div>
 
@@ -1753,24 +1745,29 @@ export default function App() {
           style={{ background: "#FBF9F6" }}
         >
           <div className="w-full lg:scale-[0.85] xl:scale-[0.80] origin-center">
-            <p
-              className="text-xs uppercase tracking-widest mb-3 font-semibold"
-              style={{ color: "#fb8500" }}
-            >
-              How it works
-            </p>
-            <h2
-              className="mb-4 leading-tight"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(2rem, 3.5vw, 3rem)",
-                fontWeight: 300,
-                letterSpacing: "-0.02em",
-                color: "#1A1512",
-              }}
-            >
-              Real-time data overlays, powered by your voice.
-            </h2>
+            <Reveal reducedMotion={reducedMotion}>
+              <p
+                className="text-xs uppercase tracking-widest mb-3 font-semibold"
+                style={{ color: "#fb8500" }}
+              >
+                How it works
+              </p>
+              <h2
+                className="mb-4 leading-tight"
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "clamp(2rem, 3.5vw, 3rem)",
+                  fontWeight: 300,
+                  letterSpacing: "-0.02em",
+                  color: "#1A1512",
+                  textWrap: "balance",
+                }}
+              >
+                Real-time data overlays,{" "}
+                <span style={{ fontStyle: "italic", color: "#fb8500" }}>powered by your voice.</span>
+              </h2>
+            </Reveal>
+            <Reveal reducedMotion={reducedMotion} delay={0.12}>
             <div className="space-y-4" style={{ color: "#5A5550", fontSize: "0.85rem", lineHeight: 1.75 }}>
               <div>
                 <h3 className="text-xs font-semibold text-[#1A1512] uppercase tracking-wider mb-1.5">Types of Overlay Data</h3>
@@ -1778,37 +1775,59 @@ export default function App() {
                   Stash Live reads your spoken cues and projects beautifully designed glassmorphic cards right onto your video stream. This includes live <span className="font-semibold text-[#1A1512]">Financial Metrics</span> (such as Q2 Revenue of $240,000 and YoY Growth of +40%), <span className="font-semibold text-[#1A1512]">Team Analytics</span> (active headcount of 142 and NPS score of 78), and <span className="font-semibold text-[#1A1512]">Product Performance</span> (Daily Active Users of 48.2K and latency of 18ms).
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="text-xs font-semibold text-[#1A1512] uppercase tracking-wider mb-1.5">How to Setup</h3>
                 <p>
                   Getting started takes less than 60 seconds:
                 </p>
                 <ol className="list-decimal pl-4 mt-1.5 space-y-1">
-                  <li>Connect your workspaces (Notion, Airtable, or Google Drive) inside the Stash Dashboard.</li>
-                  <li>Configure your custom voice triggers and link them to specific metrics or charts.</li>
-                  <li>Select Stash Live Virtual Camera as your video input in Zoom, Teams, or Google Meet.</li>
+                  {[
+                    "Connect your workspaces (Notion, Airtable, or Google Drive) inside the Stash Dashboard.",
+                    "Configure your custom voice triggers and link them to specific metrics or charts.",
+                    "Select Stash Live Virtual Camera as your video input in Zoom, Teams, or Google Meet.",
+                  ].map((step, i) => (
+                    <motion.li
+                      key={i}
+                      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={
+                        reducedMotion
+                          ? { duration: 0.01 }
+                          : { duration: 0.5, ease: EASE, delay: 0.15 + i * 0.1 }
+                      }
+                    >
+                      {step}
+                    </motion.li>
+                  ))}
                 </ol>
               </div>
             </div>
-            
+            </Reveal>
+
+            <Reveal reducedMotion={reducedMotion} delay={0.22}>
             <div className="mt-6 flex items-center gap-6">
               <button
                 onClick={() => navigate(status === "signed-in" ? "/dashboard" : "/signup")}
-                className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
+                className="group px-6 py-3 text-sm font-medium rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
                 style={{ background: "#1A1512", color: "#FBF9F6" }}
               >
-                {status === "signed-in" ? "Go to Dashboard" : "Start Setup"}
+                <span className="inline-flex items-center gap-2">
+                  {status === "signed-in" ? "Go to Dashboard" : "Start Setup"}
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </span>
               </button>
               <Link
                 to="/docs"
-                className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
+                className="group text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
                 style={{ color: "#5A5550" }}
               >
                 View Documentation
-                <span>→</span>
+                <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
               </Link>
             </div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -1824,24 +1843,29 @@ export default function App() {
           style={{ background: "#FBF9F6" }}
         >
           <div className="w-full lg:scale-[0.85] xl:scale-[0.80] origin-center">
-            <p
-              className="text-xs uppercase tracking-widest mb-6 font-semibold"
-              style={{ color: "#fb8500" }}
-            >
-              The Engagement Gap
-            </p>
-            <h2
-              className="mb-6 leading-tight"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(2rem, 3.5vw, 3rem)",
-                fontWeight: 300,
-                letterSpacing: "-0.02em",
-                color: "#1A1512",
-              }}
-            >
-              What virtual meetings cost you is hiding in plain sight.
-            </h2>
+            <Reveal reducedMotion={reducedMotion}>
+              <p
+                className="text-xs uppercase tracking-widest mb-6 font-semibold"
+                style={{ color: "#fb8500" }}
+              >
+                The Engagement Gap
+              </p>
+              <h2
+                className="mb-6 leading-tight"
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "clamp(2rem, 3.5vw, 3rem)",
+                  fontWeight: 300,
+                  letterSpacing: "-0.02em",
+                  color: "#1A1512",
+                  textWrap: "balance",
+                }}
+              >
+                What virtual meetings cost you is{" "}
+                <span style={{ fontStyle: "italic", color: "#fb8500" }}>hiding in plain sight.</span>
+              </h2>
+            </Reveal>
+            <Reveal reducedMotion={reducedMotion} delay={0.12}>
             <div className="space-y-5" style={{ color: "#5A5550", fontSize: "0.9rem", lineHeight: 1.8 }}>
               <p>
                 Every time a presenter minimizes their face to share a screen, the audience loses the
@@ -1858,23 +1882,34 @@ export default function App() {
                 when it&apos;s relevant — never a beat too early or too late.
               </p>
             </div>
+            </Reveal>
+            <Reveal reducedMotion={reducedMotion} delay={0.22}>
             <div className="mt-10 flex items-center gap-6">
               <Link
                 to={chromeWebStoreUrl()}
-                className="px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80"
+                className="group px-6 py-3 text-sm font-medium rounded-full transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
                 style={{ background: "#1A1512", color: "#FBF9F6" }}
               >
-                Add to Chrome
+                <span className="inline-flex items-center gap-2">
+                  Add to Chrome
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </span>
               </Link>
               <a
-                href="#"
-                className="text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
+                href="#demo"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = document.getElementById("demo");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="group text-sm transition-opacity hover:opacity-60 flex items-center gap-2"
                 style={{ color: "#5A5550" }}
               >
                 How it works
-                <span>→</span>
+                <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
               </a>
             </div>
+            </Reveal>
           </div>
         </div>
 
@@ -1895,7 +1930,7 @@ export default function App() {
           <div
             className="absolute inset-0 flex items-center justify-center p-4 sm:p-8 lg:scale-[0.85] xl:scale-[0.80] origin-center"
           >
-            <div
+            <motion.div
               className="w-full max-w-sm rounded-2xl p-6"
               style={{
                 background: "rgba(255,255,255,0.45)",
@@ -1903,6 +1938,12 @@ export default function App() {
                 border: "1px solid rgba(26,21,18,0.06)",
                 boxShadow: "0 8px 32px 0 rgba(26,21,18,0.08)",
               }}
+              initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 36, rotate: -1 }}
+              whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+              viewport={{ once: true, margin: "-10% 0px -10% 0px" }}
+              transition={
+                reducedMotion ? { duration: 0.01 } : { duration: 0.85, ease: EASE }
+              }
             >
               <div className="flex items-center justify-between mb-5">
                 <div>
@@ -1925,19 +1966,26 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Bar chart */}
+              {/* Bar chart — bars grow in as the card scrolls into view */}
               <div className="flex items-end gap-2" style={{ height: "80px" }}>
-                {CHART_DATA.map((d) => (
+                {CHART_DATA.map((d, i) => (
                   <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
-                    <div
-                      className="w-full rounded-sm"
+                    <motion.div
+                      className="w-full rounded-sm origin-bottom"
+                      initial={reducedMotion ? false : { scaleY: 0 }}
+                      whileInView={{ scaleY: 1 }}
+                      viewport={{ once: true, margin: "-10% 0px" }}
+                      transition={
+                        reducedMotion
+                          ? { duration: 0.01 }
+                          : { duration: 0.7, ease: EASE, delay: 0.2 + i * 0.07 }
+                      }
                       style={{
                         height: `${(d.value / MAX_VAL) * 68}px`,
                         background:
                           d.month === "Jun"
-                            ? "#1A1512"
+                            ? "#fb8500"
                             : "rgba(26,21,18,0.15)",
-                        transition: "height 0.4s ease",
                       }}
                     />
                     <span
@@ -1956,7 +2004,7 @@ export default function App() {
                 <span>real-time · cloud connected</span>
                 <span className="text-[#fb8500]">↑ +18 pts this quarter</span>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -1964,7 +2012,13 @@ export default function App() {
       {/* ─── BANNER STRIP ─── */}
       <section className="py-12 bg-[#FBF9F6] flex justify-center items-center">
         <div className="relative w-full max-w-5xl mx-auto px-4 md:px-8">
-          <div className="relative w-full aspect-[16/8] sm:aspect-[21/8] md:aspect-[21/6] rounded-[20px] sm:rounded-[32px] overflow-hidden border border-[rgba(26,21,18,0.06)] shadow-sm bg-[#FFFBF7]">
+          <motion.div
+            className="relative w-full aspect-[16/8] sm:aspect-[21/8] md:aspect-[21/6] rounded-[20px] sm:rounded-[32px] overflow-hidden border border-[rgba(26,21,18,0.06)] shadow-sm bg-[#FFFBF7]"
+            initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 40, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-10% 0px -10% 0px" }}
+            transition={reducedMotion ? { duration: 0.01 } : { duration: 0.9, ease: EASE }}
+          >
             <ImageWithFallback
               src={orangeTexture}
               alt="Abstract orange cloud texture"
@@ -2079,18 +2133,28 @@ export default function App() {
 
             {/* Center text overlay */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <h3 
+              <h3
                 className="text-base xs:text-lg sm:text-xl md:text-3xl font-light text-white tracking-wide text-center"
-                style={{ 
+                style={{
                   fontFamily: "'Cormorant Garamond', serif",
                   textShadow: "0 2px 12px rgba(0,0,0,0.2)"
                 }}
               >
                 {displayedBannerText}
-                <span className="animate-[pulse_1s_infinite] font-light">|</span>
+                <motion.span
+                  animate={reducedMotion ? { opacity: 1 } : { opacity: [1, 1, 0] }}
+                  transition={
+                    reducedMotion
+                      ? { duration: 0.01 }
+                      : { duration: 1.1, repeat: Infinity, times: [0, 0.5, 1], ease: "linear" }
+                  }
+                  className="font-light"
+                >
+                  |
+                </motion.span>
               </h3>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -2101,7 +2165,7 @@ export default function App() {
         style={{ background: "#FBF9F6", borderBottom: "1px solid rgba(26,21,18,0.06)" }}
       >
         <div className="max-w-5xl mx-auto w-full lg:scale-[0.85] xl:scale-[0.80] origin-center flex flex-col justify-center">
-          <div className="text-center mb-8 md:mb-12">
+          <Reveal reducedMotion={reducedMotion} className="text-center mb-8 md:mb-12">
             <p
               className="text-xs uppercase tracking-widest mb-6 font-semibold"
               style={{ color: "#fb8500" }}
@@ -2116,9 +2180,11 @@ export default function App() {
                 fontWeight: 300,
                 letterSpacing: "-0.02em",
                 color: "#1A1512",
+                textWrap: "balance",
               }}
             >
-              Connect your entire workflow in seconds.
+              Connect your entire workflow{" "}
+              <span style={{ fontStyle: "italic", color: "#fb8500" }}>in seconds.</span>
             </h2>
             <p
               className="max-w-xl mx-auto text-sm"
@@ -2126,10 +2192,23 @@ export default function App() {
             >
               Stash Live connects directly to your favorite tools to project real-time metrics, documents, and logs without leaving your video feed.
             </p>
-          </div>
+          </Reveal>
 
-          {/* 3-Column Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 md:gap-y-8 w-full">
+          {/* 3-Column Grid — staggered reveal */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 md:gap-y-8 w-full"
+            initial="hidden"
+            whileInView={reducedMotion ? "visible" : "visible"}
+            viewport={{ once: true, margin: "-10% 0px" }}
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  staggerChildren: reducedMotion ? 0 : 0.08,
+                },
+              },
+            }}
+          >
             {[
               {
                 id: "notion",
@@ -2206,13 +2285,23 @@ export default function App() {
             ].map((app) => {
               const isConnected = !!connectedApps[app.id];
               return (
-                <div
+                <motion.div
                   key={app.id}
-                  className="flex items-start gap-4 pb-6 border-b border-[rgba(26,21,18,0.06)]"
+                  variants={{
+                    hidden: reducedMotion ? { opacity: 1 } : { opacity: 0, y: 22 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      transition: reducedMotion
+                        ? { duration: 0.01 }
+                        : { duration: 0.55, ease: EASE },
+                    },
+                  }}
+                  className="group flex items-start gap-4 pb-6 border-b border-[rgba(26,21,18,0.06)]"
                 >
                   {/* Icon wrapper */}
                   <div
-                    className="flex items-center justify-center w-12 h-12 rounded-xl bg-white border border-[rgba(26,21,18,0.06)] shadow-[0_4px_12px_rgba(26,21,18,0.02)] flex-shrink-0"
+                    className="flex items-center justify-center w-12 h-12 rounded-xl bg-white border border-[rgba(26,21,18,0.06)] shadow-[0_4px_12px_rgba(26,21,18,0.02)] flex-shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3"
                   >
                     {app.icon}
                   </div>
@@ -2225,7 +2314,7 @@ export default function App() {
                     <p className="text-xs text-[#5A5550] mt-1 mb-2.5 leading-relaxed">
                       {app.description}
                     </p>
-                    
+
                     {/* Button + Extra Info */}
                     <div className="flex items-center flex-wrap gap-2.5">
                       <button
@@ -2235,15 +2324,26 @@ export default function App() {
                             [app.id]: !prev[app.id],
                           }))
                         }
-                        className={`text-[9px] uppercase font-bold tracking-wider px-4 py-2 rounded-full transition-all duration-200 select-none ${
+                        className={`text-[9px] uppercase font-bold tracking-wider px-4 py-2 rounded-full transition-all duration-300 select-none active:scale-95 ${
                           isConnected
-                            ? "bg-[#fb8500] text-white border border-transparent shadow-[0_2px_8px_rgba(251,133,0,0.2)]"
+                            ? "bg-[#fb8500] text-white border border-transparent shadow-[0_2px_8px_rgba(251,133,0,0.25)] hover:shadow-[0_4px_14px_rgba(251,133,0,0.35)]"
                             : app.buttonStyle === "black"
-                            ? "bg-[#1A1512] text-[#FBF9F6] border border-transparent hover:opacity-90"
-                            : "bg-[#F3F3F5] text-[#1A1512] border border-[rgba(26,21,18,0.1)] hover:bg-[#E4E4E6]"
+                            ? "bg-[#1A1512] text-[#FBF9F6] border border-transparent hover:-translate-y-0.5 hover:opacity-90"
+                            : "bg-[#F3F3F5] text-[#1A1512] border border-[rgba(26,21,18,0.1)] hover:bg-[#E4E4E6] hover:-translate-y-0.5"
                         }`}
                       >
-                        {isConnected ? "✓ Connected" : "Connect"}
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.span
+                            key={isConnected ? "connected" : "connect"}
+                            initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                            transition={{ duration: 0.15 }}
+                            className="inline-block"
+                          >
+                            {isConnected ? "✓ Connected" : "Connect"}
+                          </motion.span>
+                        </AnimatePresence>
                       </button>
                       {app.extraInfo && (
                         <span className="text-[10px] text-[#A8A4A0] italic">
@@ -2252,10 +2352,10 @@ export default function App() {
                       )}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -2273,29 +2373,38 @@ export default function App() {
       >
         {/* Call to Action Block */}
         <div className="max-w-3xl mx-auto text-center mb-16 md:mb-20 flex flex-col items-center gap-6 relative z-10">
-          <h2 
-            className="leading-tight"
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)",
-              fontWeight: 300,
-              letterSpacing: "-0.02em",
-              color: "#1A1512"
-            }}
-          >
-            Ready to integrate this into your team meetings?
-          </h2>
-          <Link
-            to={chromeWebStoreUrl()}
-            className="px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 select-none hover:opacity-90 shadow-sm inline-block"
-            style={{
-              background: "#1A1512",
-              color: "#FBF9F6",
-              fontFamily: "'Inter', sans-serif"
-            }}
-          >
-            Add to Chrome
-          </Link>
+          <Reveal reducedMotion={reducedMotion}>
+            <h2
+              className="leading-tight"
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)",
+                fontWeight: 300,
+                letterSpacing: "-0.02em",
+                color: "#1A1512",
+                textWrap: "balance",
+              }}
+            >
+              Ready to integrate this into{" "}
+              <span style={{ fontStyle: "italic", color: "#fb8500" }}>your team meetings?</span>
+            </h2>
+          </Reveal>
+          <Reveal reducedMotion={reducedMotion} delay={0.15}>
+            <Link
+              to={chromeWebStoreUrl()}
+              className="group px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 select-none inline-block hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-[0_4px_16px_rgba(26,21,18,0.12)] hover:shadow-[0_8px_24px_rgba(26,21,18,0.18)]"
+              style={{
+                background: "#1A1512",
+                color: "#FBF9F6",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              <span className="inline-flex items-center gap-2">
+                Add to Chrome
+                <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </span>
+            </Link>
+          </Reveal>
         </div>
 
         {/* Link grid */}
