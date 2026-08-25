@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: stash-live-engine
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build:engine
+    startCommand: npm run start:engine
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: STASH_LOCAL
+        value: "1"
+      - key: STASH_AI_PROVIDER
+        value: bedrock
+      - key: AWS_REGION
+        value: us-east-1
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_BEARER_TOKEN_BEDROCK
+        sync: false
+      - key: BEDROCK_MODEL_ID
+        value: qwen.qwen3-32b-v1:0

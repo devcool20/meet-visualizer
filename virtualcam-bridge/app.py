@@ -348,7 +348,27 @@ def main():
     parser.add_argument("--height", type=int, default=720, help="Output height")
     parser.add_argument("--fps", type=int, default=30, help="Frame rate")
     parser.add_argument("--mirror", action="store_true", help="Enable mirror for presenter self-view")
+    parser.add_argument(
+        "--engine-url",
+        type=str,
+        default=os.environ.get("STASH_ENGINE_URL", "https://stash-live-engine.onrender.com"),
+        help="Backend AI Engine URL (defaults to cloud Render URL with local fallback)",
+    )
     args = parser.parse_args()
+
+    # If cloud is unreachable and local is up, fall back gracefully
+    engine_url = args.engine_url
+    if "onrender.com" in engine_url:
+        try:
+            requests.get(f"{engine_url}/health", timeout=1.5)
+        except Exception:
+            try:
+                if requests.get("http://localhost:5000/health", timeout=1.0).status_code == 200:
+                    engine_url = "http://localhost:5000"
+            except Exception:
+                pass
+
+    print(f"[Stash Live] Connecting to Backend AI Engine at: {engine_url}")
 
     bridge = StashVirtualCamBridge(
         camera_index=args.camera,
@@ -356,6 +376,7 @@ def main():
         height=args.height,
         fps=args.fps,
         mirror=args.mirror,
+        engine_url=engine_url,
     )
     bridge.run()
 
