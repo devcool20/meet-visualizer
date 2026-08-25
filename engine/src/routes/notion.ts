@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
 import type { Store } from '../db/types.js';
 import type { AuthProvider } from '../auth/supabase.js';
 import { requireAuth, type AuthedRequest } from '../auth/middleware.js';
@@ -39,7 +39,7 @@ export function createNotionRouter(
     }
   });
 
-  router.post('/api/notion/sync', requireAuth(authProvider), async (req: AuthedRequest, res) => {
+  router.post('/api/notion/sync', requireAuth(authProvider), async (req: AuthedRequest, res: Response) => {
     const { dataSourceId } = req.body ?? {};
     if (typeof dataSourceId !== 'string') {
       res.status(400).json({ error: 'missing_data_source_id' });
@@ -53,7 +53,7 @@ export function createNotionRouter(
     }
   });
 
-  router.delete('/api/notion/connection', requireAuth(authProvider), async (req: AuthedRequest, res) => {
+  router.delete('/api/notion/connection', requireAuth(authProvider), async (req: AuthedRequest, res: Response) => {
     await store.deleteConnection(req.user!.id, 'notion');
     res.json({ ok: true });
   });
@@ -62,9 +62,9 @@ export function createNotionRouter(
   // deliveries; verification is deployment config (webhook secret), not
   // implemented in this route because it needs no test coverage without a
   // real secret. On receipt, kick a targeted resync of the affected source.
-  router.post('/api/notion/webhook', async (req, res) => {
-    const dataSourceId = req.body?.data?.parent?.data_source_id ?? req.body?.entity?.id;
-    const userId = req.body?.__stashUserId; // populated by our own subscription setup, if applicable
+  router.post('/api/notion/webhook', async (req: Request, res: Response) => {
+    const dataSourceId = (req.body as any)?.data?.parent?.data_source_id ?? (req.body as any)?.entity?.id;
+    const userId = (req.body as any)?.__stashUserId; // populated by our own subscription setup, if applicable
     if (dataSourceId && userId) {
       sync.syncDataSource(userId, dataSourceId).catch((err) => console.error('[Notion Webhook] sync failed:', err));
     }

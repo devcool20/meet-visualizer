@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Response } from 'express';
 import type { Store } from '../db/types.js';
 import type { AuthProvider } from '../auth/supabase.js';
 import { requireAuth, type AuthedRequest } from '../auth/middleware.js';
@@ -16,12 +16,12 @@ export function createUserRouter(store: Store, authProvider: AuthProvider): Rout
   const cards = new CardsService(store);
   router.use(requireAuth(authProvider));
 
-  router.get('/api/me', async (req: AuthedRequest, res) => {
+  router.get('/api/me', async (req: AuthedRequest, res: Response) => {
     const user = await store.getUser(req.user!.id);
     res.json({ user });
   });
 
-  router.post('/api/me/bootstrap', async (req: AuthedRequest, res) => {
+  router.post('/api/me/bootstrap', async (req: AuthedRequest, res: Response) => {
     const existing = await store.getUser(req.user!.id);
     if (existing) {
       res.json({ user: existing, seeded: false });
@@ -37,7 +37,7 @@ export function createUserRouter(store: Store, authProvider: AuthProvider): Rout
     res.status(201).json({ user, seeded: true });
   });
 
-  router.patch('/api/me/settings', async (req: AuthedRequest, res) => {
+  router.patch('/api/me/settings', async (req: AuthedRequest, res: Response) => {
     const settings = req.body as Partial<UserSettings>;
     const existing = await store.getUser(req.user!.id);
     if (!existing) {

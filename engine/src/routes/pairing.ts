@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
 import type { Store } from '../db/types.js';
 import type { AuthProvider } from '../auth/supabase.js';
 import { requireAuth, type AuthedRequest } from '../auth/middleware.js';
@@ -24,13 +24,13 @@ export function createPairingRouter(store: Store, authProvider: AuthProvider): R
   const router = Router();
   const pairing = new PairingService(store);
 
-  router.post('/api/extension/pairing-nonce', requireAuth(authProvider), async (req: AuthedRequest, res) => {
+  router.post('/api/extension/pairing-nonce', requireAuth(authProvider), async (req: AuthedRequest, res: Response) => {
     const result = await pairing.createNonce(req.user!.id);
     res.json(result);
   });
 
-  router.post('/api/extension/pair', async (req, res) => {
-    const { nonce, label } = req.body ?? {};
+  router.post('/api/extension/pair', async (req: Request, res: Response) => {
+    const { nonce, label } = (req.body ?? {}) as { nonce?: string; label?: string };
     if (typeof nonce !== 'string' || typeof label !== 'string' || !label.trim()) {
       res.status(400).json({ error: 'invalid_request' });
       return;
@@ -43,7 +43,7 @@ export function createPairingRouter(store: Store, authProvider: AuthProvider): R
     res.json({ token: result.token, deviceId: result.device.id, expiresAt: result.device.expiresAt.toISOString() });
   });
 
-  router.get('/api/extension/devices', requireAuth(authProvider), async (req: AuthedRequest, res) => {
+  router.get('/api/extension/devices', requireAuth(authProvider), async (req: AuthedRequest, res: Response) => {
     const devices = await store.listDevices(req.user!.id);
     res.json({
       devices: devices.map((d) => ({
@@ -56,8 +56,8 @@ export function createPairingRouter(store: Store, authProvider: AuthProvider): R
     });
   });
 
-  router.post('/api/extension/devices/:id/revoke', requireAuth(authProvider), async (req: AuthedRequest, res) => {
-    await store.revokeDevice(req.user!.id, req.params.id);
+  router.post('/api/extension/devices/:id/revoke', requireAuth(authProvider), async (req: AuthedRequest, res: Response) => {
+    await store.revokeDevice(req.user!.id, (req as Request).params.id);
     res.json({ ok: true });
   });
 
