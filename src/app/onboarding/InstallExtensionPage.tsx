@@ -8,10 +8,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { Check } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { useAuth } from '@/app/auth/AuthContext';
 import { getApiClient } from '@/lib/api';
+import { Action, Pill, StatusMessage, Surface, Telemetry } from '@/app/components/primitives';
 import {
   probeExtensionPresence,
   resolveExtensionId,
@@ -28,6 +30,7 @@ import {
 import { saveSetupStep } from '@/lib/setup';
 import { useExtensionPairing } from '@/app/hooks/useExtensionPairing';
 import { OnboardingShell } from './OnboardingShell';
+import { StepHeader } from './StepHeader';
 
 type PageState =
   | { phase: 'origin-mismatch'; actual: string; expected: string }
@@ -164,62 +167,43 @@ export default function InstallExtensionPage() {
 
   return (
     <OnboardingShell step={2} totalSteps={5}>
-      <div className="text-center space-y-3 mb-8">
-        <h1
-          className="leading-tight"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 300 }}
-        >
-          Setup your presentation mode
-        </h1>
-        <p className="text-sm" style={{ color: '#5A5550' }}>
-          Step 2 of 5 — Choose your meeting mode. Google Meet Add-on and Web Studio require zero installation.
-        </p>
-      </div>
+      <StepHeader
+       className="mb-8"
+        step="Step two"
+        title="Set up your presentation mode"
+        description="Choose how you want to present. The Meet add-on and the web studio both need zero installation — the Chrome extension is only for the ambient always-on mode."
+      />
 
       {/* Recommended Zero-Install Option */}
-      <div
-        className="rounded-2xl p-6 space-y-3 mb-6 text-left"
-        style={{
-          background: 'rgba(251,133,0,0.06)',
-          border: '1px solid rgba(251,133,0,0.3)',
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#fb8500]">
-            ⚡ Recommended (Zero Install)
-          </span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#fb8500] text-white font-medium">
-            New
-          </span>
+      <Surface tone="brand" className="mb-6 space-y-3 p-6 text-left">
+        <div className="flex items-center justify-between gap-3">
+          <span className="eyebrow">Recommended · zero install</span>
+          <Pill tone="brand">New</Pill>
         </div>
-        <h3 className="text-sm font-semibold text-[#1A1512]">
-          Google Meet Add-on & Web Studio
+        <h3 className="font-serif text-lg font-normal text-foreground">
+          Google Meet add-on &amp; web studio
         </h3>
-        <p className="text-xs text-[#5A5550] leading-relaxed">
-          Present directly in Google Meet without installing Chrome extensions or browser add-ons. Works in the Side Panel, Main Stage, or Web Studio tab.
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Present directly in Google Meet without installing a Chrome extension. Works in the side
+          panel, the main stage, or the web studio tab.
         </p>
         <div className="pt-2">
-          <Button onClick={handleContinue} className="bg-[#fb8500] hover:bg-[#ea7700] text-white text-xs h-9">
-            Continue with Zero-Install →
+          <Button onClick={handleContinue} className="h-9 bg-brand text-xs text-white hover:bg-brand-hover">
+            Continue with zero install
           </Button>
         </div>
-      </div>
+      </Surface>
 
       {/* Origin mismatch */}
       {pageState.phase === 'origin-mismatch' && (
-        <div
-          className="rounded-2xl p-6 space-y-4 mb-6"
-          style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(212,24,61,0.2)' }}
-        >
-          <p className="text-sm font-semibold" style={{ color: '#d4183d' }}>
-            Wrong origin
-          </p>
-          <p className="text-sm" style={{ color: '#5A5550' }}>
+        <Surface tone="danger" className="mb-6 space-y-4 p-6 text-left">
+          <p className="text-sm font-semibold text-destructive">Wrong origin</p>
+          <p className="text-sm text-muted-foreground">
             This page is running on <strong>{pageState.actual}</strong>, but the extension was built for{' '}
             <strong>{pageState.expected}</strong>. Pairing is locked to one exact origin by the
             extension&apos;s <code>externally_connectable</code> setting.
           </p>
-          <p className="text-sm" style={{ color: '#5A5550' }}>
+          <p className="text-sm text-muted-foreground">
             Use the hosted app at{' '}
             <a href={pageState.expected} target="_blank" rel="noopener noreferrer" className="underline">
               {pageState.expected}
@@ -230,26 +214,21 @@ export default function InstallExtensionPage() {
           <Button variant="outline" onClick={handleSkip}>
             Continue anyway (no pairing)
           </Button>
-        </div>
+        </Surface>
       )}
 
       {/* Checking */}
       {pageState.phase === 'checking' && (
-        <p className="text-sm text-center" style={{ color: '#5A5550' }}>
+        <p className="text-sm text-center text-muted-foreground">
           Looking for the Stash Live extension…
         </p>
       )}
 
       {/* Service unreachable */}
       {pageState.phase === 'service-unreachable' && (
-        <div
-          className="rounded-2xl p-6 space-y-4 mb-6"
-          style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(212,24,61,0.2)' }}
-        >
-          <p className="text-sm font-semibold" style={{ color: '#d4183d' }}>
-            Service unreachable
-          </p>
-          <p className="text-sm" style={{ color: '#5A5550' }}>
+        <Surface tone="danger" className="mb-6 space-y-4 p-6 text-left">
+          <p className="text-sm font-semibold text-destructive">Service unreachable</p>
+          <p className="text-sm text-muted-foreground">
             The Stash Live service at <strong>{pageState.origin}</strong> did not answer. This may be
             a CORS configuration issue — check that the engine&apos;s CORS allowlist includes the
             dashboard origin, or see the deploy guide in /docs.
@@ -260,66 +239,58 @@ export default function InstallExtensionPage() {
           <Button variant="outline" onClick={handleSkip}>
             Skip for now
           </Button>
-        </div>
+        </Surface>
       )}
 
       {/* Absent: install panel */}
       {pageState.phase === 'absent' && (
         <div className="space-y-6">
           {/* Path A: Chrome Web Store */}
-          <div
-            className="rounded-2xl p-6 space-y-3"
-            style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(26,21,18,0.06)' }}
-          >
-            <p className="text-sm font-semibold" style={{ color: '#fb8500' }}>
+          <Surface className="space-y-3 p-6">
+            <p className="text-sm font-semibold text-foreground">
               {extSource === 'webstore' ? 'Add to Chrome' : 'Chrome Web Store'}
             </p>
             {extSource === 'webstore' ? (
               <>
-                <p className="text-sm" style={{ color: '#5A5550' }}>
+                <p className="text-sm text-muted-foreground">
                   Install from the Chrome Web Store, then come back to this tab.
                 </p>
-                <a href={chromeWebStoreUrl()} target="_blank" rel="noopener noreferrer">
-                  <Button>Add to Chrome</Button>
-                </a>
+                <Action href={chromeWebStoreUrl()} size="sm">
+                  Add to Chrome
+                </Action>
               </>
             ) : (
-              <p className="text-sm" style={{ color: '#5A5550' }}>
+              <p className="text-sm text-muted-foreground">
                 The Chrome Web Store listing isn&apos;t live yet — install from source below.
               </p>
             )}
-          </div>
+          </Surface>
 
           {/* Path B: Load unpacked */}
-          <div
-            className="rounded-2xl p-6 space-y-3"
-            style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(26,21,18,0.06)' }}
-          >
-            <p className="text-sm font-semibold" style={{ color: '#1A1512' }}>
+          <Surface className="space-y-3 p-6">
+            <p className="text-sm font-semibold text-foreground">
               {extSource === 'webstore' ? 'Install from source instead' : 'Install from source'}
             </p>
             {extSource === 'webstore' && (
               <details>
-                <summary className="text-sm cursor-pointer" style={{ color: '#5A5550' }}>
-                  Show instructions
-                </summary>
-                <div className="mt-3 space-y-2 text-sm" style={{ color: '#5A5550' }}>
+                <summary className="text-sm">Show instructions</summary>
+                <div className="mt-3 space-y-2 text-sm text-muted-foreground">
                   <InstallFromSourceSteps />
                 </div>
               </details>
             )}
             {extSource !== 'webstore' && (
-              <div className="space-y-2 text-sm" style={{ color: '#5A5550' }}>
+              <div className="space-y-2 text-sm text-muted-foreground">
                 <InstallFromSourceSteps />
               </div>
             )}
-          </div>
+          </Surface>
 
           {/* Advanced extension ID override */}
           <div className="text-center">
             <button
-              className="text-xs underline"
-              style={{ color: '#5A5550' }}
+              type="button"
+             className="text-xs text-muted-foreground underline decoration-border-strong underline-offset-2 transition-colors hover:text-foreground"
               onClick={() => setShowAdvanced(!showAdvanced)}
             >
               {showAdvanced ? 'Hide advanced' : 'Advanced: my extension has a different ID'}
@@ -327,32 +298,32 @@ export default function InstallExtensionPage() {
           </div>
 
           {showAdvanced && (
-            <div
-              className="rounded-2xl p-4 space-y-3"
-              style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(26,21,18,0.06)' }}
-            >
-              <p className="text-xs" style={{ color: '#5A5550' }}>
-                Current ID: <code>{resolveExtensionId()}</code> ({sourceInfo})
+            <Surface tone="flat" className="space-y-3 p-4">
+              <p className="text-xs text-muted-foreground">
+                Current ID{" "}
+                <Telemetry className="text-foreground">{resolveExtensionId()}</Telemetry> (
+                {sourceInfo})
               </p>
               <div className="flex gap-2">
                 <Input
                   value={advExtId}
                   onChange={(e) => setAdvExtId(e.target.value)}
                   placeholder="Extension ID"
-                  className="flex-1"
+                  aria-label="Extension ID"
+                 className="flex-1"
                 />
                 <Button size="sm" onClick={handleAdvIdSubmit}>
                   Apply
                 </Button>
               </div>
               <button
-                className="text-xs underline"
-                style={{ color: '#5A5550' }}
+                type="button"
+               className="text-xs text-muted-foreground underline decoration-border-strong underline-offset-2 transition-colors hover:text-foreground"
                 onClick={handleAdvIdReset}
               >
                 Reset to default
               </button>
-            </div>
+            </Surface>
           )}
 
           <div className="flex justify-center gap-4 pt-2">
@@ -368,21 +339,19 @@ export default function InstallExtensionPage() {
 
       {/* Pairing */}
       {pageState.phase === 'pairing' && (
-        <p className="text-sm text-center" style={{ color: '#5A5550' }}>
+        <p className="text-sm text-center text-muted-foreground">
           Pairing this browser…
         </p>
       )}
 
       {/* Paired */}
       {pageState.phase === 'paired' && (
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: 'rgba(46,125,50,0.1)' }}>
-            <span className="w-2 h-2 rounded-full" style={{ background: '#2e7d32' }} />
-            <span className="text-sm font-medium" style={{ color: '#2e7d32' }}>
-              Extension paired
-            </span>
-          </div>
-          <p className="text-sm" style={{ color: '#5A5550' }}>
+        <div className="space-y-4 text-center">
+          <Pill tone="success" className="px-3 py-1.5 text-xs">
+            <Check className="size-3" strokeWidth={3} aria-hidden />
+            Extension paired
+          </Pill>
+          <p className="text-sm text-muted-foreground">
             Your browser is now connected to the Stash Live extension.
           </p>
           <Button size="lg" onClick={handleContinue}>
@@ -393,10 +362,8 @@ export default function InstallExtensionPage() {
 
       {/* Nonce expired */}
       {pageState.phase === 'nonce-expired' && (
-        <div className="text-center space-y-3">
-          <p className="text-sm" style={{ color: '#d4183d' }}>
-            The pairing code expired. Try again.
-          </p>
+        <div className="space-y-3 text-center">
+          <StatusMessage tone="danger">The pairing code expired. Try again.</StatusMessage>
           <Button variant="outline" onClick={retry}>
             Retry pairing
           </Button>
@@ -405,10 +372,8 @@ export default function InstallExtensionPage() {
 
       {/* Error */}
       {pageState.phase === 'error' && (
-        <div className="text-center space-y-3">
-          <p className="text-sm" style={{ color: '#d4183d' }}>
-            {pageState.message}
-          </p>
+        <div className="space-y-3 text-center">
+          <StatusMessage tone="danger">{pageState.message}</StatusMessage>
           <div className="flex justify-center gap-2">
             <Button variant="outline" onClick={runInitialCheck}>
               Retry
@@ -438,23 +403,22 @@ function InstallFromSourceSteps() {
       {!zipUrl && (
         <p>Build the extension from the repo (see <code>/docs</code> for instructions).</p>
       )}
-      <ol className="list-decimal list-inside space-y-1">
+      <ol className="prose-body list-decimal space-y-1.5 pl-5 text-sm">
         <li>
           Copy{' '}
           <button
-            className="underline"
-            style={{ color: '#fb8500' }}
+           className="text-brand underline decoration-brand/30 underline-offset-2 transition-colors hover:text-brand-hover"
             onClick={() => navigator.clipboard.writeText('chrome://extensions')}
           >
             chrome://extensions
           </button>{' '}
           and open it in a new tab.
         </li>
-        <li>Toggle <strong>Developer mode</strong> (top-right corner).</li>
+        <li className="text-sm">Toggle <strong className="font-medium text-foreground">Developer mode</strong> (top-right corner).</li>
         <li>Click <strong>Load unpacked</strong> and select the <code>extension/dist</code> folder.</li>
         <li>Come back to this tab — pairing will happen automatically.</li>
       </ol>
-      <p className="text-xs" style={{ color: '#5A5550' }}>
+      <p className="text-xs text-muted-foreground">
         An unpacked build pairs against the development extension ID. This is expected while the
         Web Store listing is in review.
       </p>

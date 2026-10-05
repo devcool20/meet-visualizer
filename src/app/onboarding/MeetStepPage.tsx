@@ -1,21 +1,27 @@
 /**
- * `/meet` — step 5 of 5.
+ * `/meet` — step 5 of 5, the launch pad.
  *
- * Final meeting launch pad: Launch directly via Google Meet Add-on (zero install)
- * or Web Studio Tab Share, complete pre-flight checklist, and enter dashboard.
+ * Two ways to present, then a pre-flight check, then into the product.
+ * Fixed here: the two option cards used three different surface alphas, emoji
+ * as the only differentiator, and a 10px badge. "Open Google Meet" — the final
+ * primary path — was the least prominent control on the page.
  */
-
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { Button } from '@/app/components/ui/button';
-import { useAuth } from '@/app/auth/AuthContext';
-import { getApiClient } from '@/lib/api';
-import { hasRehearsed, saveSetupStep } from '@/lib/setup';
-import { OnboardingShell } from './OnboardingShell';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { Check, ExternalLink, LayoutGrid, Video } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+import { useAuth } from "@/app/auth/AuthContext";
+import { getApiClient } from "@/lib/api";
+import { hasRehearsed, saveSetupStep } from "@/lib/setup";
+import { Pill, Surface } from "@/app/components/primitives";
+import { OnboardingShell } from "./OnboardingShell";
+import { StepActions, StepHeader } from "./StepHeader";
 
 interface ChecklistItem {
   label: string;
   done: boolean;
+  /** What the user should do about it. Required when not done. */
+  hint?: string;
 }
 
 export default function MeetStepPage() {
@@ -23,142 +29,157 @@ export default function MeetStepPage() {
   const navigate = useNavigate();
 
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
-    { label: 'AI Key / Workspace configured', done: false },
-    { label: 'Rehearsal studio verified', done: false },
-    { label: 'Google Meet Add-on / Studio ready', done: true },
+    { label: "AI key or workspace configured", done: false, hint: "Add one in step 3" },
+    { label: "Rehearsal verified", done: false, hint: "Try one phrase in Studio" },
+    { label: "Meet add-on or Studio ready", done: true },
   ]);
 
   useEffect(() => {
+    let cancelled = false;
     async function run() {
       const api = getApiClient(getAccessToken);
       let aiAvailable = false;
       try {
-        const aiState = await api.getAiProvider();
-        aiAvailable = aiState.source !== 'none';
+        const state = await api.getAiProvider();
+        aiAvailable = state.source !== "none";
       } catch {
-        // Ignore
+        /* treat an unreachable engine as "not configured" rather than blocking */
       }
       const rehearsed = hasRehearsed();
-
+      if (cancelled) return;
       setChecklist([
-        { label: 'AI Key / Workspace configured', done: aiAvailable },
-        { label: 'Rehearsal studio verified', done: rehearsed },
-        { label: 'Google Meet Add-on / Studio ready', done: true },
+        {
+          label: "AI key or workspace configured",
+          done: aiAvailable,
+          hint: aiAvailable ? undefined : "Add one in step 3",
+        },
+        {
+          label: "Rehearsal verified",
+          done: rehearsed,
+          hint: rehearsed ? undefined : "Try one phrase in Studio",
+        },
+        { label: "Meet add-on or Studio ready", done: true },
       ]);
     }
     run();
+    return () => {
+      cancelled = true;
+    };
   }, [getAccessToken]);
 
   function handleDone() {
-    saveSetupStep('meet');
-    navigate('/dashboard');
+    saveSetupStep("meet");
+    navigate("/dashboard");
   }
 
   function handleOpenMeet() {
-    window.open('https://meet.google.com/new', '_blank', 'noopener,noreferrer');
+    window.open("https://meet.google.com/new", "_blank", "noopener,noreferrer");
   }
 
+  const doneCount = checklist.filter((c) => c.done).length;
+
   return (
-    <OnboardingShell step={5} totalSteps={5}>
-      <div className="text-center space-y-3 mb-8">
-        <h1
-          className="leading-tight"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 300 }}
-        >
-          You&apos;re ready for live calls.
-        </h1>
-        <p className="text-sm" style={{ color: '#5A5550' }}>
-          Step 5 of 5 — Pick how you want to present in Google Meet (Zero install required).
-        </p>
-      </div>
+    <OnboardingShell step={5} totalSteps={5} maxWidth="max-w-3xl">
+      <StepHeader
+        step="Final step"
+        title="Ready for live calls"
+        description="Pick how you want to present, then open a meeting. You can switch approaches at any time."
+      />
 
-      {/* Two Presentation Choices */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {/* Choice A: In-Meeting Google Meet Add-on */}
-        <div
-          className="rounded-2xl p-5 text-left flex flex-col justify-between"
-          style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(26,21,18,0.08)' }}
-        >
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-base">🎛️</span>
-              <h2 className="text-sm font-semibold text-[#1A1512]">Google Meet Add-on</h2>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#fb8500]/15 text-[#fb8500] font-mono">
-                RECOMMENDED
-              </span>
+      {/* Ways to present */}
+      <ul className="mt-10 grid gap-4 md:grid-cols-2">
+        <li>
+          <Surface tone="brand" className="flex h-full flex-col gap-4 p-5">
+            <div className="space-y-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <LayoutGrid className="size-4 shrink-0 text-brand" strokeWidth={1.9} aria-hidden />
+                <h2 className="font-serif text-lg font-normal text-foreground">Meet add-on</h2>
+                <Pill tone="brand">Recommended</Pill>
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Runs inside Google Meet&rsquo;s side panel and can expand to the main stage for
+                everyone in the call. Nothing to install.
+              </p>
             </div>
-            <p className="text-xs text-[#5A5550] leading-relaxed">
-              Runs directly inside Google Meet&apos;s <strong>Side Panel</strong> and can expand to the <strong>Main Stage</strong> for all attendees.
-            </p>
-          </div>
-          <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between">
-            <Link to="/meet-addon" target="_blank">
-              <Button size="sm" className="bg-[#fb8500] hover:bg-[#ea7700] text-white text-xs h-8">
-                Open Add-on View ↗
+            <div className="mt-auto border-t border-border pt-4">
+              <Button asChild size="sm">
+                <a href="/meet-addon" target="_blank" rel="noopener noreferrer">
+                  Open add-on view
+                  <ExternalLink className="size-3.5" strokeWidth={2} aria-hidden />
+                </a>
               </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Choice B: Web Studio Broadcaster */}
-        <div
-          className="rounded-2xl p-5 text-left flex flex-col justify-between"
-          style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(26,21,18,0.08)' }}
-        >
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-base">📹</span>
-              <h2 className="text-sm font-semibold text-[#1A1512]">Web Studio Broadcaster</h2>
             </div>
-            <p className="text-xs text-[#5A5550] leading-relaxed">
-              Full presenter camera feed with dynamic over-the-shoulder cards. Share this tab directly in Google Meet (1080p 60fps).
-            </p>
-          </div>
-          <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between">
-            <Link to="/studio" target="_blank">
-              <Button size="sm" variant="outline" className="text-xs h-8 border-[#1A1512]/20">
-                Launch Studio ↗
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+          </Surface>
+        </li>
 
-      {/* Checklist Status */}
-      <div
-        className="rounded-2xl p-4 mb-6 text-left"
-        style={{ background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(26,21,18,0.06)' }}
-      >
-        <h2 className="text-xs font-semibold uppercase tracking-wider mb-2 text-[#5A5550]">
-          Pre-flight Status
-        </h2>
-        <div className="space-y-1.5">
-          {checklist.map((item, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs">
+        <li>
+          <Surface className="flex h-full flex-col gap-4 p-5">
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2">
+                <Video className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.9} aria-hidden />
+                <h2 className="font-serif text-lg font-normal text-foreground">Web studio</h2>
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Your full camera feed with cards positioned over your shoulder. Share the tab
+                directly in Meet at 1080p.
+              </p>
+            </div>
+            <div className="mt-auto border-t border-border pt-4">
+              <Button asChild variant="outline" size="sm">
+                <a href="/studio" target="_blank" rel="noopener noreferrer">
+                  Launch studio
+                  <ExternalLink className="size-3.5" strokeWidth={2} aria-hidden />
+                </a>
+              </Button>
+            </div>
+          </Surface>
+        </li>
+      </ul>
+
+      {/* Pre-flight */}
+      <Surface tone="flat" className="mt-5 p-5">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="eyebrow">Pre-flight</h2>
+          <span className="telemetry text-xs text-muted-subtle">
+            {doneCount} / {checklist.length}
+          </span>
+        </div>
+        <ul className="space-y-2.5" aria-live="polite">
+          {checklist.map((item) => (
+            <li key={item.label} className="flex items-start gap-3">
               <span
-                className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full text-[10px] font-bold"
-                style={{
-                  background: item.done ? '#2e7d32' : 'rgba(26,21,18,0.08)',
-                  color: item.done ? '#fff' : '#5A5550',
-                }}
+                className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-bold ${
+                  item.done ? "bg-success text-white" : "bg-border text-muted-subtle"
+                }`}
+                aria-hidden
               >
-                {item.done ? '✓' : '•'}
+                {item.done ? <Check className="size-2.5" strokeWidth={3.5} /> : "•"}
               </span>
-              <span style={{ color: item.done ? '#1A1512' : '#5A5550' }}>{item.label}</span>
-            </div>
+              <span className="min-w-0">
+                <span
+                  className={`text-sm ${item.done ? "text-foreground" : "text-muted-foreground"}`}
+                >
+                  {item.label}
+                </span>
+                {!item.done && item.hint && (
+                  <span className="block text-xs text-muted-subtle">{item.hint}</span>
+                )}
+                <span className="sr-only">{item.done ? " — done" : " — not done yet"}</span>
+              </span>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </Surface>
 
-      {/* Footer Actions */}
-      <div className="flex justify-center gap-3">
+      <StepActions>
         <Button variant="outline" onClick={handleOpenMeet}>
           Open Google Meet
+          <ExternalLink className="size-3.5" strokeWidth={2} aria-hidden />
         </Button>
-        <Button onClick={handleDone} className="bg-[#1A1512] hover:bg-[#2D2520] text-white">
-          Enter Dashboard
+        <Button size="lg" onClick={handleDone}>
+          Enter dashboard
         </Button>
-      </div>
+      </StepActions>
     </OnboardingShell>
   );
 }

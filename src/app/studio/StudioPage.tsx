@@ -9,12 +9,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
+import { Loader2, Mic } from 'lucide-react';
 import { GlassCard } from '@stash/card-react';
 import type { CardSpec } from '@stash/card-spec';
 import { getApiClient } from '@/lib/api';
 import { useAuth } from '@/app/auth/AuthContext';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/app/components/ui/dialog';
+import {
+  Action,
+  Pill,
+  StatusDot,
+  StatusMessage,
+  Surface,
+  Wordmark,
+} from '@/app/components/primitives';
 
 const QUICK_TOPICS = [
   { label: 'Ranbir Kapoor', prompt: 'Ranbir Kapoor' },
@@ -282,77 +299,62 @@ export default function StudioPage() {
   }, [positionMode]);
 
   return (
-    <div
-      className="min-h-screen w-full flex flex-col select-none"
-      style={{
-        background: '#12100E',
-        fontFamily: "'Inter', sans-serif",
-        color: '#FBF9F6',
-      }}
-    >
+    // `.studio` re-points the shared tokens at dark values, so every colour
+    // below is a token rather than a raw hex or a stock Tailwind grey.
+    <div className="studio flex min-h-screen w-full flex-col bg-background text-foreground">
       {/* ── Studio Header ── */}
-      <header className="px-6 py-3.5 flex items-center justify-between border-b border-white/10 bg-[#1A1512]/90 backdrop-blur-md">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card/90 px-[var(--gutter)] py-3 backdrop-blur-md">
         <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
-            <span className="text-sm font-bold tracking-wider uppercase font-serif">Stash Live</span>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-[#fb8500]/20 text-[#fb8500] font-mono">
-              STUDIO
-            </span>
+          <Link to="/" className="flex items-center gap-2 text-foreground transition-opacity hover:opacity-75">
+            <Wordmark size="sm" className="block" />
+            <Pill tone="brand">Studio</Pill>
           </Link>
 
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ background: engineConnected ? '#22c55e' : '#fb8500' }}
-            />
-            <span>{engineConnected ? 'Engine Live' : 'Connecting…'}</span>
-          </div>
+          <span className="flex items-center gap-2 text-xs text-muted-foreground" role="status">
+            <StatusDot tone={engineConnected ? "success" : "brand"} pulse={!engineConnected} />
+            {engineConnected ? "Engine live" : "Connecting…"}
+          </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Audio Visualizer Meter */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs">
-            <span className="text-gray-400">Mic</span>
-            <div className="w-16 h-2 rounded-full bg-white/10 overflow-hidden flex items-center">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Audio visualiser */}
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-accent/60 px-3 py-1.5 text-xs">
+            <span className="text-muted-foreground">Mic</span>
+            <div className="flex h-2 w-16 items-center overflow-hidden rounded-full bg-accent">
               <div
-                className="h-full bg-[#fb8500] transition-all duration-75"
+                className="h-full rounded-full bg-brand transition-[width] duration-75"
                 style={{ width: `${audioLevel}%` }}
               />
             </div>
           </div>
 
-          {/* Position Selector */}
-          <div className="flex items-center bg-white/5 p-0.5 rounded-lg border border-white/10 text-xs">
-            <button
-              onClick={() => setPositionMode('auto')}
-              className={`px-2.5 py-1 rounded-md transition-all ${
-                positionMode === 'auto' ? 'bg-[#fb8500] text-white font-medium' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Auto
-            </button>
-            <button
-              onClick={() => setPositionMode('left')}
-              className={`px-2.5 py-1 rounded-md transition-all ${
-                positionMode === 'left' ? 'bg-[#fb8500] text-white font-medium' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Left
-            </button>
-            <button
-              onClick={() => setPositionMode('right')}
-              className={`px-2.5 py-1 rounded-md transition-all ${
-                positionMode === 'right' ? 'bg-[#fb8500] text-white font-medium' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Right
-            </button>
+          {/* Position selector */}
+          <div
+            className="flex items-center gap-0.5 rounded-lg border border-border bg-accent/60 p-0.5 text-xs"
+            role="group"
+            aria-label="Card position"
+          >
+            {(["auto", "left", "right"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setPositionMode(mode)}
+                aria-pressed={positionMode === mode}
+                className={`rounded-md px-2.5 py-1 capitalize transition-all duration-200 ${
+                  positionMode === mode
+                    ? "bg-brand font-medium text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
           </div>
 
           <Button
             size="sm"
             onClick={() => setShowMeetHelp(true)}
-            className="bg-[#fb8500] hover:bg-[#ea7700] text-white text-xs px-3.5 h-8 font-medium"
+            className="h-8 bg-brand px-3.5 text-xs font-medium text-white hover:bg-brand-hover"
           >
             Present in Google Meet
           </Button>
@@ -360,12 +362,16 @@ export default function StudioPage() {
       </header>
 
       {/* ── Main Studio Presenter Stage ── */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <main className="relative flex flex-1 flex-col items-center justify-center gap-4 overflow-hidden px-[var(--gutter)] py-6">
         {/* Widescreen Video Frame Container */}
-        <div
-          className="relative w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl border border-white/15 aspect-video bg-black flex items-center justify-center"
-          style={{ maxHeight: 'calc(100vh - 220px)' }}
-        >
+        <div className="relative flex aspect-video w-full max-w-5xl items-center justify-center overflow-hidden rounded-panel border border-border bg-black shadow-lifted">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="size-full -scale-x-100 object-cover"
+          />
           {/* Live Camera Stream */}
           <video
             ref={videoRef}
@@ -388,9 +394,10 @@ export default function StudioPage() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="p-4 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/15 flex items-center gap-3 text-xs shadow-2xl"
+                  className="flex items-center gap-3 rounded-card border border-border bg-black/60 p-4 text-xs shadow-lifted backdrop-blur-xl"
+                  role="status"
                 >
-                  <div className="w-5 h-5 rounded-full border-2 border-[#fb8500] border-t-transparent animate-spin" />
+                  <Loader2 className="size-4 animate-spin text-brand" strokeWidth={2.2} aria-hidden />
                   <span>Synthesizing card…</span>
                 </motion.div>
               )}
@@ -409,48 +416,62 @@ export default function StudioPage() {
             </AnimatePresence>
           </div>
 
-          {/* Presenter Name Badge */}
-          <div className="absolute bottom-6 left-6 z-20 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-xs text-white flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#fb8500] animate-pulse" />
-            <span>Stash Live Studio Broadcaster</span>
+          {/* Presenter badge */}
+          <div className="absolute bottom-6 left-6 z-20 flex items-center gap-2 rounded-full border border-border bg-black/60 px-3 py-1.5 text-xs text-foreground backdrop-blur-md">
+            <StatusDot tone="brand" pulse />
+            <span>Studio broadcaster</span>
           </div>
         </div>
 
         {/* ── Studio Bottom Controls ── */}
-        <div className="w-full max-w-3xl mt-4 space-y-3">
+        <div className="w-full max-w-3xl space-y-3">
           {/* Live Voice Indicator */}
           {isListening && (
             <motion.div
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-3 rounded-xl bg-[#fb8500]/15 border border-[#fb8500] flex items-center gap-3 text-xs shadow-lg"
+              className="flex items-center gap-3 rounded-xl border border-warning-border bg-warning-surface px-3 py-2.5 text-xs text-foreground shadow-brand"
+              role="status"
             >
-              <span className="w-2.5 h-2.5 rounded-full bg-[#fb8500] animate-ping" />
-              <span className="font-semibold text-[#fb8500]">Listening:</span>
-              <span>{interimTranscript || 'Speak entity or topic…'}</span>
+              <StatusDot tone="brand" pulse />
+              <span className="font-medium text-brand">Listening</span>
+              <span className="min-w-0 truncate text-muted-foreground">
+                {interimTranscript || "Speak an entity or topic…"}
+              </span>
             </motion.div>
           )}
 
-          {errorMessage && (
-            <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center">
-              {errorMessage}
-            </div>
-          )}
+          {errorMessage && <StatusMessage tone="danger">{errorMessage}</StatusMessage>}
 
           <div className="flex items-center gap-3">
+            {/* The product's signature control. Hold to talk. */}
             <button
+              type="button"
               onMouseDown={startListening}
               onMouseUp={stopListening}
               onTouchStart={startListening}
               onTouchEnd={stopListening}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-xs transition-all flex-1 select-none ${
+              onKeyDown={(e) => {
+                if ((e.key === " " || e.key === "Enter") && !e.repeat) startListening();
+              }}
+              onKeyUp={(e) => {
+                if (e.key === " " || e.key === "Enter") stopListening();
+              }}
+              onBlur={stopListening}
+              aria-pressed={isListening}
+              className={`group flex flex-1 select-none items-center justify-center gap-2.5 rounded-card px-6 py-3.5 text-sm font-medium transition-all duration-200 active:scale-[0.99] ${
                 isListening
-                  ? 'bg-[#fb8500] text-white shadow-2xl scale-[0.98]'
-                  : 'bg-white text-[#1A1512] hover:bg-gray-200 active:scale-[0.98]'
+                  ? "bg-brand text-white shadow-brand-lg"
+                  : "bg-foreground text-background hover:bg-foreground/90"
               }`}
             >
-              <span>{isListening ? '🎙️ Release to Generate' : '🎙️ Hold to Speak'}</span>
-              <kbd className="text-[10px] px-2 py-0.5 rounded bg-black/10 font-mono">
+              <Mic className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+              <span>{isListening ? "Release to generate" : "Hold to speak"}</span>
+              <kbd
+                className={`telemetry ml-1 rounded px-2 py-0.5 text-[0.625rem] ${
+                  isListening ? "bg-white/20 text-white" : "bg-background/15 text-background"
+                }`}
+              >
                 Alt+Shift+Space
               </kbd>
             </button>
@@ -460,9 +481,9 @@ export default function StudioPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setActiveCard(null)}
-                className="h-12 px-4 text-xs border-white/20 text-gray-300 hover:bg-white/10"
+                className="h-[3.25rem] border-border-strong px-4 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
               >
-                Clear Card
+                Clear card
               </Button>
             )}
           </div>
@@ -480,30 +501,31 @@ export default function StudioPage() {
           >
             <Input
               type="text"
-              placeholder="Or type a topic: Ranbir Kapoor, Q2 Revenue, Fable 5, Postgres vs Dynamo…"
+              placeholder="Or type a topic — Q2 revenue, team size, latency…"
               value={manualInput}
               onChange={(e) => setManualInput(e.target.value)}
-              className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 text-xs h-10"
+              aria-label="Type a topic to generate a card"
+              className="h-10 border-border bg-input-background text-xs text-foreground placeholder:text-muted-subtle"
             />
             <Button
               type="submit"
               size="sm"
               disabled={!manualInput.trim() || isGenerating}
-              className="h-10 px-4 text-xs bg-[#fb8500] hover:bg-[#ea7700] text-white"
+              className="h-10 bg-brand px-4 text-xs text-white hover:bg-brand-hover"
             >
               Generate
             </Button>
           </form>
 
-          {/* Suggested Topics */}
-          <div className="flex items-center gap-2 flex-wrap justify-center pt-1">
-            <span className="text-[11px] text-gray-500">Quick queries:</span>
+          {/* Suggested topics */}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            <span className="eyebrow text-muted-subtle">Try</span>
             {QUICK_TOPICS.map((topic) => (
               <button
                 key={topic.label}
                 type="button"
                 onClick={() => void handleGenerate(topic.prompt)}
-                className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:border-[#fb8500] hover:text-white transition-colors"
+                className="rounded-full border border-border bg-accent/60 px-2.5 py-1 text-[0.6875rem] text-muted-foreground transition-colors duration-200 hover:border-brand/40 hover:text-brand"
               >
                 {topic.label}
               </button>
@@ -512,57 +534,54 @@ export default function StudioPage() {
         </div>
       </main>
 
-      {/* ── Google Meet Presentation Modal ── */}
-      {showMeetHelp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#1A1512] border border-white/15 rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl text-white">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold">Broadcasting to Google Meet</h3>
-              <button onClick={() => setShowMeetHelp(false)} className="text-gray-400 hover:text-white">
-                ✕
-              </button>
-            </div>
+      {/* ── Google Meet presentation help ── */}
+      <Dialog open={showMeetHelp} onOpenChange={setShowMeetHelp}>
+        <DialogContent className="studio max-w-lg border-border bg-card text-foreground">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-lg font-normal">
+              Broadcasting to Google Meet
+            </DialogTitle>
+            <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
+              Two ways to get this stage into a Meet call. Neither needs an install.
+            </DialogDescription>
+          </DialogHeader>
 
-            <p className="text-xs text-gray-300 leading-relaxed">
-              You can broadcast your Stash Live stage directly into any Google Meet call with 0 installations:
-            </p>
+          <div className="space-y-3">
+            <Surface tone="outline" className="space-y-1.5 p-4">
+              <p className="text-sm font-medium text-brand">Share this tab</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                In Google Meet choose <strong className="font-medium text-foreground">Present now
+                {" → "}A tab</strong> and select this Stash Live Studio window. Your video and cards
+                stream at full quality.
+              </p>
+            </Surface>
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <span className="font-semibold text-[#fb8500]">Option 1: Share this Tab (Instant 1080p 60fps)</span>
-                <p className="text-gray-400">
-                  In Google Meet, click <strong>Present now ➔ A Tab</strong> and select this <strong>Stash Live Studio</strong> tab. Your video and dynamic cards stream with crystal clarity.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <span className="font-semibold text-[#fb8500]">Option 2: Google Meet In-Meeting Add-on</span>
-                <p className="text-gray-400">
-                  Launch the Stash Live Add-on inside Meet&apos;s Side Panel or Main Stage using the official Google Meet SDK.
-                </p>
-                <Link
-                  to="/meet-addon"
-                  target="_blank"
-                  className="inline-block mt-2 text-[#fb8500] underline font-medium"
-                >
-                  Open In-Meeting Add-on Preview ↗
-                </Link>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
+            <Surface tone="outline" className="space-y-1.5 p-4">
+              <p className="text-sm font-medium text-brand">Meet add-on</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Launch Stash Live inside Meet&rsquo;s side panel or main stage using the official
+                Google Meet SDK.
+              </p>
+              <Action
+                href="/meet-addon"
                 size="sm"
-                onClick={() => setShowMeetHelp(false)}
-                className="border-white/20 text-white"
+                variant="outline"
+                className="mt-2"
+                external
+                trailingArrow
               >
-                Got it
-              </Button>
-            </div>
+                Open add-on preview
+              </Action>
+            </Surface>
           </div>
-        </div>
-      )}
+
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setShowMeetHelp(false)}>
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

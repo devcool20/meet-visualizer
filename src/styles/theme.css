@@ -1,87 +1,198 @@
 @custom-variant dark (&:is(.dark *));
 
+/**
+ * Stash Live design tokens — Premium Editorial Light (`design.md`).
+ *
+ * One source of truth for the warm alabaster / espresso / orange system.
+ * Every screen consumes these; nothing hardcodes a brand hex in JSX.
+ */
+
 :root {
-  --font-size: 16px;
-  --background: #FBF9F6;
-  --foreground: #1A1512;
+  /* ─── Surfaces ─── */
+  --background: #fbf9f6;
+  --background-sunken: #f4f1ec;
+  --foreground: #1a1512;
   --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #030213;
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
-  --muted: #ececf0;
-  --muted-foreground: #717182;
-  --accent: #e9ebef;
-  --accent-foreground: #030213;
+  --card-foreground: #1a1512;
+  --popover: #ffffff;
+  --popover-foreground: #1a1512;
+
+  /* ─── Brand ─── */
+  --primary: #1a1512;
+  --primary-foreground: #fbf9f6;
+  --primary-hover: #2d2520;
+
+  --accent-brand: #fb8500;
+  --accent-brand-hover: #ea7700;
+  --accent-brand-ink: #b35f00;
+
+  /* ─── Neutrals (warm — never cool grey) ─── */
+  --secondary: #f1eee9;
+  --secondary-foreground: #1a1512;
+  --muted: #f1eee9;
+  --muted-foreground: #5a5550;
+  --muted-foreground-subtle: #8b857e;
+  --accent: #efebe5;
+  --accent-foreground: #1a1512;
+
+  /* ─── Status ─── */
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
+  --destructive-surface: rgba(212, 24, 61, 0.06);
+  --destructive-border: rgba(212, 24, 61, 0.2);
+  --success: #2e7d32;
+  --success-surface: rgba(46, 125, 50, 0.08);
+  --success-border: rgba(46, 125, 50, 0.22);
+  --warning: #a86a00;
+  --warning-surface: rgba(251, 133, 0, 0.08);
+  --warning-border: rgba(251, 133, 0, 0.22);
+
+  /* ─── Lines ─── */
+  --border: rgba(26, 21, 18, 0.08);
+  --border-strong: rgba(26, 21, 18, 0.14);
   --input: transparent;
-  --input-background: #f3f3f5;
-  --switch-background: #cbced4;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --input-background: #f4f1ec;
+  --switch-background: #d6d0c8;
+  --ring: #fb8500;
+
+  /* ─── Glass — the single card material (`design.md` §2) ─── */
+  --glass-bg: rgba(255, 255, 255, 0.45);
+  --glass-bg-strong: rgba(255, 255, 255, 0.66);
+  --glass-border: rgba(26, 21, 18, 0.06);
+  --glass-blur: 20px;
+  --glass-shadow: 0 8px 32px 0 rgba(26, 21, 18, 0.03);
+
+  /* ─── Radii ─── */
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-card: 1rem;
+  --radius-panel: 1.25rem;
+
+  /* ─── Type ─── */
+  --font-size: 16px;
+  --font-weight-medium: 500;
+
+  /* ─── Elevation ─── */
+  --shadow-subtle: 0 1px 2px rgba(26, 21, 18, 0.04);
+  --shadow-card: 0 8px 32px 0 rgba(26, 21, 18, 0.03);
+  --shadow-lifted: 0 16px 48px -12px rgba(26, 21, 18, 0.14);
+  --shadow-brand: 0 4px 20px -4px rgba(251, 133, 0, 0.4);
+  --shadow-brand-lg: 0 10px 32px -6px rgba(251, 133, 0, 0.5);
+
+  /* ─── Layout ─── */
+  --gutter: 1.5rem;
+  --measure: 68ch;
+
+  /* ─── Charts ─── */
+  --chart-1: #fb8500;
+  --chart-2: #1a1512;
+  --chart-3: #b8b0a6;
+  --chart-4: #e07600;
+  --chart-5: #5a5550;
+
+  /* ─── Dark studio surfaces (Studio / VirtualCam / Meet Add-on) ─── */
+  --studio: #12100e;
+  --studio-raised: #1a1512;
+  --studio-border: rgba(251, 249, 246, 0.1);
+  --studio-muted: rgba(251, 249, 246, 0.55);
+}
+
+/*
+ * Dark surfaces: Studio, the virtual camera, and the Meet add-on panel.
+ *
+ * These are legitimately a second theme — a camera feed has to sit on near
+ * black — but they were hand-rolled from raw hex and Tailwind's stock
+ * `gray`/`stone`/`red`/`emerald` palettes, which meant a warm product showed
+ * three different greys and three different reds depending on the screen.
+ *
+ * `.studio` re-points the same tokens at the dark values, so every screen in
+ * this family consumes `bg-card`, `text-muted-foreground`, `border-border` and
+ * friends exactly as the light screens do. One class, one flip.
+ */
+.studio {
+  --background: #12100e;
+  --background-sunken: #0b0a09;
+  --foreground: #fbf9f6;
+  --card: #1a1512;
+  --card-foreground: #fbf9f6;
+  --popover: #1a1512;
+  --popover-foreground: #fbf9f6;
+  --primary: #fb8500;
+  --primary-foreground: #1a1512;
+  --primary-hover: #ea7700;
+  --secondary: rgba(251, 249, 246, 0.06);
+  --secondary-foreground: #fbf9f6;
+  --muted: rgba(251, 249, 246, 0.06);
+  --muted-foreground: rgba(251, 249, 246, 0.58);
+  --muted-foreground-subtle: rgba(251, 249, 246, 0.4);
+  --accent: rgba(251, 249, 246, 0.1);
+  --accent-foreground: #fbf9f6;
+  --destructive: #f87171;
+  --destructive-foreground: #1a1512;
+  --destructive-surface: rgba(248, 113, 113, 0.1);
+  --destructive-border: rgba(248, 113, 113, 0.32);
+  --success: #4ade80;
+  --success-surface: rgba(74, 222, 128, 0.1);
+  --success-border: rgba(74, 222, 128, 0.3);
+  --warning: #fbbf24;
+  --warning-surface: rgba(251, 133, 0, 0.14);
+  --warning-border: rgba(251, 133, 0, 0.34);
+  --border: rgba(251, 249, 246, 0.1);
+  --border-strong: rgba(251, 249, 246, 0.18);
+  --input-background: rgba(251, 249, 246, 0.06);
+  --switch-background: rgba(251, 249, 246, 0.2);
+  --ring: #fb8500;
+
+  /* Glass has to be inverted to work over a camera feed. */
+  --glass-bg: rgba(26, 21, 18, 0.62);
+  --glass-bg-strong: rgba(26, 21, 18, 0.82);
+  --glass-border: rgba(251, 249, 246, 0.12);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  --shadow-lifted: 0 16px 48px -12px rgba(0, 0, 0, 0.7);
+  --shadow-brand: 0 4px 20px -4px rgba(251, 133, 0, 0.45);
+  --shadow-brand-lg: 0 10px 32px -6px rgba(251, 133, 0, 0.55);
+
+  color-scheme: dark;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background: #12100e;
+  --background-sunken: #0b0a09;
+  --foreground: #fbf9f6;
+  --card: #1a1512;
+  --card-foreground: #fbf9f6;
+  --popover: #1a1512;
+  --popover-foreground: #fbf9f6;
+  --primary: #fb8500;
+  --primary-foreground: #1a1512;
+  --primary-hover: #ea7700;
+  --secondary: rgba(251, 249, 246, 0.06);
+  --secondary-foreground: #fbf9f6;
+  --muted: rgba(251, 249, 246, 0.06);
+  --muted-foreground: rgba(251, 249, 246, 0.58);
+  --muted-foreground-subtle: rgba(251, 249, 246, 0.4);
+  --accent: rgba(251, 249, 246, 0.1);
+  --accent-foreground: #fbf9f6;
+  --destructive: #f87171;
+  --border: rgba(251, 249, 246, 0.1);
+  --border-strong: rgba(251, 249, 246, 0.18);
+  --input-background: rgba(251, 249, 246, 0.06);
+  --ring: #fb8500;
 }
 
 @theme inline {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Cormorant Garamond', ui-serif, Georgia, serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+
   --color-background: var(--background);
+  --color-background-sunken: var(--background-sunken);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -89,15 +200,23 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-brand: var(--accent-brand);
+  --color-brand-hover: var(--accent-brand-hover);
+  --color-brand-ink: var(--accent-brand-ink);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-muted-subtle: var(--muted-foreground-subtle);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-input-background: var(--input-background);
   --color-switch-background: var(--switch-background);
@@ -107,83 +226,169 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-studio: var(--studio);
+  --color-studio-raised: var(--studio-raised);
+  --color-studio-border: var(--studio-border);
+  --color-studio-muted: var(--studio-muted);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-card: var(--radius-card);
+  --radius-panel: var(--radius-panel);
+
+  --shadow-subtle: var(--shadow-subtle);
+  --shadow-card: var(--shadow-card);
+  --shadow-lifted: var(--shadow-lifted);
+  --shadow-brand: var(--shadow-brand);
+  --shadow-brand-lg: var(--shadow-brand-lg);
 }
 
+/**
+ * Base element defaults.
+ *
+ * Headings are deliberately NOT sized here. Every screen sets its own
+ * display scale via the `Display`/`SectionHeading` primitives, which is the
+ * only way the h1 in a dense editor can differ from the h1 on a landing page
+ * without both fighting a base rule.
+ */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+
+  html {
+    font-size: var(--font-size);
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    text-rendering: optimizeLegibility;
   }
 
-  /**
-  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
-  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
-  */
-
-  html {
-    font-size: var(--font-size);
+  /* One focus treatment across the whole product: a warm brand ring. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 3px;
   }
 
-  h1 {
-    font-size: var(--text-2xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  h2 {
-    font-size: var(--text-xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  h3 {
-    font-size: var(--text-lg);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  h4 {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  label {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  button {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  input {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-normal);
-    line-height: 1.5;
+  /* Prose defaults — only where a page opts in via .prose-body */
+  .prose-body p {
+    color: var(--muted-foreground);
+    line-height: 1.75;
   }
 }
 
-@media (max-width: 1023px) {
-  .mobile-shift-desc {
-    margin-top: 1.25rem !important;
+/**
+ * Design-principle utilities.
+ *
+ * These encode the four rules that make every surface feel like it belongs to
+ * the same product: one glass material, one radius scale, one motion curve,
+ * one focus treatment.
+ */
+@utility glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/** Frosted surface that holds on top of imagery — hero, banner, video stages. */
+@utility glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 16px 48px -12px rgba(26, 21, 18, 0.16);
+}
+
+/** Section eyebrow — one uppercase mono label, brand orange. */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-brand);
+}
+
+/** Technical telemetry — key previews, scores, IDs, latencies. */
+@utility telemetry {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/**
+ * Lift on hover. Applied to every interactive surface so the whole product
+ * responds to the cursor the same way.
+ */
+@utility interactive {
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility interactive-lift {
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lifted);
+  }
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/** Hairline divider that matches the card border, for list rows. */
+@utility hairline {
+  border-bottom: 1px solid var(--border);
+}
+
+@utility hairline-t {
+  border-top: 1px solid var(--border);
+}
+
+/* Shared easing — every transition in the product uses one of these two. */
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (min-width: 640px) {
+  :root {
+    --gutter: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 3rem;
   }
 }

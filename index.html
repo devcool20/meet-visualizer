@@ -1,22 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>Stash Live — project live metrics as you speak</title>
+    <meta
+      name="description"
+      content="Stash Live listens to your voice during Zoom, Google Meet, and Teams calls and projects real-time charts and data from Notion, Airtable, and Google Drive straight onto your camera feed. No screen sharing required."
+    />
+    <meta name="theme-color" content="#FBF9F6" />
+    <meta property="og:title" content="Stash Live — project live metrics as you speak" />
+    <meta
+      property="og:description"
+      content="Present with presence. Stash Live turns what you say into live data overlays on your own camera feed."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Build Project</title>
-      <meta name="description" content="Streamline project management with intuitive task tracking and collaboration tools designed to boost team productivity and organization." />
-      <meta name="robots" content="noindex, nofollow" />
-      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
-      
-    </head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      />
+    </noscript>
 
-    <body>
-      
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-      
-    </body>
-  </html>
-  
+    <style>
+      /* Reserve the brand canvas before the bundle paints so there is no flash. */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #fbf9f6;
+        color: #1a1512;
+      }
+      #root {
+        height: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

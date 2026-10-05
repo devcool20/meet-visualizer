@@ -1,91 +1,121 @@
 /**
- * Setup checklist rendered at the top of the dashboard content area
- * whenever the user has incomplete setup items (plan §5.8).
+ * Setup checklist, shown at the top of the dashboard while required steps are
+ * outstanding.
  *
- * Shows one row per required step with a tick or "Finish this" link.
- * Can be dismissed for the current session.
+ * Three fixes:
+ *  - The dismiss state lived in component state, so any navigation remounted
+ *    the shell and brought the banner straight back — despite the label
+ *    promising a session-scoped dismissal. It is now in sessionStorage.
+ *  - The ordinal was computed against the unfiltered list, so the number shown
+ *    could disagree with the visible position.
+ *  - It is a widget, not a page, so it takes the tokenised surface rather than
+ *    a fifth hand-rolled orange tint recipe.
  */
-
-import { useState } from 'react';
-import { Link } from 'react-router';
-import { Button } from '@/app/components/ui/button';
-import { setupItems, SETUP_STEP_ROUTES, type SetupSignals } from '@/lib/setup';
+import { useEffect, useState } from "react";
+import { Link } from "react-router";
+import { Check, X } from "lucide-react";
+import {
+  firstIncompleteStep,
+  setupItems,
+  SETUP_STEP_ROUTES,
+  type SetupSignals,
+} from "@/lib/setup";
+import { Pill, Surface } from "@/app/components/primitives";
 
 export interface SetupChecklistProps {
   signals: SetupSignals;
 }
 
 const STEP_LABELS: Record<string, string> = {
-  welcome: 'Welcome',
-  extension: 'Install the extension',
-  data: 'Configure AI key or Notion',
-  rehearse: 'Rehearse',
-  meet: 'Join a meeting',
+  welcome: "Accept your sample cards",
+  extension: "Install the extension",
+  data: "Configure an AI key or Notion",
+  rehearse: "Rehearse one phrase",
+  meet: "Join a meeting",
 };
 
+const DISMISS_KEY = "stash-live:setup-dismissed";
+
 export function SetupChecklist({ signals }: SetupChecklistProps) {
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(true);
+
+  // Read after mount so the server-rendered/first-paint markup stays stable.
+  useEffect(() => {
+    try {
+      setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
+    } catch {
+      setDismissed(false);
+    }
+  }, []);
 
   if (dismissed) return null;
 
-  const items = setupItems(signals);
-  const allDone = items.every((item) => !item.required || item.done);
+  const required = setupItems(signals).filter((item) => item.required);
+  const outstanding = required.filter((item) => !item.done);
+  if (outstanding.length === 0) return null;
 
-  if (allDone) return null;
+  const next = firstIncompleteStep(signals);
+
+  function dismiss() {
+    try {
+      sessionStorage.setItem(DISMISS_KEY, "1");
+    } catch {
+      /* private mode — dismissal simply will not persist */
+    }
+    setDismissed(true);
+  }
 
   return (
-    <div
-      className="rounded-xl p-4 mb-6 text-sm space-y-2"
-      style={{ background: 'rgba(251, 133, 0, 0.08)', border: '1px solid rgba(251, 133, 0, 0.2)' }}
-    >
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-semibold" style={{ color: '#1A1512' }}>
-          Setup checklist
-        </span>
-        <button
-          className="text-xs underline"
-          style={{ color: '#5A5550' }}
-          onClick={() => setDismissed(true)}
-        >
-          Dismiss for this session
-        </button>
+    <Surface tone="brand" className="relative mb-8 p-5">
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="Dismiss setup checklist"
+       className="absolute right-3 top-3 flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-foreground/8 hover:text-foreground"
+      >
+        <X className="size-3.5" strokeWidth={2.2} aria-hidden />
+      </button>
+
+      <div className="mb-4 flex flex-wrap items-center gap-3 pr-8">
+        <h2 className="font-serif text-lg font-normal text-foreground">Finish setting up</h2>
+        <Pill tone="brand">
+          {required.length - outstanding.length} of {required.length}
+        </Pill>
       </div>
-      {items
-        .filter((item) => item.required)
-        .map((item) => {
-          const done = item.done;
-          return (
-            <div key={item.step} className="flex items-center gap-2 py-0.5">
-              <span
-                className="inline-flex items-center justify-center w-4 h-4 rounded-full text-xs font-bold"
-                style={{
-                  background: done ? '#2e7d32' : 'rgba(26,21,18,0.08)',
-                  color: done ? '#fff' : '#5A5550',
-                }}
+
+      <ol className="space-y-2">
+        {required.map((item, index) => (
+          <li key={item.step} className="flex items-center gap-3">
+            <span
+              className={`telemetry flex size-4 shrink-0 items-center justify-center rounded-full text-[0.5625rem] font-bold ${
+                item.done ? "bg-success text-white" : "bg-foreground/10 text-muted-foreground"
+              }`}
+              aria-hidden
+            >
+              {item.done ? <Check className="size-2.5" strokeWidth={3.5} /> : index + 1}
+            </span>
+            {item.done ? (
+              <span className="text-sm text-muted-foreground">{STEP_LABELS[item.step]}</span>
+            ) : (
+              <Link
+                to={SETUP_STEP_ROUTES[item.step]}
+               className="text-sm font-medium text-foreground underline decoration-border-strong underline-offset-2 transition-colors hover:decoration-brand"
               >
-                {done ? '✓' : String(items.findIndex((i) => i.step === item.step) + 1)}
-              </span>
-              {done ? (
-                <span style={{ color: '#5A5550' }}>{STEP_LABELS[item.step]}</span>
-              ) : (
-                <Link
-                  to={SETUP_STEP_ROUTES[item.step]}
-                  className="font-medium underline"
-                  style={{ color: '#1A1512' }}
-                >
-                  {STEP_LABELS[item.step]}
-                </Link>
-              )}
-            </div>
-          );
-        })}
-      <div className="pt-1">
-        <Link to={SETUP_STEP_ROUTES[items.find((i) => !i.done && i.required)?.step ?? 'extension']}>
-          <Button size="sm" className="mt-1">
-            {items.some((i) => !i.done && i.required) ? 'Resume setup' : 'Continue'}
-          </Button>
+                {STEP_LABELS[item.step]}
+              </Link>
+            )}
+          </li>
+        ))}
+      </ol>
+
+      {next && (
+        <Link
+          to={SETUP_STEP_ROUTES[next]}
+         className="mt-5 inline-flex rounded-full bg-brand px-4 py-2 text-[0.8125rem] font-medium text-white shadow-brand transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-hover"
+        >
+          Resume setup
         </Link>
-      </div>
-    </div>
+      )}
+    </Surface>
   );
 }

@@ -1,57 +1,69 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
-import { GlassCard } from '@stash/card-react';
-import { Switch } from '@/app/components/ui/switch';
-import { Badge } from '@/app/components/ui/badge';
-import { Button } from '@/app/components/ui/button';
-import { useAuth } from '@/app/auth/AuthContext';
-import { getApiClient, type ApiCard } from '@/lib/api';
-import { listGeneratedCards, removeGeneratedCard, type RecentAiCard } from '@/lib/rehearsal';
-
 /**
- * Cards library (plan §4.3): tiles with live `GlassCard` previews, phrase
- * chips, source badge, enable toggle, and a draft badge for unapproved
- * Notion cards.
+ * Cards library.
  *
- * Above the grid, a "Recent AI cards" strip appears when there are current-session
- * AI generations, each with "Save to library" and "Discard" buttons.
+ * Tiles now use the shared glass surface, one radius, and one badge treatment.
+ * The two tile types that previously differed only by a hand-tuned border
+ * alpha are now distinguished by an actual affordance: an accent rule on AI
+ * cards.
  */
+import { useEffect, useState } from "react";
+import { GlassCard } from "@stash/card-react";
+import { Layers } from "lucide-react";
+import { Switch } from "@/app/components/ui/switch";
+import { Button } from "@/app/components/ui/button";
+import { useAuth } from "@/app/auth/AuthContext";
+import { getApiClient, type ApiCard } from "@/lib/api";
+import { listGeneratedCards, removeGeneratedCard, type RecentAiCard } from "@/lib/rehearsal";
+import {
+  Action,
+  EmptyState,
+  Pill,
+  SkeletonRows,
+  StatusMessage,
+  Surface,
+} from "@/app/components/primitives";
+import { PageHeader } from "./PageHeader";
+
+const SOURCE_LABEL: Record<string, string> = {
+  sample: "Sample",
+  ai: "AI",
+  notion: "Notion",
+};
+
 export default function CardsLibraryPage() {
   const { getAccessToken } = useAuth();
   const [cards, setCards] = useState<ApiCard[] | null>(null);
   const [recentAiCards, setRecentAiCards] = useState<RecentAiCard[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const api = getApiClient(getAccessToken);
-    api.listCards().then(setCards);
+    api
+      .listCards()
+      .then(setCards)
+      .catch(() => setError("Could not load your cards. Check your connection and try again."));
     setRecentAiCards(listGeneratedCards());
   }, [getAccessToken]);
 
   async function toggleEnabled(card: ApiCard) {
     const api = getApiClient(getAccessToken);
     const updated = await api.updateCard(card.id, { enabled: !card.enabled });
-    setCards((prev) => prev?.map((c) => (c.id === card.id ? updated : c)) ?? null);
+    setCards((prev) => prev?.map((c) => (c.id === updated.id ? updated : c)) ?? null);
   }
 
   async function saveToLibrary(aiCard: RecentAiCard) {
-    try {
-      const api = getApiClient(getAccessToken);
-      await api.createCard({
-        title: aiCard.title,
-        spec: aiCard.spec as any,
-        phrases: [],
-        source: 'ai',
-        status: 'draft',
-        enabled: false,
-      });
-      // Remove from recent cards and refresh list.
-      removeGeneratedCard(aiCard.id);
-      setRecentAiCards(listGeneratedCards());
-      const updatedCards = await api.listCards();
-      setCards(updatedCards);
-    } catch {
-      // Ignore.
-    }
+    const api = getApiClient(getAccessToken);
+    await api.createCard({
+      title: aiCard.title,
+      spec: aiCard.spec as never,
+      phrases: [],
+      source: "ai",
+      status: "draft",
+      enabled: false,
+    });
+    removeGeneratedCard(aiCard.id);
+    setRecentAiCards(listGeneratedCards());
+    setCards(await api.listCards());
   }
 
   function discardAiCard(aiCard: RecentAiCard) {
@@ -59,98 +71,118 @@ export default function CardsLibraryPage() {
     setRecentAiCards(listGeneratedCards());
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-medium" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-          Cards
-        </h1>
-      </div>
+  const hasDrafts = cards?.some((c) => c.status === "draft") ?? false;
 
-      {/* Recent AI cards strip */}
+  return (
+    <div className="space-y-10">
+      <PageHeader
+        eyebrow="Library"
+        title="Cards"
+        description="Every card Stash Live can project on your feed. Toggle one on and it becomes matchable the moment you speak."
+        actions={
+          hasDrafts ? (
+            <Button asChild variant="outline">
+              <a href="/dashboard/review">Review drafts</a>
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+
+      {/* Recent AI generations — a transient shelf above the permanent library. */}
       {recentAiCards.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#5A5550' }}>
-            Recent AI cards
+        <section aria-labelledby="recent-ai-heading" className="space-y-4">
+          <h2 id="recent-ai-heading" className="eyebrow">
+            Generated this session
           </h2>
-          <div className="flex flex-wrap gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             {recentAiCards.map((aiCard) => (
-              <div
+              <Surface
                 key={aiCard.id}
-                className="rounded-2xl p-4 flex flex-col gap-2"
-                style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(251,133,0,0.2)' }}
+                tone="brand"
+               className="relative flex flex-col gap-4 overflow-hidden p-5"
               >
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">AI</Badge>
-                </div>
-                <div className="flex justify-center">
-                  <GlassCard spec={aiCard.spec as any} width={220} />
+                <span aria-hidden className="absolute inset-y-0 left-0 w-0.5 bg-brand" />
+                <div className="flex justify-center py-1">
+                  <GlassCard spec={aiCard.spec as never} width={230} />
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => saveToLibrary(aiCard)}>
                     Save to library
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => discardAiCard(aiCard)}>
+                  <Button size="sm" variant="ghost" onClick={() => discardAiCard(aiCard)}>
                     Discard
                   </Button>
                 </div>
-              </div>
+              </Surface>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {cards === null && (
-        <p className="text-sm" style={{ color: '#5A5550' }}>
-          Loading…
-        </p>
-      )}
+      {/* Library */}
+      <section aria-labelledby="library-heading" className="space-y-5">
+        <h2 id="library-heading" className="sr-only">
+          Your cards
+        </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {cards?.map((card) => (
-          <div
-            key={card.id}
-            className="rounded-2xl p-4 flex flex-col gap-3"
-            style={{ background: 'rgba(255,255,255,0.45)', border: '1px solid rgba(26,21,18,0.06)' }}
-            data-testid="card-tile"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">{card.source === 'sample' ? 'Sample' : card.source === 'ai' ? 'AI' : 'Notion'}</Badge>
-                {card.status === 'draft' && <Badge variant="outline">Draft</Badge>}
-              </div>
-              <Switch checked={card.enabled} onCheckedChange={() => toggleEnabled(card)} />
-            </div>
-            <div className="flex justify-center">
-              <GlassCard spec={card.spec} width={260} />
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {card.phrases.slice(0, 4).map((phrase) => (
-                <span
-                  key={phrase}
-                  className="text-xs px-2 py-0.5 rounded-full"
-                  style={{ background: 'rgba(26,21,18,0.06)', color: '#5A5550' }}
-                >
-                  &ldquo;{phrase}&rdquo;
-                </span>
-              ))}
-            </div>
-            <Link to={`/dashboard/cards/${card.id}`}>
-              <Button variant="outline" className="w-full">
-                Edit
-              </Button>
-            </Link>
+        {cards === null && !error && <SkeletonRows count={3} />}
+
+        {cards !== null && cards.length === 0 && (
+          <EmptyState
+            icon={<Layers className="size-5" strokeWidth={1.7} />}
+            title="No cards yet"
+            description="Rehearse with a prompt and Stash Live will draft your first card for you to review."
+            action={<Action to="/rehearse" variant="primary">Create your first card</Action>}
+          />
+        )}
+
+        {cards !== null && cards.length > 0 && (
+          <div className="grid gap-5 sm:grid-cols-2">
+            {cards.map((card) => (
+              <Surface key={card.id} className="flex flex-col gap-4 p-5" data-testid="card-tile">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Pill tone={card.source === "ai" ? "brand" : "neutral"}>
+                      {SOURCE_LABEL[card.source] ?? card.source}
+                    </Pill>
+                    {card.status === "draft" && <Pill tone="brand">Draft</Pill>}
+                  </div>
+                  <Switch
+                    checked={card.enabled}
+                    onCheckedChange={() => toggleEnabled(card)}
+                    aria-label={`Enable ${card.title}`}
+                  />
+                </div>
+
+                <div className="flex justify-center py-1">
+                  <GlassCard spec={card.spec} width={252} />
+                </div>
+
+                {card.phrases.length > 0 && (
+                  <ul className="flex flex-wrap gap-1.5">
+                    {card.phrases.slice(0, 4).map((phrase) => (
+                      <li
+                        key={phrase}
+                       className="rounded-full bg-accent px-2.5 py-1 text-xs text-muted-foreground"
+                      >
+                        &ldquo;{phrase}&rdquo;
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <div className="mt-auto">
+                  <Button asChild variant="outline" size="sm" className="w-full">
+                    <a href={`/dashboard/cards/${card.id}`}>Edit card</a>
+                  </Button>
+                </div>
+              </Surface>
+            ))}
           </div>
-        ))}
-      </div>
-
-      {cards && cards.some((c) => c.status === 'draft') && (
-        <div className="pt-4">
-          <Link to="/dashboard/review">
-            <Button>Review drafts</Button>
-          </Link>
-        </div>
-      )}
+        )}
+      </section>
     </div>
   );
 }

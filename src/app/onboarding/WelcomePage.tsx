@@ -1,19 +1,26 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { GlassCard } from '@stash/card-react';
-import { Button } from '@/app/components/ui/button';
-import { useAuth } from '@/app/auth/AuthContext';
-import { getApiClient, type ApiCard } from '@/lib/api';
-import { saveSetupStep } from '@/lib/setup';
-import { OnboardingShell } from './OnboardingShell';
-
 /**
- * `/welcome` — step 3 of the funnel (plan §4.2): "3 sample cards seeded",
- * zero clicks required. Calls the idempotent `POST /api/me/bootstrap`
- * (creates the user row + seeds `SAMPLE_CARDS` exactly once) and renders
- * them with the real `GlassCard` renderer so what the user sees here is
- * pixel-identical to what will composite onto their video later.
+ * `/welcome` — step 1: sample cards seeded, zero clicks required.
+ *
+ * Calls the idempotent `POST /api/me/bootstrap` (creates the user row and seeds
+ * `SAMPLE_CARDS` exactly once) and renders them with the real `GlassCard`
+ * renderer, so what the user sees here is pixel-identical to what composites
+ * onto their video later.
+ *
+ * The three cards were previously stacked in a single column, making the page
+ * roughly 2,000px tall with the Continue button below three full card renders.
+ * They are now a row that fits above the fold on a laptop.
  */
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { GlassCard } from "@stash/card-react";
+import { Button } from "@/app/components/ui/button";
+import { useAuth } from "@/app/auth/AuthContext";
+import { getApiClient, type ApiCard } from "@/lib/api";
+import { saveSetupStep } from "@/lib/setup";
+import { SkeletonRows, StatusMessage } from "@/app/components/primitives";
+import { OnboardingShell } from "./OnboardingShell";
+import { StepActions, StepHeader } from "./StepHeader";
+
 export default function WelcomePage() {
   const { getAccessToken } = useAuth();
   const navigate = useNavigate();
@@ -25,12 +32,14 @@ export default function WelcomePage() {
     let cancelled = false;
     api
       .bootstrap()
-      .then(() => api.listCards({ status: 'approved' }))
+      .then(() => api.listCards({ status: "approved" }))
       .then((list) => {
         if (!cancelled) setCards(list);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load sample cards');
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not load your sample cards.");
+        }
       });
     return () => {
       cancelled = true;
@@ -38,59 +47,58 @@ export default function WelcomePage() {
   }, [getAccessToken]);
 
   function handleContinue() {
-    saveSetupStep('extension');
-    navigate('/setup/extension');
+    saveSetupStep("extension");
+    navigate("/setup/extension");
   }
 
   return (
-    <OnboardingShell step={1} totalSteps={5}>
-      <div className="text-center space-y-3 mb-8">
-        <h1
-          className="leading-tight"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 300 }}
-        >
-          Here are three cards to start with.
-        </h1>
-        <p className="text-sm" style={{ color: '#5A5550' }}>
-          These are sample data, ready to try. You can edit them or connect Notion later.
-        </p>
-      </div>
+    <OnboardingShell step={1} totalSteps={5} maxWidth="max-w-4xl">
+      <StepHeader
+        step="Step one"
+        title="Three cards to start with"
+        description="Sample data, already armed. Each one listens for the phrases under it — try any of them in a rehearsal before you connect anything."
+      />
 
       {error && (
-        <p className="text-sm text-center mb-4" style={{ color: '#d4183d' }}>
+        <StatusMessage tone="danger" className="mx-auto mt-8 max-w-md">
           {error}
-        </p>
+        </StatusMessage>
       )}
 
-      <div className="flex flex-col items-center gap-6 mb-10">
-        {(cards ?? []).map((card) => (
-          <div key={card.id} className="flex flex-col items-center gap-2">
-            <GlassCard spec={card.spec} width={300} />
-            <div className="flex flex-wrap gap-1.5 justify-center">
-              {card.phrases.slice(0, 3).map((phrase) => (
-                <span
-                  key={phrase}
-                  className="text-xs px-2.5 py-1 rounded-full"
-                  style={{ background: 'rgba(26,21,18,0.06)', color: '#5A5550' }}
-                >
-                  &ldquo;{phrase}&rdquo;
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-        {cards === null && !error && (
-          <p className="text-sm" style={{ color: '#5A5550' }}>
-            Setting up your account&hellip;
-          </p>
+      <div className="mt-12">
+        {cards === null && !error && <SkeletonRows count={1} />}
+
+        {cards !== null && (
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {cards.map((card) => (
+              <li
+                key={card.id}
+               className="flex flex-col items-center gap-4 rounded-card border border-border bg-background-sunken/50 p-5"
+              >
+                <GlassCard spec={card.spec} width={252} />
+                {card.phrases.length > 0 && (
+                  <ul className="flex flex-wrap justify-center gap-1.5">
+                    {card.phrases.slice(0, 3).map((phrase) => (
+                      <li
+                        key={phrase}
+                       className="rounded-full bg-accent px-2.5 py-1 text-xs text-muted-foreground"
+                      >
+                        &ldquo;{phrase}&rdquo;
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
-      <div className="flex justify-center">
+      <StepActions>
         <Button size="lg" disabled={cards === null} onClick={handleContinue}>
           Continue
         </Button>
-      </div>
+      </StepActions>
     </OnboardingShell>
   );
 }

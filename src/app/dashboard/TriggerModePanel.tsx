@@ -45,25 +45,25 @@ export function TriggerModePanel({ value, onChange, saving }: TriggerModePanelPr
           <div key={opt.value} className="flex items-start gap-3">
             <RadioGroupItem value={opt.value} id={`trigger-${opt.value}`} className="mt-0.5" />
             <div>
-              <Label htmlFor={`trigger-${opt.value}`} className="text-sm font-medium">
+              <Label htmlFor={`trigger-${opt.value}`} className="text-sm font-medium text-foreground">
                 {opt.title}
               </Label>
-              <p className="text-xs mt-0.5" style={{ color: '#5A5550' }}>
+              <p className="mt-1 max-w-[52ch] text-sm leading-relaxed text-muted-foreground">
                 {opt.description}
               </p>
             </div>
           </div>
         ))}
       </RadioGroup>
-      <p className="text-xs" style={{ color: '#5A5550' }}>
+      <p className="text-xs text-muted-subtle">
         Only one mode runs at a time. Ambient uses your saved phrases; hold-to-talk generates a new
         card from what you just said.
       </p>
-      {saving && (
-        <p className="text-xs" style={{ color: '#5A5550' }}>
-          Saving…
-        </p>
-      )}
+      {/* The saving state is announced by the owning page. Rendering it here too
+          produced two stacked "Saving…" messages on the settings screen. */}
+      <span className="sr-only" aria-live="polite">
+        {saving ? "Saving trigger mode" : ""}
+      </span>
     </div>
   );
 }

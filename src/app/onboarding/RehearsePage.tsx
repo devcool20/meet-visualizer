@@ -16,7 +16,9 @@ import { hasChromeRuntime, probeExtensionPresence } from '@/lib/extension';
 import { saveSetupStep, markRehearsed } from '@/lib/setup';
 import { recordGeneratedCard } from '@/lib/rehearsal';
 import { useHoldToTalk } from '@/app/hooks/useHoldToTalk';
+import { Loader2 } from 'lucide-react';
 import { OnboardingShell } from './OnboardingShell';
+import { StepHeader } from './StepHeader';
 
 type CameraState =
   | { phase: 'idle' }
@@ -245,31 +247,22 @@ export default function RehearsePage() {
 
   return (
     <OnboardingShell step={4} totalSteps={5} maxWidth={isExpandedStage ? 'max-w-5xl' : 'max-w-3xl'}>
-      <div className="text-center space-y-2 mb-6">
-        <h1
-          className="leading-tight"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', fontWeight: 400 }}
-        >
-          Let&apos;s rehearse.
-        </h1>
-        <p className="text-sm max-w-xl mx-auto" style={{ color: '#5A5550' }}>
-          Speak or type a topic. Your contextual card will synthesize instantly and float
-          over your shoulder in live video.
-        </p>
-      </div>
+      <StepHeader
+        className="mb-6"
+        step="Step four"
+        title="Let's rehearse"
+        description="Turn your camera on, hold the key, and say what you would say in a real call. Your card synthesises instantly and floats over your shoulder in live video. Nothing is broadcast anywhere."
+      />
 
       {/* Status strip */}
-      <div
-        className="flex items-center justify-center gap-4 mb-4 text-xs font-mono"
-        style={{ color: '#5A5550' }}
-      >
+      <div className="telemetry mb-4 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span className={`w-2 h-2 rounded-full ${extensionPresent ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+          <span className={`w-2 h-2 rounded-full ${extensionPresent ? 'bg-success' : 'bg-muted-subtle'}`} />
           Extension: {extensionPresent === null ? 'checking…' : extensionPresent ? 'paired' : 'virtual cam mode'}
         </span>
         <span>·</span>
         <span className="flex items-center gap-1.5">
-          <span className={`w-2 h-2 rounded-full ${camera.phase === 'granted' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
+          <span className={`w-2 h-2 rounded-full ${camera.phase === 'granted' ? 'bg-success animate-pulse' : 'bg-warning'}`} />
           Camera &amp; Mic: {camera.phase === 'granted' ? 'active' : 'connecting…'}
         </span>
       </div>
@@ -277,19 +270,19 @@ export default function RehearsePage() {
       {/* Presentation Stage Widescreen Container (Expanded Meeting View) */}
       <div className="flex flex-col items-center gap-3 mb-6 w-full">
         {/* Placement & Mode toolbar */}
-        <div className="flex flex-wrap items-center justify-between w-full px-2 gap-2 text-xs text-stone-500">
+        <div className="flex flex-wrap items-center justify-between w-full px-2 gap-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <span className="font-medium text-stone-700">Card Position:</span>
-              <div className="inline-flex rounded-lg bg-stone-100 p-0.5 border border-stone-200">
+              <span className="font-medium text-foreground">Card Position:</span>
+              <div className="inline-flex rounded-lg bg-accent p-0.5 border border-border-strong">
                 {(['auto', 'right', 'left'] as const).map((pos) => (
                   <button
                     key={pos}
                     onClick={() => setPositionPreference(pos)}
                     className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition-all ${
                       positionPreference === pos
-                        ? 'bg-white text-stone-900 shadow-sm'
-                        : 'text-stone-500 hover:text-stone-800'
+                        ? 'bg-foreground text-background shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     {pos === 'auto' ? '⚡ Auto-detect' : pos}
@@ -301,7 +294,7 @@ export default function RehearsePage() {
             {/* Camera Switcher Dropdown */}
             {videoDevices.length > 0 && (
               <div className="flex items-center gap-1.5">
-                <span className="font-medium text-stone-700">Camera:</span>
+                <span className="font-medium text-foreground">Camera:</span>
                 <select
                   value={selectedDeviceId}
                   onChange={(e) => {
@@ -309,7 +302,7 @@ export default function RehearsePage() {
                     setSelectedDeviceId(devId);
                     void requestCameraAndMic(devId);
                   }}
-                  className="px-2 py-1 rounded-lg bg-stone-100 border border-stone-200 text-stone-800 text-xs font-sans max-w-[170px] truncate outline-none hover:bg-stone-200 transition-colors"
+                  className="px-2 py-1 rounded-lg bg-accent border border-border-strong text-foreground text-xs font-sans max-w-[170px] truncate outline-none hover:bg-accent transition-colors"
                 >
                   {videoDevices.map((d, i) => (
                     <option key={d.deviceId || i} value={d.deviceId}>
@@ -323,7 +316,7 @@ export default function RehearsePage() {
 
           <button
             onClick={() => setIsExpandedStage((v) => !v)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-accent hover:bg-accent text-foreground border border-border-strong transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {isExpandedStage ? (
@@ -338,7 +331,7 @@ export default function RehearsePage() {
 
         {/* Video Canvas Stage */}
         <div
-          className="relative w-full transition-all duration-300 aspect-video rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-stone-800 bg-stone-950"
+          className="relative w-full transition-all duration-300 aspect-video rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-border bg-background-sunken"
         >
           <video
             ref={(el) => {
@@ -355,11 +348,10 @@ export default function RehearsePage() {
             muted
             playsInline
             autoPlay
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            className="w-full h-full scale-x-[-1]"
+            className="size-full -scale-x-100 object-cover"
           />
           {camera.phase !== 'granted' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-stone-400 bg-stone-950/90 z-10">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-muted-foreground bg-background-sunken/90 z-10">
               <span className="text-sm">
                 {camera.phase === 'requesting' && 'Connecting to your camera & microphone…'}
                 {camera.phase === 'idle' && 'Click below to start your camera stream'}
@@ -368,7 +360,7 @@ export default function RehearsePage() {
                   'Camera in use by another application. Close it and click retry.'}
               </span>
               <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" onClick={() => void requestCameraAndMic()} className="bg-stone-800 text-stone-100 border-stone-700 hover:bg-stone-700">
+                <Button size="sm" variant="outline" onClick={() => void requestCameraAndMic()} className="bg-accent text-foreground border-border-strong hover:bg-accent">
                   {camera.phase === 'requesting' ? 'Retrying…' : 'Start / Retry Camera'}
                 </Button>
               </div>
@@ -377,16 +369,17 @@ export default function RehearsePage() {
 
           {/* Live Audio Visualizer Overlay (bottom left of video) */}
           {camera.phase === 'granted' && (
-            <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur text-[11px] text-stone-200 border border-white/10 font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur text-[11px] text-foreground border border-border font-mono">
+              <span className="w-2 h-2 rounded-full bg-success" />
               <span>LIVE</span>
               <div className="flex items-center gap-0.5 ml-1">
                 {[0.3, 0.6, 0.9].map((thresh, idx) => (
                   <span
                     key={idx}
-                    className="w-1 h-3 rounded-full transition-all duration-75"
+                    className={`w-1 rounded-full transition-all duration-75 ${
+                      audioLevel > thresh * 0.4 ? 'bg-success' : 'bg-foreground/20'
+                    }`}
                     style={{
-                      backgroundColor: audioLevel > thresh * 0.4 ? '#10b981' : 'rgba(255,255,255,0.2)',
                       height: `${Math.max(4, Math.min(14, audioLevel * 25 + (idx + 1) * 3))}px`,
                     }}
                   />
@@ -424,7 +417,7 @@ export default function RehearsePage() {
                     />
                     <button
                       onClick={() => setGeneratedCard(null)}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-stone-900/90 text-white hover:bg-stone-800 text-xs flex items-center justify-center border border-white/20 shadow-md opacity-80 hover:opacity-100 transition-opacity z-30"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-card/90 text-foreground hover:bg-accent text-xs flex items-center justify-center border border-border-strong shadow-md opacity-80 hover:opacity-100 transition-opacity z-30"
                       title="Dismiss card"
                     >
                       ✕
@@ -439,35 +432,16 @@ export default function RehearsePage() {
                       oppositeSide === 'left' ? 'left-4 md:left-6' : 'right-4 md:right-6'
                     }`}
                   >
+                    {/* The same glass material as every other card, via the
+                        `glass-strong` utility rather than a hand-written
+                        backdrop-filter block. */}
                     <div
-                      style={{
-                        width: `${cardWidth}px`,
-                        borderRadius: '16px',
-                        overflow: 'hidden',
-                        background: 'rgba(255, 255, 255, 0.65)',
-                        backdropFilter: 'blur(20px) saturate(120%)',
-                        WebkitBackdropFilter: 'blur(20px) saturate(120%)',
-                        border: '1px solid rgba(26, 21, 18, 0.08)',
-                        boxShadow: '0 8px 32px 0 rgba(26,21,18,0.06)',
-                        padding: '10px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                      }}
+                      className="glass-strong flex flex-col gap-2 overflow-hidden p-2.5"
+                      style={{ width: `${cardWidth}px` }}
                     >
                       <div
-                        style={{
-                          width: '100%',
-                          height: `${Math.round(cardWidth * 0.95)}px`,
-                          borderRadius: '10px',
-                          overflow: 'hidden',
-                          background: 'linear-gradient(135deg, rgba(255,255,255,0.7), rgba(240,235,230,0.5))',
-                          position: 'relative',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '4px',
-                        }}
+                        className="relative flex w-full items-center justify-center overflow-hidden rounded-lg bg-background-sunken p-1"
+                        style={{ height: `${Math.round(cardWidth * 0.95)}px` }}
                       >
                         <img
                           src={imageBlock.url}
@@ -487,10 +461,10 @@ export default function RehearsePage() {
                         />
                       </div>
                       <div className="flex items-center justify-between px-1">
-                        <span className="text-[11px] font-semibold text-stone-800 truncate">
+                        <span className="text-[11px] font-semibold text-foreground truncate">
                           {generatedCard.spec.title}
                         </span>
-                        <span className="text-[9px] uppercase tracking-wider font-medium text-stone-500 bg-stone-200/60 px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground bg-accent px-1.5 py-0.5 rounded">
                           Visual
                         </span>
                       </div>
@@ -503,14 +477,14 @@ export default function RehearsePage() {
 
           {/* HUD State Indicator */}
           {h2t.state.phase === 'generating' && (
-            <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-xl bg-black/70 backdrop-blur border border-white/10 text-white text-xs">
-              <span className="w-3 h-3 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+            <div className="absolute right-4 top-4 z-20 flex items-center gap-2 rounded-xl border border-border bg-black/70 px-3 py-2 text-xs text-foreground backdrop-blur">
+              <Loader2 className="size-3 animate-spin text-warning" strokeWidth={2.4} aria-hidden />
               <span>Synthesizing card…</span>
             </div>
           )}
 
           {/* Preview Tag */}
-          <div className="absolute bottom-3 right-3 z-10 text-[11px] px-2.5 py-1 rounded bg-black/60 backdrop-blur text-stone-300 border border-white/10">
+          <div className="absolute bottom-3 right-3 z-10 text-[11px] px-2.5 py-1 rounded bg-black/60 backdrop-blur text-muted-foreground border border-border">
             {positionPreference === 'auto' ? `Auto-placed (${effectiveSide})` : `${positionPreference} shoulder`} · 16:9
           </div>
         </div>
@@ -522,28 +496,30 @@ export default function RehearsePage() {
         <div className="flex flex-col items-center gap-2">
           <Button
             size="lg"
+            type="button"
+            aria-pressed={h2t.state.phase === 'listening'}
             onPointerDown={() => h2t.startListening()}
             onPointerUp={() => h2t.stopListening()}
             onPointerLeave={() => h2t.stopListening()}
-            className="shadow-lg transition-transform active:scale-95"
-            style={{
-              background: h2t.state.phase === 'listening' ? '#ea580c' : '#fb8500',
-              color: '#fff',
-              borderRadius: '9999px',
-              padding: '1.1rem 3rem',
-              fontWeight: 600,
-            }}
+            className={`h-auto rounded-full px-12 py-5 text-sm font-medium text-white shadow-brand transition-transform active:scale-95 ${
+              h2t.state.phase === 'listening' ? 'bg-brand-hover' : 'bg-brand'
+            }`}
           >
-            {h2t.state.phase === 'listening' ? '🎙️ Listening to your voice…' : 'Hold to talk'}
+            {h2t.state.phase === 'listening' ? 'Listening to your voice…' : 'Hold to talk'}
           </Button>
-          <span className="text-xs" style={{ color: '#5A5550' }}>
-            or hold <kbd className="px-1.5 py-0.5 rounded bg-stone-200 text-stone-800 font-mono text-[10px]">Alt+Space</kbd> / <kbd className="px-1.5 py-0.5 rounded bg-stone-200 text-stone-800 font-mono text-[10px]">Ctrl+Space</kbd>
+          <span className="text-xs text-muted-foreground">
+            or hold{" "}
+            <kbd className="telemetry rounded bg-accent px-1.5 py-0.5 text-[0.625rem] text-foreground">
+              Alt+Shift+Space
+            </kbd>
+            {" "}
+            <span className="text-muted-subtle">(Alt+Space and Ctrl+Space also work)</span>
           </span>
         </div>
 
         {/* Live transcript readout */}
         {h2t.transcript && (
-          <p className="text-sm font-medium italic text-stone-700 bg-stone-100 px-4 py-1.5 rounded-full border border-stone-200">
+          <p className="text-sm font-medium italic text-foreground bg-accent px-4 py-1.5 rounded-full border border-border-strong">
             &ldquo;{h2t.transcript}&rdquo;
           </p>
         )}
@@ -555,7 +531,7 @@ export default function RehearsePage() {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
             placeholder="Or type a topic: Fable 5, Ranbir Kapoor, ARR metrics…"
-            className="flex-1 rounded-full px-4 py-2 text-sm bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-stone-900"
+            className="flex-1 rounded-full px-4 py-2 text-sm bg-input-background border border-border-strong focus:outline-none focus-visible:outline-2 focus-visible:outline-brand text-foreground"
           />
           <Button type="submit" size="sm" variant="secondary" className="rounded-full px-4">
             Generate
@@ -565,7 +541,7 @@ export default function RehearsePage() {
         {/* Error Feedback */}
         {h2t.state.phase === 'failed' && (
           <div className="text-center space-y-1">
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-destructive">
               {h2t.state.error === 'no_provider'
                 ? 'No AI provider configured. Add an API key in Settings.'
                 : `Generation error: ${h2t.state.error}`}
@@ -576,7 +552,7 @@ export default function RehearsePage() {
 
       {/* Suggested Topic Chips */}
       <div className="space-y-2 mb-8">
-        <p className="text-xs text-center font-medium text-stone-500 uppercase tracking-wider">
+        <p className="text-xs text-center font-medium text-muted-foreground uppercase tracking-wider">
           Suggested Topics
         </p>
         <div className="flex flex-wrap gap-2 justify-center max-w-xl mx-auto">
@@ -589,7 +565,7 @@ export default function RehearsePage() {
           ].map((topic) => (
             <button
               key={topic}
-              className="text-xs px-3.5 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 transition-colors font-medium"
+              className="text-xs px-3.5 py-1.5 rounded-full bg-accent hover:bg-accent text-foreground border border-border-strong transition-colors font-medium"
               onClick={() => generateFromTranscript(topic)}
             >
               &ldquo;{topic}&rdquo;
@@ -599,7 +575,7 @@ export default function RehearsePage() {
             cards.flatMap((c) => c.phrases.slice(0, 1)).slice(0, 2).map((phrase, i) => (
               <button
                 key={phrase}
-                className="text-xs px-3.5 py-1.5 rounded-full bg-stone-900 hover:bg-stone-800 text-white transition-colors font-medium"
+                className="text-xs px-3.5 py-1.5 rounded-full bg-foreground hover:bg-accent text-background transition-colors font-medium"
                 onClick={() => simulateTrigger(cards[i])}
               >
                 &ldquo;{phrase}&rdquo;

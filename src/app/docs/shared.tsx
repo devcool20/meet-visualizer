@@ -1,10 +1,12 @@
 import * as React from "react";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useSpring } from "motion/react";
 import { Link } from "react-router";
+import { AmbientBackground as SharedAmbientBackground } from "@/app/components/primitives";
+import { useMotionPrefs, useReducedMotion } from "@/app/motion";
 
 /**
- * Shared building blocks + page chrome for the docs/help split (plan §4.4).
+ * Shared building blocks + page chrome for the docs/help split (plan A4.4).
  *
  * `DocsPage.tsx` (developer/self-host) and `HelpPage.tsx` (end-user) both
  * reuse this: the same glass header, hero, sticky-sidebar scroll-spy,
@@ -21,6 +23,12 @@ export const FG = "#1A1512";
 export const MUTED = "#5A5550";
 export const ACCENT = "#fb8500";
 
+/**
+ * Re-export of the shared primitive, so `/docs` and `/help` use the exact same
+ * depth layer as the landing page instead of a private copy.
+ */
+export const AmbientBackground = SharedAmbientBackground;
+
 export type DocSection = { id: string; label: string };
 
 export const GLASS: React.CSSProperties = {
@@ -36,8 +44,7 @@ export const GLASS: React.CSSProperties = {
 export function Code({ children }: { children: React.ReactNode }) {
   return (
     <code
-      className="px-1.5 py-0.5 rounded-md text-[0.85em] align-baseline"
-      style={{ fontFamily: MONO, background: "rgba(26,21,18,0.05)", color: "#1A1512" }}
+     className="telemetry rounded bg-background-sunken px-1.5 py-0.5 text-foreground"
     >
       {children}
     </code>
@@ -63,27 +70,26 @@ export function CodeBlock({ children, lang = "bash" }: { children: string; lang?
   return (
     <div className="rounded-2xl overflow-hidden my-5" style={GLASS}>
       <div
-        className="flex items-center justify-between px-4 py-2.5"
-        style={{ borderBottom: "1px solid rgba(26,21,18,0.06)" }}
+       className="flex items-center justify-between gap-3 px-5 py-2.5"
       >
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(251,133,0,0.6)" }} />
-          <span className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(26,21,18,0.14)" }} />
-          <span className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(26,21,18,0.08)" }} />
+          <span className="w-2.5 h-2.5 rounded-full bg-brand" />
+          <span className="w-2.5 h-2.5 rounded-full bg-foreground/20" />
+          <span className="w-2.5 h-2.5 rounded-full bg-foreground/10" />
           <span className="ml-2 text-[11px] uppercase tracking-widest" style={{ color: MUTED, fontFamily: MONO }}>
             {lang}
           </span>
         </div>
         <button
           onClick={copy}
-          className="text-[11px] px-2 py-1 rounded-md transition-colors hover:bg-[rgba(26,21,18,0.05)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fb8500]"
+         className="shrink-0 rounded-md px-2 py-1 text-xs transition-colors hover:bg-accent"
           style={{ color: copied ? ACCENT : MUTED, fontFamily: MONO }}
           aria-label={copied ? "Copied" : "Copy code"}
         >
           {copied ? "copied ✓" : "copy"}
         </button>
       </div>
-      <pre className="p-5 overflow-x-auto text-sm leading-relaxed" style={{ fontFamily: MONO, color: "#1A1512" }}>
+      <pre className="telemetry overflow-x-auto p-5 text-sm leading-relaxed text-foreground" >
         <code>{children}</code>
       </pre>
     </div>
@@ -92,7 +98,7 @@ export function CodeBlock({ children, lang = "bash" }: { children: string; lang?
 
 export function Prose({ children }: { children: React.ReactNode }) {
   return (
-    <div className="space-y-4" style={{ color: "#5A5550", fontSize: "0.95rem", lineHeight: 1.8 }}>
+    <div className="space-y-4 space-y-4 text-[0.9375rem]">
       {children}
     </div>
   );
@@ -109,7 +115,7 @@ export function Card({ children, className = "" }: { children: React.ReactNode; 
 export function Callout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="rounded-2xl p-5 my-5 text-sm flex gap-3"
+     className="flex items-start gap-3 p-5"
       style={{
         background: "rgba(251,133,0,0.06)",
         border: "1px solid rgba(251,133,0,0.18)",
@@ -118,8 +124,7 @@ export function Callout({ children }: { children: React.ReactNode }) {
       }}
     >
       <span
-        className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold"
-        style={{ background: "rgba(251,133,0,0.15)", color: "#fb8500" }}
+      className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-warning-surface text-[0.625rem] font-bold text-brand-ink"
         aria-hidden
       >
         !
@@ -173,13 +178,12 @@ export function DocSectionBlock({
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-3">
             <span
-              className="text-xs font-semibold tabular-nums"
-              style={{ fontFamily: MONO, color: "#fb8500" }}
+             className="telemetry text-xs text-brand"
             >
               {String(index).padStart(2, "0")}
             </span>
-            <span className="h-px flex-1 max-w-[40px]" style={{ background: "rgba(251,133,0,0.35)" }} />
-            <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#fb8500" }}>
+            <span className="h-px flex-1 max-w-[40px] h-px w-10 bg-brand/35" />
+            <p className="text-xs uppercase tracking-widest font-semibold text-brand">
               {eyebrow}
             </p>
           </div>
@@ -206,48 +210,6 @@ export function DocSectionBlock({
 
 /* ─────────────────────────  ambient background  ───────────────────────── */
 
-export function AmbientBackground({ reducedMotion }: { reducedMotion: boolean }) {
-  const blobs = useMemo(
-    () => [
-      { top: "-10%", left: "-8%", size: 520, color: "rgba(251,133,0,0.10)", dur: 22 },
-      { top: "30%", right: "-12%", size: 620, color: "rgba(251,133,0,0.06)", dur: 28 },
-      { bottom: "-15%", left: "20%", size: 560, color: "rgba(26,21,18,0.035)", dur: 25 },
-    ],
-    [],
-  );
-  return (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden>
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(26,21,18,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(26,21,18,0.025) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-          maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%)",
-          WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%)",
-        }}
-      />
-      {blobs.map((b, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            top: b.top,
-            left: b.left,
-            right: b.right,
-            bottom: b.bottom,
-            width: b.size,
-            height: b.size,
-            background: `radial-gradient(circle, ${b.color} 0%, transparent 70%)`,
-            filter: "blur(20px)",
-          }}
-          animate={reducedMotion ? undefined : { x: [0, 30, -20, 0], y: [0, -25, 15, 0] }}
-          transition={reducedMotion ? undefined : { duration: b.dur, repeat: Infinity, ease: "easeInOut" }}
-        />
-      ))}
-    </div>
-  );
-}
 
 /* ─────────────────────────────  page chrome  ────────────────────────────── */
 
@@ -275,9 +237,10 @@ export function DocsPageShell({
   children: React.ReactNode;
 }) {
   const [activeSection, setActiveSection] = useState<string>(sections[0]?.id ?? "");
-  const [reducedMotion, setReducedMotion] = useState(
-    () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
-  );
+  // Was a private copy seeded once from the media query and never updated, so
+  // the OS setting needed a reload and the toggle only affected this page.
+  const reducedMotion = useReducedMotion();
+  const motionPrefs = useMotionPrefs();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isScrollingToRef = useRef<string | null>(null);
 
@@ -317,14 +280,13 @@ export function DocsPageShell({
   };
 
   return (
-    <div
-      className="min-h-screen w-full relative"
-      style={{ backgroundColor: "#FBF9F6", fontFamily: "'Inter', sans-serif", color: "#1A1512" }}
-    >
-      <AmbientBackground reducedMotion={reducedMotion} />
+    <div className="relative min-h-screen w-full bg-background font-sans text-foreground">
+      {/* The shell reads the app-wide motion preference rather than owning a
+          private copy, so the footer toggle governs every screen. */}
+      <AmbientBackground className="fixed -z-10 inset-0" />
 
       <motion.div
-        className="fixed top-0 left-0 right-0 h-0.5 z-[60] origin-left"
+       className="fixed inset-x-0 top-0 z-[60] h-0.5 origin-left"
         style={{ scaleX: progress, background: "linear-gradient(90deg, #fb8500, rgba(251,133,0,0.4))" }}
         aria-hidden
       />
@@ -336,7 +298,7 @@ export function DocsPageShell({
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMenuOpen((v) => !v)}
-              className="md:hidden p-1.5 rounded-full hover:bg-[rgba(26,21,18,0.06)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fb8500] flex items-center justify-center z-50"
+             className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors duration-200 hover:bg-accent md:hidden"
               aria-label="Toggle docs menu"
               aria-expanded={isMenuOpen}
               aria-controls="docs-mobile-menu"
@@ -346,7 +308,7 @@ export function DocsPageShell({
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                className="w-5 h-5 text-[#1A1512]"
+               className="size-5"
                 strokeWidth="2.2"
               >
                 {isMenuOpen ? (
@@ -359,15 +321,14 @@ export function DocsPageShell({
 
             <Link
               to="/"
-              className="hidden md:flex items-center gap-2 px-3.5 py-1.5 text-sm rounded-full transition-colors font-medium hover:bg-[rgba(26,21,18,0.06)] group"
-              style={{ color: "#5A5550", letterSpacing: "0.01em" }}
+              className="hidden items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground md:flex"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                className="w-4 h-4 motion-safe:transition-transform motion-safe:group-hover:-translate-x-0.5"
+               className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5"
                 strokeWidth="2"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -376,15 +337,14 @@ export function DocsPageShell({
             </Link>
 
             <span
-              className="text-sm px-3 py-1 rounded-full font-medium hidden md:inline"
-              style={{ background: "rgba(26,21,18,0.06)", color: "#1A1512" }}
+             className="rounded-full bg-accent px-3 py-1 font-medium text-foreground"
             >
               {routeLabel}
             </span>
           </div>
 
           <div className="flex items-center pr-2 select-none">
-            <Link to="/" className="text-lg font-medium tracking-tight" style={{ fontFamily: SERIF, fontSize: "1.35rem", color: "#1A1512" }}>
+            <Link to="/" className="text-lg font-medium tracking-tight" >
               Stash Live
             </Link>
           </div>
@@ -398,12 +358,12 @@ export function DocsPageShell({
               animate={{ opacity: 1, y: 0 }}
               exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="absolute top-[calc(100%+0.5rem)] left-0 right-0 rounded-2xl p-4 flex flex-col gap-1 md:hidden max-h-[70vh] overflow-y-auto"
+             className="rounded-2xl p-4 md:hidden"
               style={GLASS}
             >
               <Link
                 to="/"
-                className="px-4 py-3 rounded-xl text-sm font-medium text-left text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)] transition-colors"
+               className="block rounded-lg px-3.5 py-3 text-[0.9375rem] text-foreground transition-colors duration-200 hover:bg-accent"
               >
                 ← back home
               </Link>
@@ -413,8 +373,8 @@ export function DocsPageShell({
                   onClick={() => scrollTo(s.id)}
                   className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left capitalize ${
                     activeSection === s.id
-                      ? "bg-[rgba(26,21,18,0.06)] text-[#1A1512] font-semibold"
-                      : "text-[#5A5550] hover:text-[#1A1512] hover:bg-[rgba(26,21,18,0.03)]"
+                      ? "bg-accent font-semibold text-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   }`}
                 >
                   {s.label}
@@ -433,23 +393,17 @@ export function DocsPageShell({
             animate={{ opacity: 1, y: 0 }}
             transition={reducedMotion ? { duration: 0.01 } : { duration: 0.6, ease: EASE }}
           >
-            <div
-              className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full text-xs font-medium"
-              style={{ ...GLASS, color: "#5A5550" }}
-            >
-              <span className="relative flex h-2 w-2">
+            <div className="glass mb-6 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground">
+              <span className="relative flex size-2">
                 {!reducedMotion && (
-                  <span
-                    className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60"
-                    style={{ background: "#fb8500" }}
-                  />
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-60" />
                 )}
-                <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "#fb8500" }} />
+                <span className="relative inline-flex size-2 rounded-full bg-brand" />
               </span>
               {badgeLabel}
             </div>
             <h1
-              className="mb-6 leading-tight"
+             className="mb-6 leading-tight"
               style={{
                 fontFamily: SERIF,
                 fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
@@ -460,7 +414,7 @@ export function DocsPageShell({
             >
               {heroTitle}
             </h1>
-            <p className="max-w-2xl" style={{ color: "#5A5550", fontSize: "1.05rem", lineHeight: 1.8 }}>
+            <p className="max-w-2xl max-w-2xl text-[1.0625rem]">
               {heroDescription}
             </p>
 
@@ -469,7 +423,7 @@ export function DocsPageShell({
                 <button
                   key={id}
                   onClick={() => scrollTo(id)}
-                  className="px-4 py-2 rounded-full text-sm font-medium transition-colors motion-safe:transition-all motion-safe:hover:-translate-y-0.5"
+                 className="transition-colors duration-200 hover:-translate-y-0.5"
                   style={{ ...GLASS, color: FG }}
                 >
                   <span className="capitalize">{id}</span>
@@ -494,14 +448,13 @@ export function DocsPageShell({
                   <button
                     key={s.id}
                     onClick={() => scrollTo(s.id)}
-                    className="relative text-left pl-4 pr-3 py-2 rounded-lg text-sm transition-colors capitalize hover:bg-[rgba(26,21,18,0.03)]"
+                   className="relative w-full rounded-lg px-3 py-2 text-left text-sm transition-colors duration-200 hover:bg-accent"
                     style={{ color: isActive ? FG : MUTED, fontWeight: isActive ? 600 : 400 }}
                   >
                     {isActive && (
                       <motion.span
                         layoutId="docs-active-rule"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full"
-                        style={{ background: "#fb8500" }}
+                        className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-brand"
                         transition={reducedMotion ? { duration: 0.01 } : { ease: EASE, duration: 0.4 }}
                       />
                     )}
@@ -518,21 +471,20 @@ export function DocsPageShell({
 
           <Reveal reducedMotion={reducedMotion}>
             <div
-              className="rounded-3xl p-8 sm:p-10 mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6"
+             className="rounded-3xl p-8 sm:p-10 mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6"
               style={GLASS}
             >
               <div>
-                <p style={{ fontFamily: SERIF, fontSize: "1.6rem", fontWeight: 300, color: "#1A1512", letterSpacing: "-0.01em" }}>
+                <p className="font-serif text-[1.6rem] font-light tracking-tight text-foreground">
                   Ready to present with presence?
                 </p>
-                <p className="text-sm mt-1" style={{ color: "#5A5550" }}>
+                <p className="text-sm mt-1 text-muted-foreground">
                   Head back and try the live demo on the landing page.
                 </p>
               </div>
               <Link
                 to="/"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium rounded-full transition-opacity hover:opacity-80 whitespace-nowrap self-start sm:self-auto"
-                style={{ background: "#1A1512", color: "#FBF9F6" }}
+                className="inline-flex items-center gap-2 self-start rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover sm:self-auto"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -544,29 +496,28 @@ export function DocsPageShell({
         </main>
       </div>
 
-      <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 px-3 py-2 rounded-full" style={GLASS}>
+      {/* The toggle now drives the app-wide preference, so it governs the
+          landing page, the dashboard, and the meet surfaces too — not just
+          the animations on this page. */}
+      <div className="glass fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full px-3 py-2">
         <button
-          onClick={() => setReducedMotion((v) => !v)}
-          className="relative inline-flex items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fb8500]"
-          style={{ width: "36px", height: "20px", background: reducedMotion ? "#1A1512" : "rgba(26,21,18,0.15)", flexShrink: 0 }}
-          aria-label="Toggle reduced motion"
+          type="button"
+          onClick={motionPrefs.toggle}
           role="switch"
           aria-checked={reducedMotion}
+          aria-label="Reduce motion"
+         className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200"
+          style={{ background: reducedMotion ? "#1A1512" : "rgba(26,21,18,0.15)" }}
         >
-          <span
-            className="absolute rounded-full transition-transform"
-            style={{
-              width: "14px",
-              height: "14px",
-              background: "#FBF9F6",
-              top: "3px",
-              left: "3px",
-              transform: reducedMotion ? "translateX(16px)" : "translateX(0)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-            }}
+<span
+            aria-hidden
+            className="absolute left-0.5 size-4 rounded-full bg-background shadow-subtle transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            style={{ transform: reducedMotion ? "translateX(16px)" : "translateX(0)" }}
           />
         </button>
-        <span className="text-[10px]" style={{ color: "#5A5550" }}>{reducedMotion ? "motion off" : "motion on"}</span>
+        <span className="text-[0.6875rem] text-muted-foreground">
+          {reducedMotion ? "Motion reduced" : "Motion on"}
+        </span>
       </div>
     </div>
   );

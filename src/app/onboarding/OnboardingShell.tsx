@@ -1,50 +1,77 @@
-import type { ReactNode } from 'react';
-
 /**
- * Shared chrome for onboarding pages (`/welcome`, `/rehearse`, etc.):
- * canvas background, centered column, small step indicator. Mirrors the
- * landing page's design tokens (plan §4.4 — no new UI library, reuse
- * `src/app/components/ui` + the confirmed palette).
+ * Onboarding shell — the frame for all five setup steps.
  *
- * Now shows 5 steps for the V1 funnel (plan §4).
+ * Three changes from the previous version:
+ *  - The wordmark is a link home, and the step indicator has real progress
+ *    semantics instead of being decorative dots that happen to share a colour
+ *    between "current" and "complete".
+ *  - `maxWidth` no longer triggers a 300ms width transition on every step
+ *    change. RehearsePage varies its own width, and animating it caused layout
+ *    work on a page that is simultaneously running a 60fps video stream.
+ *  - Gutters scale with the viewport, matching every other screen.
  */
+import { type ReactNode } from "react";
+import { Link } from "react-router";
+import { Wordmark } from "@/app/components/primitives";
+import { cn } from "@/app/components/ui/utils";
+
 export function OnboardingShell({
-  children,
   step,
-  totalSteps = 5,
-  maxWidth = 'max-w-xl',
+  totalSteps,
+  children,
+  maxWidth = "max-w-xl",
 }: {
-  children: ReactNode;
   step: number;
-  totalSteps?: number;
+  totalSteps: number;
+  children: ReactNode;
   maxWidth?: string;
 }) {
+  const progress = Math.round(((step - 1) / Math.max(totalSteps - 1, 1)) * 100);
+
   return (
-    <div
-      className="min-h-screen w-full flex flex-col items-center px-6 py-10"
-      style={{ background: '#FBF9F6', color: '#1A1512' }}
-    >
-      <div className={`w-full ${maxWidth} flex items-center justify-between mb-8 transition-all duration-300`}>
-        <span
-          className="text-lg font-medium tracking-tight"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.35rem' }}
+    <div className="relative flex min-h-screen w-full flex-col px-[var(--gutter)] py-8 sm:py-10">
+      <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-4">
+        <Link to="/" aria-label="Stash Live home" className="transition-opacity hover:opacity-70">
+          <Wordmark size="md" className="block text-foreground" />
+        </Link>
+
+        <div
+         className="flex items-center gap-3"
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={totalSteps}
+          aria-valuenow={step}
+          aria-valuetext={`Step ${step} of ${totalSteps}`}
+          aria-label="Setup progress"
         >
-          Stash Live
-        </span>
-        <div className="flex items-center gap-1.5" aria-label={`Step ${step} of ${totalSteps}`}>
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <span
-              key={i}
-              className="h-1.5 rounded-full transition-all"
-              style={{
-                width: i === step - 1 ? '1.5rem' : '0.6rem',
-                background: i <= step - 1 ? '#fb8500' : 'rgba(26,21,18,0.12)',
-              }}
-            />
-          ))}
+          <span className="eyebrow hidden text-muted-subtle sm:inline">
+            {String(step).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
+          </span>
+          <ol className="flex items-center gap-1.5">
+            {Array.from({ length: totalSteps }, (_, i) => {
+              const index = i + 1;
+              const isDone = index < step;
+              const isCurrent = index === step;
+              return (
+                <li key={index} className="flex items-center">
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "h-1.5 rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                      // Current step is wider AND brand-coloured; complete steps
+                      // are a dimmer fill. Position is legible without colour.
+                      isCurrent ? "w-6 bg-brand" : isDone ? "w-1.5 bg-brand/45" : "w-1.5 bg-border-strong",
+                    )}
+                  />
+                </li>
+              );
+            })}
+          </ol>
+          <span className="sr-only">{progress}% complete</span>
         </div>
       </div>
-      <div className={`w-full ${maxWidth} transition-all duration-300`}>{children}</div>
+
+      <div className={cn("mx-auto mt-10 w-full sm:mt-14", maxWidth)}>{children}</div>
     </div>
   );
 }

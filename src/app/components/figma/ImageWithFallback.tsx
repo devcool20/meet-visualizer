@@ -10,7 +10,11 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
     setDidError(true)
   }
 
-  const { src, alt, style, className, ...rest } = props
+  const { src, alt, style, className, fetchPriority, ...rest } = props
+
+  // React 18 only forwards a known set of attributes; `fetchPriority` is not
+  // among them, so it has to reach the DOM as `fetchpriority`.
+  const priorityAttrs = fetchPriority ? ({ fetchpriority: fetchPriority } as Record<string, string>) : {}
 
   return didError ? (
     <div
@@ -18,10 +22,10 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
       style={style}
     >
       <div className="flex items-center justify-center w-full h-full">
-        <img src={ERROR_IMG_SRC} alt="Error loading image" {...rest} data-original-url={src} />
+        <img src={ERROR_IMG_SRC} alt="Error loading image" {...rest} {...priorityAttrs} data-original-url={src} />
       </div>
     </div>
   ) : (
-    <img src={src} alt={alt} className={className} style={style} {...rest} onError={handleError} />
+    <img src={src} alt={alt} className={className} style={style} {...rest} {...priorityAttrs} onError={handleError} />
   )
 }

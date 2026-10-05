@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { Code, Card, Callout, DocSectionBlock, DocsPageShell, type DocSection } from "./docs/shared";
+import { useReducedMotion } from "@/app/motion";
 
 /**
  * Stash Live — end-user Help page (/help), split out of the old
@@ -21,6 +22,10 @@ const SECTIONS: DocSection[] = [
 ];
 
 export default function HelpPage() {
+  // Previously hardcoded to `false`, so no section ever animated while the
+  // shell still rendered a motion toggle that appeared to control it.
+  const reducedMotion = useReducedMotion();
+
   useEffect(() => {
     document.title = "Help — Stash Live";
   }, []);
@@ -43,7 +48,7 @@ export default function HelpPage() {
       quickJumpIds={["getting-started", "rehearsal", "sensitivity", "troubleshooting"]}
       sections={SECTIONS}
     >
-      <DocSectionBlock index={1} id="overview" eyebrow="Overview" title="What Stash Live does" reducedMotion={false}>
+      <DocSectionBlock index={1} id="overview" eyebrow="Overview" title="What Stash Live does" reducedMotion={reducedMotion}>
         <p className="text-sm" style={{ color: "#5A5550", lineHeight: 1.8 }}>
           Stash Live listens for phrases you choose — things you actually say in meetings —
           and shows a small glass card with the matching data beside your shoulder in your outbound
@@ -51,7 +56,7 @@ export default function HelpPage() {
         </p>
       </DocSectionBlock>
 
-      <DocSectionBlock index={2} id="getting-started" eyebrow="Setup" title="Getting started" reducedMotion={false}>
+      <DocSectionBlock index={2} id="getting-started" eyebrow="Setup" title="Getting started" reducedMotion={reducedMotion}>
         <p className="text-sm mb-4" style={{ color: "#5A5550", lineHeight: 1.8 }}>
           Setup is about a minute, and nothing you do here appears live in a real meeting until you
           choose to join one.
@@ -68,7 +73,7 @@ export default function HelpPage() {
         </Card>
       </DocSectionBlock>
 
-      <DocSectionBlock index={3} id="rehearsal" eyebrow="Rehearsal" title="Why rehearse first" reducedMotion={false}>
+      <DocSectionBlock index={3} id="rehearsal" eyebrow="Rehearsal" title="Why rehearse first" reducedMotion={reducedMotion}>
         <p className="text-sm mb-3" style={{ color: "#5A5550", lineHeight: 1.8 }}>
           Rehearsal runs the exact same extension, matching, and rendering pipeline a real meeting
           uses — just on this page instead of meet.google.com. If a card fires correctly here, it
@@ -80,7 +85,7 @@ export default function HelpPage() {
         </Callout>
       </DocSectionBlock>
 
-      <DocSectionBlock index={4} id="cards" eyebrow="Cards" title="Your cards" reducedMotion={false}>
+      <DocSectionBlock index={4} id="cards" eyebrow="Cards" title="Your cards" reducedMotion={reducedMotion}>
         <p className="text-sm mb-3" style={{ color: "#5A5550", lineHeight: 1.8 }}>
           Every card has a title, some data, and a list of trigger phrases. You can edit any card
           from the dashboard's Cards library — rename it, change its phrases, enable or disable
@@ -93,7 +98,7 @@ export default function HelpPage() {
         </p>
       </DocSectionBlock>
 
-      <DocSectionBlock index={5} id="sensitivity" eyebrow="Settings" title="Sensitivity" reducedMotion={false}>
+      <DocSectionBlock index={5} id="sensitivity" eyebrow="Settings" title="Sensitivity" reducedMotion={reducedMotion}>
         <p className="text-sm" style={{ color: "#5A5550", lineHeight: 1.8 }}>
           Sensitivity is a simple three-way choice in Settings —{" "}
           <Code>Only when I'm certain</Code>, <Code>Balanced</Code>, or <Code>Eager</Code> — no
@@ -103,7 +108,7 @@ export default function HelpPage() {
         </p>
       </DocSectionBlock>
 
-      <DocSectionBlock index={6} id="privacy" eyebrow="Privacy" title="What we keep, and what we don't" reducedMotion={false}>
+      <DocSectionBlock index={6} id="privacy" eyebrow="Privacy" title="What we keep, and what we don't" reducedMotion={reducedMotion}>
         <p className="text-sm mb-3" style={{ color: "#5A5550", lineHeight: 1.8 }}>
           By default, Stash Live does not store what you say. Turning on{" "}
           <strong style={{ color: "#1A1512" }}>Save activity snippets</strong> in Settings (off by
@@ -117,7 +122,7 @@ export default function HelpPage() {
         </p>
       </DocSectionBlock>
 
-      <DocSectionBlock index={7} id="troubleshooting" eyebrow="Troubleshooting" title="If something's not working" reducedMotion={false}>
+      <DocSectionBlock index={7} id="troubleshooting" eyebrow="Troubleshooting" title="If something's not working" reducedMotion={reducedMotion}>
         <div className="space-y-4">
           {[
             ["Camera says \"could not access\"", "Close other apps or browser tabs using your camera (another meeting app is a common culprit), then retry the permission prompt."],

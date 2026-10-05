@@ -194,8 +194,7 @@ export function AiProviderPanel({ initialState, onChange }: AiProviderPanelProps
             href={AI_PROVIDER_HELP_URLS[provider]}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs underline"
-            style={{ color: '#5A5550' }}
+           className="text-xs text-muted-foreground underline decoration-border-strong underline-offset-2 transition-colors hover:text-foreground"
           >
             Where do I get this?
           </a>
@@ -206,14 +205,14 @@ export function AiProviderPanel({ initialState, onChange }: AiProviderPanelProps
       )}
 
       {mode === 'validating' && (
-        <p className="text-sm" style={{ color: '#5A5550' }}>
+        <p className="text-smtext-sm text-muted-foreground">
           Checking your key with {AI_PROVIDER_LABELS[provider]}…
         </p>
       )}
 
       {mode === 'invalid' && errorMessage && (
         <div className="space-y-3">
-          <p className="text-sm" style={{ color: '#d4183d' }}>
+          <p className="text-sm text-destructive">
             {errorMessage}
           </p>
           <div className="space-y-1.5">
@@ -250,17 +249,17 @@ export function AiProviderPanel({ initialState, onChange }: AiProviderPanelProps
 
       {mode === 'user-key' && (
         <div className="space-y-3">
-          <p className="text-sm" style={{ color: '#2e7d32' }}>
+          <p className="text-sm text-success">
             Your {AI_PROVIDER_LABELS[provider]} key is active · {keyPreview ?? ''}{' '}
             {validatedAt && `· verified ${new Date(validatedAt).toLocaleDateString()}`}
           </p>
           {infoMessage && (
-            <p className="text-xs" style={{ color: '#5A5550' }}>
+            <p className="text-xstext-sm text-muted-foreground">
               {infoMessage}
             </p>
           )}
           {errorMessage && (
-            <p className="text-sm" style={{ color: '#d4183d' }}>
+            <p className="text-sm text-destructive">
               {errorMessage}
             </p>
           )}
@@ -281,7 +280,7 @@ export function AiProviderPanel({ initialState, onChange }: AiProviderPanelProps
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm" style={{ color: '#d4183d' }}>
+                <Button variant="outline" size="sm" className="text-destructive hover:border-destructive/40 hover:bg-destructive-surface">
                   Remove
                 </Button>
               </AlertDialogTrigger>
@@ -306,11 +305,11 @@ export function AiProviderPanel({ initialState, onChange }: AiProviderPanelProps
 
       {mode === 'server-key' && infoMessage && (
         <div className="space-y-3">
-          <p className="text-sm" style={{ color: '#5A5550' }}>
+          <p className="text-smtext-sm text-muted-foreground">
             {infoMessage}
           </p>
           {errorMessage && (
-            <p className="text-sm" style={{ color: '#d4183d' }}>
+            <p className="text-sm text-destructive">
               {errorMessage}
             </p>
           )}
@@ -330,7 +329,7 @@ export function AiProviderPanel({ initialState, onChange }: AiProviderPanelProps
 
       {mode === 'server-key-broken' && (
         <div className="space-y-3">
-          <p className="text-sm" style={{ color: '#d4183d' }}>
+          <p className="text-sm text-destructive">
             The shared server key has an error: {errorMessage}
           </p>
           <Button

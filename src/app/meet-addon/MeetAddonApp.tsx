@@ -359,7 +359,7 @@ export default function MeetAddonApp() {
               size="sm"
               variant="outline"
               onClick={() => setSessionState((prev) => ({ ...prev, frameType: 'SIDE_PANEL' }))}
-              className="text-[11px] h-7 px-2 text-gray-300 border-gray-700 hover:bg-white/10"
+              className="text-[11px] h-7 px-2 text-muted-foreground border-border-strong hover:bg-white/10"
             >
               Side View
             </Button>
@@ -438,7 +438,7 @@ export default function MeetAddonApp() {
           </AnimatePresence>
 
           {errorMessage && (
-            <div className="mt-3 text-xs text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">
+            <div className="mt-3 rounded-lg border border-destructive-border bg-destructive-surface px-3 py-1.5 text-xs text-destructive">
               {errorMessage}
             </div>
           )}
@@ -540,7 +540,7 @@ export default function MeetAddonApp() {
 
           {/* Topic Suggestion Chips */}
           <div className="flex items-center gap-1.5 flex-wrap pt-1">
-            <span className="text-[10px] text-gray-500 mr-1">Try:</span>
+            <span className="text-[10px] text-muted-subtle mr-1">Try:</span>
             {QUICK_TOPICS.map((topic) => (
               <button
                 key={topic.label}
@@ -574,7 +574,7 @@ export default function MeetAddonApp() {
               </span>
               <button
                 onClick={() => setShowHistory(false)}
-                className="text-[11px] text-gray-500 hover:text-gray-700"
+                className="text-[11px] text-muted-subtle hover:text-muted-foreground"
               >
                 Close
               </button>
@@ -597,7 +597,7 @@ export default function MeetAddonApp() {
                     {card.title}
                   </p>
                   {card.subtitle && (
-                    <p className="text-[10px] truncate text-gray-500">{card.subtitle}</p>
+                    <p className="text-[10px] truncate text-muted-subtle">{card.subtitle}</p>
                   )}
                 </button>
               ))}
