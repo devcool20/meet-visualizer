@@ -91,11 +91,13 @@ describe('MockApiClient (AI provider)', () => {
     client = new MockApiClient();
   });
 
-  it('getAiProvider returns none state initially', async () => {
+  it('getAiProvider starts on the seeded server key, not a user key', async () => {
+    // MockApiClient seeds a server-side provider so demo mode exercises the
+    // server-fallback path. No user key exists yet.
     const state = await client.getAiProvider();
-    expect(state.provider).toBeNull();
-    expect(state.source).toBe('none');
-    expect(state.keyPreview).toBeNull();
+    expect(state.source).toBe('server');
+    expect(state.serverKeyAvailable).toBe(true);
+    expect(state.serverProvider).toBe('bedrock');
   });
 
   it('putAiProvider rejects a short key', async () => {
@@ -115,15 +117,16 @@ describe('MockApiClient (AI provider)', () => {
   });
 
   it('deleteAiProvider falls back to server when serverKeyAvailable is true', async () => {
-    // Set up server key state
     const clientWithServer = new MockApiClient();
-    // First put a user key
     await clientWithServer.putAiProvider('gemini', 'AIzaSyDeadBeef0123456789');
-    // Delete it (no server key available -> source becomes 'none')
+    expect((await clientWithServer.getAiProvider()).source).toBe('user');
+
+    // Removing the user key leaves the seeded server key in play.
     await clientWithServer.deleteAiProvider();
     const state = await clientWithServer.getAiProvider();
-    expect(state.source).toBe('none');
-    expect(state.provider).toBeNull();
+    expect(state.source).toBe('server');
+    expect(state.provider).toBe('bedrock');
+    expect(state.serverKeyAvailable).toBe(true);
   });
 
   it('generateCard returns a valid card spec', async () => {

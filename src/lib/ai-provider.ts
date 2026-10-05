@@ -7,20 +7,22 @@
  * last 4 characters.
  */
 
-export type AiProvider = 'gemini' | 'openai' | 'anthropic';
+export type AiProvider = 'gemini' | 'openai' | 'anthropic' | 'bedrock';
 
-export const AI_PROVIDERS: AiProvider[] = ['gemini', 'openai', 'anthropic'];
+export const AI_PROVIDERS: AiProvider[] = ['gemini', 'openai', 'anthropic', 'bedrock'];
 
 export const AI_PROVIDER_LABELS: Record<AiProvider, string> = {
   gemini: 'Gemini',
   openai: 'OpenAI',
   anthropic: 'Anthropic',
+  bedrock: 'AWS Bedrock',
 };
 
 export const AI_PROVIDER_HELP_URLS: Record<AiProvider, string> = {
   gemini: 'https://aistudio.google.com/app/apikey',
   openai: 'https://platform.openai.com/api-keys',
   anthropic: 'https://console.anthropic.com/settings/keys',
+  bedrock: 'https://aws.amazon.com/bedrock/',
 };
 
 /** Per-provider key prefix heuristics for early client-side validation. */
@@ -28,6 +30,7 @@ const KEY_PREFIXES: Record<AiProvider, string[]> = {
   gemini: ['AIza'],
   openai: ['sk-', 'sk-proj-', 'sk-svc-'],
   anthropic: ['sk-ant-'],
+  bedrock: ['AKIA', 'ABSK', 'MantleApiKey-'],
 };
 
 /**
