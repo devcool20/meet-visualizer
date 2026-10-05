@@ -1,0 +1,22 @@
+src/lib/ai-provider.ts
+  s_2541a4ab89fc3c::t_af1abfa0cefbe6 10,12,18,25,33
+src/lib/api.test.ts
+  s_2541a4ab89fc3c::t_7d8baae8424e5e 122-124,127-129
+  s_2541a4ab89fc3c::t_f5d00489f0e890 94-96,98-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3a0810c90cceac84d43c4c34626590ee413abe65",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
