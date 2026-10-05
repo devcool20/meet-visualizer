@@ -25,7 +25,7 @@ export interface BlockRendererProps {
 export function BlockRenderer({ block, theme, measure }: BlockRendererProps) {
   switch (block.kind) {
     case 'metric_row':
-      return <MetricRow block={block} theme={theme} />;
+      return <MetricRow block={block} theme={theme} measure={measure} />;
     case 'bar_chart':
       return <BarChart block={block} theme={theme} />;
     case 'line_chart':

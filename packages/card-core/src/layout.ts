@@ -9,6 +9,7 @@
  */
 import type { CardBlock, CardSpec } from '@stash/card-spec';
 import { LEGIBILITY } from './tokens.js';
+import { deltaGlyph } from './format.js';
 
 export const CARD = {
   /** ~28% of a 1280px frame, matching the approved mockup. */
@@ -93,6 +94,87 @@ export const IMAGE = {
 } as const;
 
 export const contentWidth = CARD.width - CARD.paddingX * 2;
+
+/** Shared metric-row geometry. Both renderers read these, never their own copy. */
+export const METRIC_ROW = {
+  /** Gutter between columns, in px at CARD.width. */
+  gap: 12,
+  /**
+   * Relative resistance to shrinking when a row cannot fit its natural widths.
+   * The emphasised column is the primary datum, so it keeps its digits longest.
+   */
+  emphasisWeight: 2,
+  normalWeight: 1,
+} as const;
+
+/** The subset of a metric item this function needs. */
+export interface MetricColumn {
+  label: string;
+  value: string;
+  emphasis?: boolean;
+  delta?: { value: string; direction: 'up' | 'down' | 'flat' };
+}
+
+/**
+ * Column widths for a metric row, allocated from measured content.
+ *
+ * This used to be a fixed 1.4 : 1 : 1 flex ratio, which handed the emphasised
+ * column 121px at CARD.width. The approved fixtures need more than that —
+ * "$240,000" measures ~126px and "142 Active" ~131px — so the primary number
+ * was being ellipsised to "$240,0…" on *every* surface that renders a card:
+ * the landing demo, the dashboard library, the editor preview, and the overlay
+ * drawn into the call.
+ *
+ * Allocation is now measured rather than assumed:
+ *  - If the natural widths fit, they are scaled up proportionally so the row
+ *    still spans the card and no text is ever cut.
+ *  - If they do not fit, the available width is shared out by weight so the
+ *    emphasised value keeps its digits for as long as possible, and only then
+ *    does anything truncate.
+ *
+ * Both renderers call this, so the DOM preview and the canvas raster agree by
+ * construction rather than by two copies of the same magic number.
+ */
+export function metricColumnWidths(
+  items: readonly MetricColumn[],
+  measure: TextMeasurer,
+  width: number = contentWidth,
+): number[] {
+  const n = items.length;
+  if (n === 0) return [];
+
+  const available = width - METRIC_ROW.gap * (n - 1);
+
+  const natural = items.map((item) => {
+    const valueStyle = item.emphasis ? TYPE.metricValue : TYPE.metricValueSmall;
+    // `measureText` ignores letter-spacing, so add the DOM tracking back in -
+    // uppercase labels are the widest strings in the row.
+    const label = item.label.toUpperCase();
+    let need =
+      measure(label, TYPE.metricLabel.size, TYPE.metricLabel.weight) +
+      TYPE.metricLabel.tracking * label.length;
+    need = Math.max(need, measure(item.value, valueStyle.size, valueStyle.weight));
+    if (item.delta) {
+      need = Math.max(
+        need,
+        measure(`${deltaGlyph(item.delta.direction)} ${item.delta.value}`, TYPE.delta.size, TYPE.delta.weight),
+      );
+    }
+    return need;
+  });
+
+  const totalNatural = natural.reduce((a, b) => a + b, 0);
+  if (totalNatural <= available) {
+    const scale = totalNatural > 0 ? available / totalNatural : 1;
+    return natural.map((w) => w * scale);
+  }
+
+  const weights = items.map((item) =>
+    item.emphasis ? METRIC_ROW.emphasisWeight : METRIC_ROW.normalWeight,
+  );
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+  return weights.map((w) => (available * w) / totalWeight);
+}
 
 /**
  * Height of a single block at `contentWidth`.

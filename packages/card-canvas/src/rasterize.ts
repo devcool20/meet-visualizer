@@ -96,7 +96,7 @@ function drawBlock(
 ): number {
   switch (block.kind) {
     case 'metric_row':
-      drawMetricRow(ctx, x, y, block, theme);
+      drawMetricRow(ctx, x, y, block, theme, measure);
       return 0;
     case 'bar_chart':
       drawBarChart(ctx, x, y, block, theme);

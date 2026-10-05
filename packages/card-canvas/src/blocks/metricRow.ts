@@ -1,20 +1,27 @@
 import type { CardTheme, MetricItem } from '@stash/card-spec';
-import { TYPE, contentWidth, deltaGlyph } from '@stash/card-core';
+import { TYPE, deltaGlyph, metricColumnWidths, METRIC_ROW, type TextMeasurer } from '@stash/card-core';
 import { setFont } from '../measure.js';
 import type { Ctx2D } from '../canvas-factory.js';
 
-/** Same three-column proportional layout as `card-react/blocks/MetricRow.tsx`. */
-export function drawMetricRow(ctx: Ctx2D, x: number, y: number, block: { items: MetricItem[] }, theme: CardTheme): void {
-  const gap = 12;
-  const n = block.items.length;
-  const weights = block.items.map((i) => (i.emphasis ? 1.4 : 1));
-  const totalWeight = weights.reduce((a, b) => a + b, 0);
-  const totalGap = gap * (n - 1);
-  const availableWidth = contentWidth - totalGap;
+/**
+ * Same proportional, measurement-driven column layout as
+ * `card-react/blocks/MetricRow.tsx` - both call `metricColumnWidths`, so the two
+ * renderers cannot drift.
+ */
+export function drawMetricRow(
+  ctx: Ctx2D,
+  x: number,
+  y: number,
+  block: { items: MetricItem[] },
+  theme: CardTheme,
+  measure: TextMeasurer,
+): void {
+  const colWidths = metricColumnWidths(block.items, measure);
+  const gap = METRIC_ROW.gap;
 
   let cursorX = x;
   block.items.forEach((item, i) => {
-    const colWidth = (availableWidth * weights[i]) / totalWeight;
+    const colWidth = colWidths[i];
     const valueStyle = item.emphasis ? TYPE.metricValue : TYPE.metricValueSmall;
 
     ctx.textAlign = 'left';
@@ -32,7 +39,7 @@ export function drawMetricRow(ctx: Ctx2D, x: number, y: number, block: { items: 
 
     if (item.delta) {
       setFont(ctx, TYPE.delta.size, TYPE.delta.weight);
-      // Delta text is below LEGIBILITY.TEXT_ACCENT_MIN_PX — never accent
+      // Delta text is below LEGIBILITY.TEXT_ACCENT_MIN_PX - never accent
       // (see the matching note in card-react/blocks/MetricRow.tsx).
       ctx.fillStyle = theme.text;
       const label = `${deltaGlyph(item.delta.direction)} ${item.delta.value}`;
@@ -49,8 +56,8 @@ function drawEllipsized(ctx: Ctx2D, text: string, x: number, y: number, maxWidth
     return;
   }
   let truncated = text;
-  while (truncated.length > 1 && ctx.measureText(`${truncated}…`).width > maxWidth) {
+  while (truncated.length > 1 && ctx.measureText(`${truncated}.`).width > maxWidth) {
     truncated = truncated.slice(0, -1);
   }
-  ctx.fillText(`${truncated}…`, x, y);
+  ctx.fillText(`${truncated}.`, x, y);
 }

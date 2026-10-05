@@ -1,23 +1,42 @@
 import type { MetricItem, CardTheme } from '@stash/card-spec';
-import { TYPE, deltaGlyph } from '@stash/card-core';
+import { TYPE, deltaGlyph, metricColumnWidths, METRIC_ROW, type TextMeasurer } from '@stash/card-core';
 
-export function MetricRow({ block, theme }: { block: { items: MetricItem[] }; theme: CardTheme }) {
+/**
+ * Three-column metric row.
+ *
+ * Column widths come from `metricColumnWidths` (card-core) — the same function
+ * the canvas rasterizer calls — so this DOM surface and the overlay drawn into
+ * a meeting allocate identically. Previously both used a hardcoded 1.4 : 1 : 1
+ * ratio, which ellipsised the primary value on both.
+ */
+export function MetricRow({
+  block,
+  theme,
+  measure,
+}: {
+  block: { items: MetricItem[] };
+  theme: CardTheme;
+  measure: TextMeasurer;
+}) {
+  const widths = metricColumnWidths(block.items, measure);
+
   return (
-    <div style={{ display: 'flex', gap: 12, height: '100%' }}>
+    <div style={{ display: 'flex', height: '100%' }}>
       {block.items.map((item, i) => {
         const valueStyle = item.emphasis ? TYPE.metricValue : TYPE.metricValueSmall;
         // Delta text renders at TYPE.delta.size (14px), below
-        // LEGIBILITY.TEXT_ACCENT_MIN_PX (20px) — accent is reserved for fills,
+        // LEGIBILITY.TEXT_ACCENT_MIN_PX (20px) - accent is reserved for fills,
         // bars and dots at this size (card-core/tokens.ts), never small text,
         // because #fb8500 on white has almost no luminance contrast and
         // smears under 4:2:0 chroma subsampling. Use the neutral text colour
-        // instead; the glyph (↑/↓/→) already carries the direction.
+        // instead; the glyph already carries the direction.
         const deltaColor = theme.text;
         return (
           <div
             key={i}
             style={{
-              flex: item.emphasis ? '1.4 0 0%' : '1 0 0%',
+              width: widths[i],
+              marginRight: i < block.items.length - 1 ? METRIC_ROW.gap : 0,
               minWidth: 0,
               display: 'flex',
               flexDirection: 'column',

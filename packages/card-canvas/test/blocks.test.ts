@@ -12,7 +12,7 @@ import {
   get2DContext,
   createCanvasTextMeasurer,
 } from '@stash/card-canvas';
-import { DEFAULT_THEME, REVENUE_CARD, TEAM_CARD, GROWTH_CARD, COVERAGE_CARD } from '@stash/card-core';
+import { DEFAULT_THEME, FONTS, REVENUE_CARD, TEAM_CARD, GROWTH_CARD, COVERAGE_CARD, TYPE, metricColumnWidths } from '@stash/card-core';
 import type { CardBlock } from '@stash/card-spec';
 
 function blockOfKind(spec: { blocks: CardBlock[] }, kind: CardBlock['kind']): CardBlock {
@@ -28,7 +28,28 @@ describe('per-block-kind draw functions (smoke)', () => {
 
   it('drawMetricRow does not throw', () => {
     const block = blockOfKind(REVENUE_CARD, 'metric_row') as Extract<CardBlock, { kind: 'metric_row' }>;
-    expect(() => drawMetricRow(ctx, 20, 20, block, DEFAULT_THEME)).not.toThrow();
+    expect(() => drawMetricRow(ctx, 20, 20, block, DEFAULT_THEME, measure)).not.toThrow();
+  });
+
+  it('drawMetricRow does not ellipsize the emphasised value of the approved fixtures', () => {
+    // Regression guard: the fixed 1.4:1:1 column ratio gave the emphasised
+    // column 121px, but "$240,000" measures ~126px and "142 Active" ~131px, so
+    // the primary number was cut to "$240,0…" on every card surface.
+    for (const card of [REVENUE_CARD, TEAM_CARD, GROWTH_CARD]) {
+      const block = blockOfKind(card, 'metric_row') as Extract<CardBlock, { kind: 'metric_row' }>;
+      const emphasised = block.items.find((i) => i.emphasis);
+      if (!emphasised) continue;
+
+      const widths = metricColumnWidths(block.items, measure);
+      const index = block.items.indexOf(emphasised);
+      const valueStyle = emphasised.emphasis ? TYPE.metricValue : TYPE.metricValueSmall;
+
+      ctx.font = `${valueStyle.weight} ${valueStyle.size}px ${FONTS.sans}`;
+      expect(
+        ctx.measureText(emphasised.value).width,
+        `${card.title}: "${emphasised.value}" must fit its column`,
+      ).toBeLessThanOrEqual(widths[index]);
+    }
   });
 
   it('drawLineChart does not throw, with and without area fill', () => {
