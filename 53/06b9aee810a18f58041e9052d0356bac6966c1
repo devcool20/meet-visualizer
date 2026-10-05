@@ -1,0 +1,35 @@
+packages/card-canvas/test/blocks.test.ts
+  s_2541a4ab89fc3c::t_ff03c9e8b064a2 15
+  s_2541a4ab89fc3c::t_abda9248e08c72 31-52
+packages/card-core/src/layout.ts
+  s_2541a4ab89fc3c::t_60d5d39a9567e7 12
+  s_2541a4ab89fc3c::t_fa2ad19b28b725 98-178
+packages/card-react/src/blocks/MetricRow.tsx
+  s_2541a4ab89fc3c::t_924d2dd18b1c3e 4-6,11-21,24,28,38
+  s_2541a4ab89fc3c::t_e6ea24635386eb 2
+  s_2541a4ab89fc3c::t_e9bbe26337a7a9 7-10,32,39
+  s_2541a4ab89fc3c::t_8b3c0e7c2b496d 3
+packages/card-canvas/src/rasterize.ts
+  s_2541a4ab89fc3c::t_91cb7f09317317 99
+packages/card-canvas/src/blocks/metricRow.ts
+  s_2541a4ab89fc3c::t_47643c97dcbff0 2
+  s_2541a4ab89fc3c::t_52013046093deb 6-20,24,42,59,62-63
+packages/card-react/src/blocks/BlockRenderer.tsx
+  s_2541a4ab89fc3c::t_322d5bdad1910c 28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5306b9aee810a18f58041e9052d0356bac6966c1",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
