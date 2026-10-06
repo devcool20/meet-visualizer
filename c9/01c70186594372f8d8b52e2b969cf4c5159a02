@@ -1,0 +1,36 @@
+packages/card-core/test/layout.test.ts
+  s_2541a4ab89fc3c::t_b4b9be2456082a 131,138
+  s_2541a4ab89fc3c::t_ee1a1206f3282c 78-130,132-137,139-146
+  s_2541a4ab89fc3c::t_5ed95000198cd9 147
+  s_2541a4ab89fc3c::t_bd709ddbfdd963 34-35,38,40-42
+  s_2541a4ab89fc3c::t_b3c74e262ebf85 4,7
+  s_2541a4ab89fc3c::t_84de9926f2e05b 55-58,61,63-64
+packages/card-canvas/src/blocks/metricRow.ts
+  s_2541a4ab89fc3c::t_37eaf315f4e855 2-9,14-17,27-33,35-49,51-98,100-113,116-125,130
+packages/card-core/src/layout.ts
+  s_2541a4ab89fc3c::t_0b9b071bba039d 300-303,321,328
+  s_2541a4ab89fc3c::t_934bd05d6c9ba2 32-33
+  s_2541a4ab89fc3c::t_aaceb4ce52cca0 110-115
+  s_2541a4ab89fc3c::t_4eb2964959c471 452-453
+  s_2541a4ab89fc3c::t_9019f66bacc48f 187-299,304-320,322-327,329-349
+packages/card-react/src/blocks/MetricRow.tsx
+  s_2541a4ab89fc3c::t_4ae755b4c8a40d 7
+  s_2541a4ab89fc3c::t_698f59d9fe1a7a 98
+  s_2541a4ab89fc3c::t_9138f07ef1dd31 2-6,8-9,12,14-23,34-44,47-52,54,56-69,72-81,83-84,88-97,99-181
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c901c70186594372f8d8b52e2b969cf4c5159a02",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
