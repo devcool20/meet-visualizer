@@ -9,7 +9,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Mic, MicOff } from "lucide-react";
-import { GlassCard } from "@stash/card-react";
+import { GlassCard, createDomTextMeasurer } from "@stash/card-react";
+import { layoutCard } from "@stash/card-core";
 import { Pill, StatusDot, Telemetry } from "@/app/components/primitives";
 import { EASE, DURATION, useReducedMotion } from "@/app/motion";
 import { TOPIC_CAPTIONS, TOPIC_CARDS, TOPIC_KEYS, type TopicKey } from "./content";
@@ -37,6 +38,33 @@ export function PresenterStage({
     const pad = (n: number) => String(n).padStart(2, "0");
     return `${pad(Math.floor(elapsed / 3600))}:${pad(Math.floor((elapsed % 3600) / 60))}:${pad(elapsed % 60)}`;
   }, [elapsed]);
+
+  /**
+   * The card slot is sized to the TALLEST topic card, not the current one.
+   *
+   * Each topic card has a different block count and so a different height, which
+   * made the whole stage change height every 4.2s. The hero grid centres both
+   * columns with `items-center`, so a resizing preview pushed the headline up
+   * and down on every rotation - it looked like the copy was breathing.
+   *
+   * Reserving the tallest height makes the stage a fixed-size object, and the
+   * hero copy stops moving. Measured with the same layout function and DOM
+   * measurer `GlassCard` itself uses, so the slot can never clip a card.
+   *
+   * The height is left in `GlassCard`'s own LAYOUT units - deliberately not
+   * scaled by cardWidth/CARD.width. The card's box is the unscaled design size
+   * and only its paint is CSS-scaled, so a flex parent centres against the
+   * layout box. Scaling here would centre the tallest card correctly but leave
+   * every shorter card visibly high in the slot.
+   */
+  const slotHeight = useMemo(() => {
+    const measure = createDomTextMeasurer();
+    let tallest = 0;
+    for (const key of TOPIC_KEYS) {
+      tallest = Math.max(tallest, layoutCard(TOPIC_CARDS[key], measure).height);
+    }
+    return Math.ceil(tallest);
+  }, []);
 
   return (
     <div
@@ -113,14 +141,22 @@ export function PresenterStage({
       </div>
 
       {/* The projected card — the entire point of the product. */}
-      <div className="relative px-3 pb-3">
-        <div className="absolute -top-2 left-5">
+      {/* `pt-6` reserves a band for the PROJECTED tag. The card is centred in a
+          fixed-height slot sized to the tallest topic card, so shorter cards
+          float with space above them and a corner tag would otherwise land on
+          top of the tallest one. */}
+      <div className="relative px-3 pb-3 pt-6">
+        <div className="absolute left-5 top-2">
           <Pill tone="brand" className="border border-[#fb8500]/25 bg-[#1A1512] text-[#FFA24A]">
             <span className="size-1 rounded-full bg-brand" />
             Projected
           </Pill>
         </div>
-        <div className="flex justify-center rounded-card border border-[#FBF9F6]/10 bg-[#FBF9F6]/4 p-2.5">
+        {/* Fixed-height slot: the stage must not resize as topics rotate. */}
+        <div
+          className="flex items-center justify-center rounded-card border border-[#FBF9F6]/10 bg-[#FBF9F6]/4 p-2.5"
+          style={{ height: slotHeight + 20 }}
+        >
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={topic}

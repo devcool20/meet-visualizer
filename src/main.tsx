@@ -96,9 +96,13 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/rehearse"
             element={
-              <ProtectedRoute>
-                <Page><RehearsePage /></Page>
-              </ProtectedRoute>
+              // Deliberately NOT behind ProtectedRoute. The landing hero's primary
+              // CTA is "Rehearse", so a signed-out visitor clicking it must land
+              // here rather than be bounced to /signup. The page already copes:
+              // getAuthClient() falls back to the demo session when Supabase is
+              // unconfigured, listCards failures degrade to an empty library, and
+              // a rejected generate surfaces the engine's error on the page.
+              <Page><RehearsePage /></Page>
             }
           />
           <Route

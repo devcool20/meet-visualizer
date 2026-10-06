@@ -114,8 +114,8 @@ export function Hero({ topic }: { topic: TopicKey }) {
             </p>
 
 <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Action to="/signup" variant="brand" size="lg" trailingArrow>
-                Start free
+              <Action to="/rehearse" variant="brand" size="lg" trailingArrow>
+                Rehearse
               </Action>
               <Action
                 href="#demo"
