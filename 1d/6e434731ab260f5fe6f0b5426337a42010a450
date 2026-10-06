@@ -1,0 +1,25 @@
+src/lib/env.ts
+  s_2541a4ab89fc3c::t_696333d2e6e79d 22-24,26,29,33,35-41,49,56,60,64,69
+  s_2541a4ab89fc3c::t_40a8771f6da18d 3,5-19,21,25,27-28,30-32,34,42-43,45-48,55,81
+src/lib/env.test.ts
+  s_2541a4ab89fc3c::t_cf7621609679f7 1-2,8,11,14,19,24-28,33,35,40,45,47-62
+  s_2541a4ab89fc3c::t_8b09d6fa82b776 3-7,9-10,12-13,15-18,20-23,29-32,34,36-39,41-44,46,63-64
+.env.example
+  s_2541a4ab89fc3c::t_095f8d53fa9404 5-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1d6e434731ab260f5fe6f0b5426337a42010a450",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
