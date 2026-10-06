@@ -23,8 +23,19 @@ export type LayoutKey = 'profile' | 'explainer' | 'stat' | 'list';
 
 export interface LayoutRecipe {
   key: LayoutKey;
-  /** Ordered preference the assembler uses to sort blocks. */
-  blockOrder: Array<'image' | 'metric_row' | 'text' | 'bullets' | 'status_list'>;
+  /**
+   * Ordered preference the assembler uses to sort blocks.
+   *
+   * Amendment: chart kinds were missing from this union even though
+   * `CardBlock` has always allowed `bar_chart`/`line_chart`. Anything absent
+   * sorted to the end (99) and was then cut by `maxContentBlocks`, so a
+   * generated card physically could not carry a chart. Both kinds are now
+   * orderable and placed next to `metric_row`, which is the block they sit
+   * alongside.
+   */
+  blockOrder: Array<
+    'image' | 'metric_row' | 'bar_chart' | 'line_chart' | 'text' | 'bullets' | 'status_list'
+  >;
   maxContentBlocks: number; // ≤ 4; the source footer is added on top, cap 6 total
   preferImage: boolean;
 }
@@ -32,25 +43,26 @@ export interface LayoutRecipe {
 export const LAYOUT_RECIPES: Record<LayoutKey, LayoutRecipe> = {
   profile: {
     key: 'profile',
-    blockOrder: ['image', 'metric_row', 'text', 'bullets', 'status_list'],
+    blockOrder: ['image', 'metric_row', 'line_chart', 'bar_chart', 'text', 'bullets', 'status_list'],
     maxContentBlocks: 3,
     preferImage: true,
   },
   explainer: {
     key: 'explainer',
-    blockOrder: ['text', 'bullets', 'metric_row', 'status_list', 'image'],
+    blockOrder: ['text', 'bullets', 'metric_row', 'line_chart', 'bar_chart', 'status_list', 'image'],
     maxContentBlocks: 4,
     preferImage: false,
   },
   stat: {
     key: 'stat',
-    blockOrder: ['metric_row', 'text', 'bullets', 'status_list', 'image'],
+    // A stat card leads with the numbers and then shows the shape of them.
+    blockOrder: ['metric_row', 'line_chart', 'bar_chart', 'text', 'bullets', 'status_list', 'image'],
     maxContentBlocks: 3,
     preferImage: false,
   },
   list: {
     key: 'list',
-    blockOrder: ['bullets', 'status_list', 'text', 'metric_row', 'image'],
+    blockOrder: ['bullets', 'status_list', 'text', 'metric_row', 'bar_chart', 'line_chart', 'image'],
     maxContentBlocks: 4,
     preferImage: false,
   },

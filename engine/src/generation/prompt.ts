@@ -30,12 +30,22 @@ Rules:
 11. If grounded context matches the topic, set sourceIndex to its index (0, 1, etc.).
 12. Include a concise subtitle (≤ 70 chars) describing what/who it is.
 13. Set imageWanted to true ONLY for the following entity categories:
-    - Person (e.g. actors, historical figures, founders, athletes, leaders)
-    - Place / Location (e.g. cities, monuments, countries, landmarks)
-    - Historical Event (e.g. missions, battles, revolutions, launches)
-    - Individual Physical Item / Device / Vehicle (e.g. iPhone, Mars Rover, sports car, telescope)
-    For abstract concepts, metrics, financial stats, generic workflows, or company overviews without specific physical items, set imageWanted to false.
-14. Return ONLY valid JSON matching the schema. No markdown, no conversational commentary.`;
+     - Person (e.g. actors, historical figures, founders, athletes, leaders)
+     - Place / Location (e.g. cities, monuments, countries, landmarks)
+     - Historical Event (e.g. missions, battles, revolutions, launches)
+     - Individual Physical Item / Device / Vehicle (e.g. iPhone, Mars Rover, sports car, telescope)
+     For abstract concepts, metrics, financial stats, generic workflows, or company overviews without specific physical items, set imageWanted to false.
+14. SUBJECT vs CONTEXT. Spoken requests are often relational: "aditya roy kapur in aashiqui 2", "the CEO of Stripe", "Einstein at Princeton". The engine uses subjectIndex to choose which candidate supplies the card's photo and which entity the title names.
+     - subjectIndex = the candidate for the entity the speaker is ASKING ABOUT (the person, not the film).
+     - sourceIndex = the candidate that best supports the specific facts (often the film, which describes the role).
+     - For a plain single-entity request both point at the same index.
+15. GROUNDING IS THE ONLY SOURCE OF FACT. Never state a detail that is not present in the grounding text or the utterance. If the speaker asks about an actor's character and the grounding does not name the character, omit the character rather than guessing - a plausible wrong name is worse than no name. Do not merge facts from two similarly-named works (a first and a sequel, a book and its film).
+16. CHARTS. Include a chart block whenever the grounding or the utterance contains a series or a set of comparable values - a run of figures over time, a per-month or per-quarter trend, a breakdown across comparable categories.
+     - Use "line_chart" for a trend over time; "bar_chart" for a comparison across categories.
+     - Every plotted value MUST appear in the grounding text. Never invent, interpolate or estimate a number to fill a chart.
+     - If the grounding gives only isolated single values (for example one ARR figure and one margin percentage, which are also different units), there is nothing truthful to plot: emit a METRIC_ROW instead and no chart.
+     - 2-8 points per series. Label points with the period or category given in the grounding (e.g. "Jan", "Q1").
+17. Return ONLY valid JSON matching the schema. No markdown, no conversational commentary.`;
 }
 
 export function buildUserPrompt(
@@ -63,8 +73,15 @@ export function buildUserPrompt(
     grounded ? `\nRelevant grounded workspace documents & knowledge:\n${groundingSection}\n` : '\nNo external context available for this topic.\n',
     'Generate a card spec for this utterance. Set relevant to true and synthesize a concise, structured card.',
     grounded
-      ? 'If the utterance relates to one of the grounded topics, set sourceIndex to its index (starting from 0). Otherwise set it to null.'
-      : 'Since no external context is available, set sourceIndex to null.',
+      ? [
+          'For each grounding block above, decide:',
+          '- sourceIndex: the block that best supports the specific facts you will state.',
+          '- subjectIndex: the block for the entity the speaker is ASKING ABOUT. If the utterance relates to',
+          '  a person inside a work, a role inside a company, or a part inside a product, this is the person,',
+          '  not the work. If both are the same block, use the same index. Otherwise null.',
+          'Set either to null when no grounding block matches.',
+        ].join('\n')
+      : 'Since no external context is available, set sourceIndex and subjectIndex to null.',
   ].join('\n');
 }
 

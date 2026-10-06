@@ -176,12 +176,15 @@ export class CardGenerator {
       }
 
       // 8. Image resolution (for person, place, historical events, individual items)
+      // The photo comes from the SUBJECT, not from whatever grounded the facts.
+      // Asking "aditya roy kapur in aashiqui 2" should show the actor; the film
+      // article is the one that describes the role, so it wins sourceIndex and
+      // used to win the picture too.
       let imageUrl: string | null = null;
       if (result.imageWanted && candidates.length > 0) {
+        const byIndex = (i: unknown) => (typeof i === 'number' ? candidates[i] : undefined);
         const targetCandidate =
-          typeof result.sourceIndex === 'number' && candidates[result.sourceIndex]
-            ? candidates[result.sourceIndex]
-            : candidates[0];
+          byIndex(result.subjectIndex) ?? byIndex(result.sourceIndex) ?? candidates[0];
         if (targetCandidate?.imageUrl) {
           const imageBudget = Math.min(config.imageVerifyTimeoutMs, Math.max(1000, deadline - this.now()));
           imageUrl = await this.deps.images.resolve(targetCandidate.imageUrl, imageBudget);

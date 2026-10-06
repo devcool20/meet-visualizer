@@ -1,14 +1,26 @@
 /**
  * Draft schema — what the model may emit (plan §3.4).
  *
- * The model never emits: colours, url, id, revision, v, ttlMs, position,
- * chart series. Those are engine-owned. GENERATED_BLOCK_KINDS controls which
- * block kinds the model is allowed to emit — chart blocks and avatar_grid are
- * excluded from the generated path.
+* The model never emits: colours, url, id, revision, v, ttlMs, position. Those
+ * are engine-owned.
+ *
+ * Chart blocks WERE excluded here, which meant a generated card could never show
+ * a chart no matter what the user asked for - "ARR and gross margin" produced a
+ * metric row and a paragraph and nothing else, because the model had no way to
+ * express one. They are now allowed, carrying one hard constraint stated in the
+ * prompt: every plotted value must come from the grounding text. `avatar_grid`
+ * stays excluded - it needs people data the model does not have.
  */
 import { z } from 'zod';
 
-export const GENERATED_BLOCK_KINDS = ['text', 'bullets', 'metric_row', 'status_list'] as const;
+export const GENERATED_BLOCK_KINDS = [
+  'text',
+  'bullets',
+  'metric_row',
+  'status_list',
+  'bar_chart',
+  'line_chart',
+] as const;
 
 const draftTextBlockSchema = z.object({
   kind: z.literal('text'),
@@ -40,16 +52,46 @@ const draftStatusListBlockSchema = z.object({
   rows: z.array(draftStatusRowSchema).min(1).max(5),
 });
 
+/** One chart point. `label` is the axis caption, e.g. a month. */
+const draftChartPointSchema = z.object({
+  label: z.string().min(1).max(16),
+  value: z.number().finite(),
+});
+
+const draftBarChartBlockSchema = z.object({
+  kind: z.literal('bar_chart'),
+  series: z.array(draftChartPointSchema).min(2).max(8),
+  unit: z.string().max(12).optional(),
+});
+
+const draftLineChartBlockSchema = z.object({
+  kind: z.literal('line_chart'),
+  series: z.array(draftChartPointSchema).min(2).max(8),
+  area: z.boolean().optional(),
+  unit: z.string().max(12).optional(),
+});
+
 const draftBlockSchema = z.discriminatedUnion('kind', [
   draftTextBlockSchema,
   draftBulletsBlockSchema,
   draftMetricRowBlockSchema,
   draftStatusListBlockSchema,
+  draftBarChartBlockSchema,
+  draftLineChartBlockSchema,
 ]);
 
 export const generatedDraftSchema = z.object({
   relevant: z.boolean(),
   sourceIndex: z.number().int().nullable().optional(),
+  /**
+   * Which candidate IS the subject of the request, as opposed to which one
+   * best grounds the facts. For "aditya roy kapur in aashiqui 2" the subject is
+   * the actor (his portrait, his name on the title) while the facts about the
+   * role come from the film. Without this the engine always illustrated the card
+   * with `candidates[0]`, which is whichever entity the search ranked first -
+   * so asking about a person inside a film produced the film's poster.
+   */
+  subjectIndex: z.number().int().nullable().optional(),
   title: z.string().min(1).max(60),
   subtitle: z.string().max(90).nullable().optional(),
   accent: z.enum(['amber', 'teal', 'indigo', 'rose', 'emerald', 'slate']).catch('amber'),
@@ -113,6 +155,25 @@ export function normalizeDraftInput(raw: any): any {
         return { kind: 'status_list', rows: rows.slice(0, 5) };
       }
 
+      if (kind === 'bar_chart' || kind === 'line_chart') {
+        const raw = Array.isArray(b.series) ? b.series : [];
+        const series = raw
+          .map((p: any) => ({
+            label: String(p?.label ?? '').slice(0, 16),
+            value: Number(p?.value),
+          }))
+          .filter((p: any) => p.label !== '' && Number.isFinite(p.value))
+          .slice(0, 8);
+        // A chart needs at least two points to be a chart at all.
+        if (series.length < 2) return null;
+        return {
+          kind,
+          series,
+          ...(b.unit ? { unit: String(b.unit).slice(0, 12) } : {}),
+          ...(kind === 'line_chart' && b.area !== undefined ? { area: Boolean(b.area) } : {}),
+        };
+      }
+
       return null;
     })
     .filter(Boolean);
@@ -122,6 +183,7 @@ export function normalizeDraftInput(raw: any): any {
   }
 
   draft.sourceIndex = typeof draft.sourceIndex === 'number' ? draft.sourceIndex : null;
+  draft.subjectIndex = typeof draft.subjectIndex === 'number' ? draft.subjectIndex : null;
   return draft;
 }
 
@@ -137,6 +199,7 @@ export function buildDraftJsonSchema(): Record<string, unknown> {
     properties: {
       relevant: { type: 'boolean' },
       sourceIndex: { type: ['integer', 'null'] },
+      subjectIndex: { type: ['integer', 'null'] },
       title: { type: 'string', minLength: 1, maxLength: 60 },
       subtitle: { type: ['string', 'null'], maxLength: 90 },
       accent: { type: 'string', enum: ['amber', 'teal', 'indigo', 'rose', 'emerald', 'slate'] },
@@ -221,11 +284,58 @@ export function buildDraftJsonSchema(): Record<string, unknown> {
               required: ['kind', 'rows'],
               additionalProperties: false,
             },
+            {
+              type: 'object',
+              properties: {
+                kind: { type: 'string', const: 'bar_chart' },
+                series: {
+                  type: 'array',
+                  minItems: 2,
+                  maxItems: 8,
+                  items: {
+                    type: 'object',
+                    properties: {
+                      label: { type: 'string', minLength: 1, maxLength: 16 },
+                      value: { type: 'number' },
+                    },
+                    required: ['label', 'value'],
+                    additionalProperties: false,
+                  },
+                },
+                unit: { type: 'string', maxLength: 12 },
+              },
+              required: ['kind', 'series'],
+              additionalProperties: false,
+            },
+            {
+              type: 'object',
+              properties: {
+                kind: { type: 'string', const: 'line_chart' },
+                series: {
+                  type: 'array',
+                  minItems: 2,
+                  maxItems: 8,
+                  items: {
+                    type: 'object',
+                    properties: {
+                      label: { type: 'string', minLength: 1, maxLength: 16 },
+                      value: { type: 'number' },
+                    },
+                    required: ['label', 'value'],
+                    additionalProperties: false,
+                  },
+                },
+                area: { type: 'boolean' },
+                unit: { type: 'string', maxLength: 12 },
+              },
+              required: ['kind', 'series'],
+              additionalProperties: false,
+            },
           ],
         },
       },
     },
-    required: ['relevant', 'sourceIndex', 'title', 'subtitle', 'accent', 'layout', 'imageWanted', 'blocks'],
+    required: ['relevant', 'sourceIndex', 'subjectIndex', 'title', 'subtitle', 'accent', 'layout', 'imageWanted', 'blocks'],
     additionalProperties: false,
   };
 }
