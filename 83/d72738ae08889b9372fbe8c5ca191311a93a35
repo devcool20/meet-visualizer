@@ -1,0 +1,25 @@
+src/app/landing/LandingFooter.tsx
+  s_2541a4ab89fc3c::t_f4a7315ca01e99 57-62
+  s_2541a4ab89fc3c::t_96cda45dd78428 54-56
+  s_2541a4ab89fc3c::t_ec2878a0818240 67,70
+  s_2541a4ab89fc3c::t_efa1f2668536c9 53
+  s_2541a4ab89fc3c::t_0ef685e5eb1db4 49-52
+src/app/landing/EngagementGap.tsx
+  s_2541a4ab89fc3c::t_a552e23c540316 87-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "83d72738ae08889b9372fbe8c5ca191311a93a35",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
