@@ -8,7 +8,23 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { config } from '../config.js';
 
-export const IMAGE_HOST_ALLOWLIST = ['upload.wikimedia.org', 'commons.wikimedia.org'] as const;
+/**
+ * Upstream hosts the image proxy will fetch from. This is the SSRF boundary,
+ * so it stays Wikimedia-only — the images are freely licensed and the engine
+ * only ever proxies them to keep `Access-Control-Allow-Origin: *` intact.
+ *
+ * `thumb.wikimedia.org` is the thumbnail CDN that Wikipedia's REST summary API
+ * (`/api/rest_v1/page/summary/...`) now returns `thumbnail.source` from. It was
+ * missing here, which silently dropped every real person/place image: grounding
+ * rejected the thumbnail, left `imageUrl` null, and no card ever got an image
+ * block. `upload.wikimedia.org` is still needed for pages that serve originals
+ * rather than the CDN.
+ */
+export const IMAGE_HOST_ALLOWLIST = [
+  'upload.wikimedia.org',
+  'commons.wikimedia.org',
+  'thumb.wikimedia.org',
+] as const;
 
 export function isAllowedImageHost(url: string): boolean {
   try {

@@ -14,6 +14,14 @@ services:
         value: 5000
       - key: STASH_LOCAL
         value: "1"
+      # Signed image-proxy URLs are built from imageProxyPublicOrigin. Without
+      # this, STASH_LOCAL=1 makes it fall back to http://localhost:5000, so the
+      # browser gets an image URL pointing at the user's own machine and no
+      # image ever renders.
+      - key: STASH_IMAGE_PROXY_ORIGIN
+        value: https://stash-live-engine.onrender.com
+      - key: STASH_PRODUCT_ORIGIN
+        value: https://stashlive.vercel.app
       - key: STASH_AI_PROVIDER
         value: bedrock
       - key: AWS_REGION
