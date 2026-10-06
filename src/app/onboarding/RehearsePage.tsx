@@ -48,10 +48,13 @@ function StageFittingCard({
   stageRef,
   spec,
   width,
+  maxHeight,
 }: {
   stageRef: React.RefObject<HTMLDivElement | null>;
   spec: unknown;
   width: number;
+  /** Explicit vertical budget. Falls back to most of the stage height. */
+  maxHeight?: number;
 }) {
   const innerRef = useRef<HTMLDivElement | null>(null);
   const [fit, setFit] = useState({ scale: 1, w: 0, h: 0 });
@@ -65,14 +68,14 @@ function StageFittingCard({
     const w = width;
     const h = card.offsetHeight * (width / CARD.width);
     const availW = stage.clientWidth * 0.9;
-    const availH = stage.clientHeight * 0.86;
-    if (w === 0 || h === 0) return;
+    const availH = maxHeight ?? stage.clientHeight * 0.86;
+    if (w === 0 || h === 0 || availH <= 0) return;
     // Floor the scale: below roughly 0.55 the card is technically inside the
     // stage but practically unreadable, and a clipped card reads better than a
     // 5px one.
     const scale = Math.max(0.55, Math.min(1, availW / w, availH / h));
     setFit({ scale, w: w * scale, h: h * scale });
-  }, [stageRef, width]);
+  }, [stageRef, width, maxHeight]);
 
   useEffect(() => {
     measure();
@@ -100,6 +103,89 @@ function StageFittingCard({
   );
 }
 
+/**
+ * The visual half of a split card: the card's photo, on its own.
+ *
+ * This deliberately does NOT reuse `ImageBlock`. That block belongs to the
+ * in-card composition, where the image is one block among several and `cover` is
+ * right. Here the photo is the whole card, and the stage has no spare vertical
+ * room, so the image must not be cropped either - a `cover` on a portrait
+ * Wikipedia thumbnail slices the subject's head off, which is exactly the
+ * "image is cut" problem this split was introduced to solve.
+ *
+ * So the natural aspect ratio is preserved and the frame simply shrinks to fit:
+ * no crop, no letterbox bars, no second white box nested inside the glass.
+ */
+function MediaCard({
+  url,
+  alt,
+  width,
+  maxHeight,
+}: {
+  url: string;
+  alt: string;
+  width: number;
+  maxHeight: number;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+
+  return (
+    <div
+      data-stage-media=""
+      className="overflow-hidden border border-border/70 bg-background/60 backdrop-blur-[20px] supports-[backdrop-filter]:bg-background/45"
+      // Same radius as CARD.radius, so the two halves read as one design.
+      style={{ width, maxHeight, borderRadius: CARD.radius }}
+    >
+      <img
+        src={url}
+        alt={alt}
+        // `max-width` + `max-height` with auto sizing keeps the intrinsic
+        // aspect: a tall portrait narrows instead of cropping, a wide landscape
+        // shortens, and nothing is ever letterboxed.
+        style={{
+          display: 'block',
+          width: 'auto',
+          height: 'auto',
+          maxWidth: '100%',
+          maxHeight,
+          margin: '0 auto',
+        }}
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
+
+/**
+ * Lays the two halves out against the real stage box.
+ *
+ * Side-by-side is the intended composition: the photo on the free shoulder, the
+ * data on the chosen one, both top-aligned. It needs roughly two card widths of
+ * stage, so below that the halves stack in a single centred column instead -
+ * otherwise they would collide in the middle of the presenter's face.
+ */
+function useStageLayout() {
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [box, setBox] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const read = () => setBox({ width: stage.clientWidth, height: stage.clientHeight });
+    read();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', read);
+      return () => window.removeEventListener('resize', read);
+    }
+    const ro = new ResizeObserver(read);
+    ro.observe(stage);
+    return () => ro.disconnect();
+  }, []);
+
+  return { stageRef, box };
+}
+
 export default function RehearsePage() {
   const { getAccessToken } = useAuth();
   const navigate = useNavigate();
@@ -121,7 +207,7 @@ export default function RehearsePage() {
   }, [positionPreference]);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const stageRef = useRef<HTMLDivElement | null>(null);
+  const { stageRef, box: stageBox } = useStageLayout();
   const streamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const animFrameRef = useRef<number | null>(null);
@@ -403,13 +489,12 @@ export default function RehearsePage() {
           </button>
         </div>
 
-        {/* Video Canvas Stage.
-              `min-h` overrides the 16:9 ratio on narrow screens: at 390px the
-              ratio alone yields a ~192px-tall stage, which cannot hold a card
-              without shrinking its type to nothing. */}
+        {/* Video Canvas Stage. `min-h` overrides the 16:9 ratio on narrow screens:
+              at 390px the ratio alone yields a ~192px-tall stage, which cannot
+              hold even one card legibly. */}
         <div
           ref={stageRef}
-          className="relative w-full transition-all duration-300 aspect-video min-h-[26rem] rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-border bg-background-sunken"
+          className="relative w-full transition-all duration-300 aspect-video min-h-[28rem] rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-border bg-background-sunken"
         >
           <video
             ref={(el) => {
@@ -466,28 +551,63 @@ export default function RehearsePage() {
             </div>
           )}
 
-          {/* Over-the-shoulder card placement.
-              ONE card, rendered whole. This used to split the spec in two: a
-              text-only GlassCard plus a hand-rolled "companion" panel on the
-              opposite shoulder that repeated the title and nested the photo
-              inside three frames (glass panel > white box > image) with
-              letterboxed white bars. `card-core` already supports an `image`
-              block and `ImageBlock` already draws it full-bleed with
-              `object-fit: cover`, so the bespoke panel was only ever making it
-              worse. One card also means one title, and no orphan image. */}
+          {/* Split over-the-shoulder placement: the photo on the free shoulder, the data
+              on the chosen one.
+
+              The stage is 16:9 and has no vertical room to spare - that is why
+              this is two cards rather than one card with an image block. An
+              earlier attempt merged them into a single GlassCard, but
+              `ImageBlock` uses `object-fit: cover`, which on a portrait
+              Wikipedia thumbnail slices the subject's head off. So the photo
+              keeps its own card and its own intrinsic aspect.
+
+              The photo half carries no title: the data card already states it,
+              and repeating it in a caption is what made the old companion panel
+              look like a duplicate. */}
           {generatedCard && (() => {
             const currentSide = positionPreference === 'auto' ? effectiveSide : positionPreference;
+            const oppositeSide = currentSide === 'left' ? 'right' : 'left';
             // CARD.width is 358px, authored as "~28% of a 1280px frame". At the
-            // old 215px the whole card was CSS-scaled to 0.6, leaving a 10.2px
-            // title and 9px body - illegible over video. 300px keeps the type
-            // readable while staying out of the presenter's face.
-            const cardWidth = isExpandedStage ? 300 : 236;
+            // old 215px the card was CSS-scaled to 0.6, leaving a 10.2px title
+            // and 9px body - illegible over video.
+            const cardWidth = isExpandedStage ? 292 : 232;
 
-            return (
-              <div
-                className={`absolute top-5 md:top-7 z-20 transition-all duration-300 ${currentSide === 'left' ? 'left-4 md:left-6' : 'right-4 md:right-6'}`}
-              >
-                <StageFittingCard stageRef={stageRef} spec={generatedCard.spec} width={cardWidth} />
+            const blocks: any[] = generatedCard.spec?.blocks ?? [];
+            const imageBlock = blocks.find((b: any) => b?.kind === 'image' && b?.url);
+            // The data card never repeats the photo.
+            const dataSpec = imageBlock
+              ? { ...generatedCard.spec, blocks: blocks.filter((b: any) => b?.kind !== 'image') }
+              : generatedCard.spec;
+
+            // Two cards side by side need two card widths plus the gutters.
+            const sideBySide = stageBox.width >= cardWidth * 2 + 96;
+            const gutter = 12;
+            const topInset = 20;
+            const maxH = Math.round(stageBox.height * 0.82);
+            const mediaW = sideBySide ? cardWidth : Math.min(cardWidth, Math.round(stageBox.width * 0.62));
+            // In a column the data card only gets whatever the photo did not.
+            const mediaMaxH = sideBySide ? maxH : Math.round(maxH * 0.5);
+            const dataMaxH = sideBySide
+              ? maxH
+              : stageBox.height - topInset - mediaMaxH - gutter - 16;
+
+            const media = imageBlock ? (
+              <MediaCard
+                url={imageBlock.url}
+                alt={imageBlock.alt || generatedCard.spec?.title || ''}
+                width={mediaW}
+                maxHeight={mediaMaxH}
+              />
+            ) : null;
+
+            const data = (
+              <div className="relative">
+                <StageFittingCard
+                  stageRef={stageRef}
+                  spec={dataSpec}
+                  width={cardWidth}
+                  maxHeight={dataMaxH}
+                />
                 <button
                   onClick={() => setGeneratedCard(null)}
                   className="absolute -top-2 -right-2 z-30 flex size-6 items-center justify-center rounded-full border border-border-strong bg-background/90 text-xs text-foreground opacity-80 shadow-md transition-opacity hover:opacity-100"
@@ -496,6 +616,35 @@ export default function RehearsePage() {
                 >
                   ✕
                 </button>
+              </div>
+            );
+
+            const shoulder = (side: 'left' | 'right') =>
+              side === 'left' ? 'left-4 md:left-6' : 'right-4 md:right-6';
+
+            if (sideBySide) {
+              return (
+                <>
+                  <div className={`absolute top-5 z-20 transition-all duration-300 ${shoulder(currentSide)}`}>
+                    {data}
+                  </div>
+                  {media && (
+                    <div className={`absolute top-5 z-20 transition-all duration-300 ${shoulder(oppositeSide)}`}>
+                      {media}
+                    </div>
+                  )}
+                </>
+              );
+            }
+
+            // Narrow stage: one centred column, photo above the data card.
+            return (
+              <div
+                className="absolute inset-x-0 z-20 flex flex-col items-center px-4"
+                style={{ top: topInset, gap: gutter }}
+              >
+                {media}
+                {data}
               </div>
             );
           })()}
