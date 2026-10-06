@@ -1,0 +1,28 @@
+src/main.tsx
+  s_2541a4ab89fc3c::t_6dceb26826c890 99-105
+src/app/landing/Hero.tsx
+  s_2541a4ab89fc3c::t_cfc793112e088c 117-118
+src/app/landing/PresenterStage.tsx
+  s_2541a4ab89fc3c::t_59f8a443173562 144-149
+  s_2541a4ab89fc3c::t_a76587d4318bed 12
+  s_2541a4ab89fc3c::t_197dc73b79925c 13
+  s_2541a4ab89fc3c::t_ea5c472148d28f 155-159
+  s_2541a4ab89fc3c::t_78f6423aa3854c 53-58,66-67
+  s_2541a4ab89fc3c::t_3a51e41703af31 42-52,59-65,68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "162826526b17b19a95f0d7cce275ffd4ad039efe",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
