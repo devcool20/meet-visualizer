@@ -1,0 +1,21 @@
+package.json
+  s_2541a4ab89fc3c::t_9ef7669b400bfc 84
+.nvmrc
+  s_2541a4ab89fc3c::t_847d85cebdffbd 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "75ce9c356291728040939b76801b8807202eeaf8",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
