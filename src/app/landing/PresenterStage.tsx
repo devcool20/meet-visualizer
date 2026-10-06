@@ -10,14 +10,14 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Mic, MicOff } from "lucide-react";
 import { GlassCard, createDomTextMeasurer } from "@stash/card-react";
-import { layoutCard } from "@stash/card-core";
+import { CARD, layoutCard } from "@stash/card-core";
 import { Pill, StatusDot, Telemetry } from "@/app/components/primitives";
 import { EASE, DURATION, useReducedMotion } from "@/app/motion";
 import { TOPIC_CAPTIONS, TOPIC_CARDS, TOPIC_KEYS, type TopicKey } from "./content";
 
 export function PresenterStage({
   topic,
-  cardWidth = 264,
+  cardWidth = 232,
   className = "",
 }: {
   topic: TopicKey;
@@ -39,6 +39,27 @@ export function PresenterStage({
     return `${pad(Math.floor(elapsed / 3600))}:${pad(Math.floor((elapsed % 3600) / 60))}:${pad(elapsed % 60)}`;
   }, [elapsed]);
 
+  const [fontsReady, setFontsReady] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const mark = () => {
+      if (alive) setFontsReady(true);
+    };
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+    if (!fonts?.ready) {
+      mark();
+      return () => {
+        alive = false;
+      };
+    }
+    fonts.ready.then(mark, mark);
+    fonts.addEventListener?.("loadingdone", mark);
+    return () => {
+      alive = false;
+      fonts.removeEventListener?.("loadingdone", mark);
+    };
+  }, []);
+
   /**
    * The card slot is sized to the TALLEST topic card, not the current one.
    *
@@ -46,25 +67,36 @@ export function PresenterStage({
    * made the whole stage change height every 4.2s. The hero grid centres both
    * columns with `items-center`, so a resizing preview pushed the headline up
    * and down on every rotation - it looked like the copy was breathing.
+   * Reserving one height makes the stage a fixed-size object.
    *
-   * Reserving the tallest height makes the stage a fixed-size object, and the
-   * hero copy stops moving. Measured with the same layout function and DOM
-   * measurer `GlassCard` itself uses, so the slot can never clip a card.
+   * Heights are converted to VISUAL pixels (layout height x cardWidth/CARD.width)
+   * because the slot itself is not scaled - only the card's paint is. Sizing the
+   * slot in raw layout units made it ~485 real px tall and pushed the stage out
+   * of the bottom of the hero.
    *
-   * The height is left in `GlassCard`'s own LAYOUT units - deliberately not
-   * scaled by cardWidth/CARD.width. The card's box is the unscaled design size
-   * and only its paint is CSS-scaled, so a flex parent centres against the
-   * layout box. Scaling here would centre the tallest card correctly but leave
-   * every shorter card visibly high in the slot.
+   * Each card is then placed at an explicit vertical offset rather than centred
+   * by flex. `GlassCard`'s layout box is the unscaled size, so a flex parent
+   * would centre against the wrong box and leave shorter cards sitting high.
+   *
+   * This MUST wait for webfonts. Measured against fallback metrics on first
+   * paint the predictions came out ~40% short, and because `GlassCard` recomputes
+   * its own layout when the topic rotates - by which point the real faces have
+   * loaded - the tallest card then rendered taller than its slot and spilled out
+   * of the stage. The 4px is a guard against residual metric drift.
    */
-  const slotHeight = useMemo(() => {
+  const slot = useMemo(() => {
     const measure = createDomTextMeasurer();
+    const k = cardWidth / CARD.width;
+    const heightFor = {} as Record<TopicKey, number>;
     let tallest = 0;
     for (const key of TOPIC_KEYS) {
-      tallest = Math.max(tallest, layoutCard(TOPIC_CARDS[key], measure).height);
+      const h = layoutCard(TOPIC_CARDS[key], measure).height * k;
+      heightFor[key] = h;
+      tallest = Math.max(tallest, h);
     }
-    return Math.ceil(tallest);
-  }, []);
+    return { heightFor, tallest: tallest + 4 };
+    // fontsReady re-runs the measurement once the real faces are available.
+  }, [cardWidth, fontsReady]);
 
   return (
     <div
@@ -141,10 +173,8 @@ export function PresenterStage({
       </div>
 
       {/* The projected card — the entire point of the product. */}
-      {/* `pt-6` reserves a band for the PROJECTED tag. The card is centred in a
-          fixed-height slot sized to the tallest topic card, so shorter cards
-          float with space above them and a corner tag would otherwise land on
-          top of the tallest one. */}
+      {/* `pt-6` reserves a band for the PROJECTED tag so it never lands on the
+          card, whichever topic is showing. */}
       <div className="relative px-3 pb-3 pt-6">
         <div className="absolute left-5 top-2">
           <Pill tone="brand" className="border border-[#fb8500]/25 bg-[#1A1512] text-[#FFA24A]">
@@ -152,22 +182,34 @@ export function PresenterStage({
             Projected
           </Pill>
         </div>
-        {/* Fixed-height slot: the stage must not resize as topics rotate. */}
+        {/* Fixed-height slot: the stage must not resize as topics rotate. The
+            card is placed by explicit offset so short and tall cards are both
+            optically centred. */}
         <div
-          className="flex items-center justify-center rounded-card border border-[#FBF9F6]/10 bg-[#FBF9F6]/4 p-2.5"
-          style={{ height: slotHeight + 20 }}
+          className="relative rounded-card border border-[#FBF9F6]/10 bg-[#FBF9F6]/4"
+          style={{ height: Math.ceil(slot.tallest) + 20 }}
         >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={topic}
-              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 10 }}
-              animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-              exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -8 }}
-              transition={reduced ? { duration: 0.01 } : { duration: DURATION.base, ease: EASE }}
-            >
-              <GlassCard spec={TOPIC_CARDS[topic]} width={cardWidth} reducedMotion={reduced} />
-            </motion.div>
-          </AnimatePresence>
+          <div
+            className="absolute inset-x-2.5"
+            style={{ top: 10 + Math.max(0, (slot.tallest - slot.heightFor[topic]) / 2) }}
+          >
+            {/* `width` + auto margins centre the card in the slot. The card's
+                layout box is CARD.width and only its paint is scaled, so centring
+                has to happen on an explicitly sized wrapper. */}
+            <div className="mx-auto" style={{ width: cardWidth }}>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={topic}
+                  initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 10 }}
+                  animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+                  exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -8 }}
+                  transition={reduced ? { duration: 0.01 } : { duration: DURATION.base, ease: EASE }}
+                >
+                  <GlassCard spec={TOPIC_CARDS[topic]} width={cardWidth} reducedMotion={reduced} />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -10,6 +10,7 @@
 import { useEffect, useState } from "react";
 import { motion, useScroll, useSpring } from "motion/react";
 import { useAuth } from "@/app/auth/AuthContext";
+import { isDemoSession } from "@/lib/auth";
 import { useReducedMotion } from "@/app/motion";
 import { Hero } from "./landing/Hero";
 import { LandingHeader } from "./landing/LandingHeader";
@@ -25,7 +26,7 @@ const CYCLE_MS = 4200;
 
 export default function App() {
   const reduced = useReducedMotion();
-  const { status } = useAuth();
+  const { status, session } = useAuth();
   const [topic, setTopic] = useState<TopicKey>(TOPIC_KEYS[0]);
 
   const { scrollYProgress } = useScroll();
@@ -68,8 +69,12 @@ export default function App() {
 
       <LandingFooter />
 
-      {/* Signed-in visitors keep a persistent route back to their workspace. */}
-      {status === "signed-in" && <SignedInNudge />}
+      {/* Real signed-in visitors keep a persistent route back to their
+          workspace. The demo session is excluded: with no Supabase project
+          configured, `status` is 'signed-in' for every anonymous visitor, so
+          without this check the nudge appeared for people who never signed in
+          anywhere. */}
+      {status === "signed-in" && !isDemoSession(session) && <SignedInNudge />}
     </div>
   );
 }

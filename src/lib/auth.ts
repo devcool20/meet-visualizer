@@ -53,6 +53,21 @@ const MOCK_USER: AuthUser = {
 };
 
 /**
+ * True when the session is the built-in demo identity rather than a real one.
+ *
+ * `MockAuthClient` signs `dev@stash.local` in automatically whenever Supabase is
+ * unconfigured, so `status === 'signed-in'` alone does NOT mean a human signed
+ * in - it is true for every anonymous visitor on a deploy with no Supabase
+ * project. Anything that should only be shown to a real account (the landing
+ * page's "You're signed in" nudge) must exclude this session.
+ */
+export function isDemoSession(session: AuthSession | null | undefined): boolean {
+  const user = session?.user;
+  if (!user) return false;
+  return user.id === MOCK_USER.id || user.email === MOCK_USER.email;
+}
+
+/**
  * In-memory + localStorage-persisted mock session so a page reload during
  * onboarding/rehearsal (which the funnel relies on for silent pairing,
  * plan §4.2 step 5) does not sign the demo user back out.
