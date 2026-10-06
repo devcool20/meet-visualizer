@@ -1,0 +1,23 @@
+render.yaml
+  s_2541a4ab89fc3c::t_b1ce7b3db61a0b 17-24
+engine/src/images/proxy-url.ts
+  s_2541a4ab89fc3c::t_207538d7fd926c 11-27
+engine/src/test/image-proxy-url.test.ts
+  s_2541a4ab89fc3c::t_f156244ee9e0b1 1-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "205ed8a502a45ddab1ead3ca1e1098eb3bd81617",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
