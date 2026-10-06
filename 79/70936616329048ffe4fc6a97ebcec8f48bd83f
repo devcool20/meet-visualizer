@@ -1,0 +1,45 @@
+packages/card-core/src/recipes.ts
+  s_2541a4ab89fc3c::t_70e3f8166d6c62 26-38,46,52,58-59,65
+engine/src/generation/grounding.ts
+  s_2541a4ab89fc3c::t_ee2d48f3c9eabd 79-165,171-172,174-177,180-190,193
+engine/src/generation/prompt.ts
+  s_2541a4ab89fc3c::t_14d23d9867f75a 33-48
+  s_2541a4ab89fc3c::t_eb7a6d60a85e6e 76-84
+engine/src/test/grounding-queries.test.ts
+  s_2541a4ab89fc3c::t_3df60d576af6e4 1-158
+engine/src/generation/card-generator.ts
+  s_2541a4ab89fc3c::t_867263639cddb5 179-182,185,187
+engine/src/test/subject-image.test.ts
+  s_2541a4ab89fc3c::t_39fba3f44e2428 1-61,63-107,110-124,127-138,141-146
+  s_2541a4ab89fc3c::t_bd8d01d99b32ce 125-126
+  s_2541a4ab89fc3c::t_d37361df1ea04f 108-109
+  s_2541a4ab89fc3c::t_d0155de9dcf792 139-140
+  s_2541a4ab89fc3c::t_0c20c8634cd1e7 62
+engine/src/test/generated-charts.test.ts
+  s_2541a4ab89fc3c::t_ef46d2faee4839 1-147
+engine/src/generation/draft-schema.ts
+  s_2541a4ab89fc3c::t_48861beeb6bc30 202
+  s_2541a4ab89fc3c::t_8b6d34dbdc81a4 86-94
+  s_2541a4ab89fc3c::t_5e34fdf00e946f 287-333
+  s_2541a4ab89fc3c::t_7538cddc6d6b52 186
+  s_2541a4ab89fc3c::t_4985643460b0ca 338
+  s_2541a4ab89fc3c::t_4717a9d8c9c1d7 4-12,16-23
+  s_2541a4ab89fc3c::t_8dbb29ed84d970 55-73,79-80
+  s_2541a4ab89fc3c::t_8c73dd61612401 158-176
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7970936616329048ffe4fc6a97ebcec8f48bd83f",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
