@@ -1,0 +1,27 @@
+src/app/onboarding/RehearsePage.tsx
+  s_2541a4ab89fc3c::t_bc69391117c889 136-138
+  s_2541a4ab89fc3c::t_4eb2738bfdf839 642-645
+  s_2541a4ab89fc3c::t_37f6351251d25a 492-494,497
+  s_2541a4ab89fc3c::t_b008c8df46724b 554-566,569,571-583,586-587,593-598,600-604,621-641,646-647
+  s_2541a4ab89fc3c::t_6a9829f88d37ae 51,56-57,71-72,78
+  s_2541a4ab89fc3c::t_78b908e5ed2d13 210
+  s_2541a4ab89fc3c::t_c2c58d06ae3a36 106-135,139-188
+  s_2541a4ab89fc3c::t_2f6bc617caa282 584-585,588-592,599,605-610
+  s_2541a4ab89fc3c::t_509a1dbfadc201 648-649
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9ee4c40b77c41eb9c6c38df4ecc9672348564c00",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
