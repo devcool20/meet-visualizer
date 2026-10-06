@@ -84,7 +84,10 @@ export function EngagementGap() {
 
         {/* Engagement chart */}
         <Reveal delay={0.12}>
-          <div className="relative">
+          {/* `isolate` is load-bearing: the section paints its own background over
+                negative-z-index children unless this wrapper opens a stacking
+                context first. */}
+          <div className="relative isolate">
             {/* Warm bloom behind the card.
                 This was a decorative <img> with `-inset-6` plus a fixed size:
                 the inset offset it left a hard-edged, mis-sized rectangle

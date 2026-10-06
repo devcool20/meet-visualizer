@@ -46,16 +46,28 @@ export function LandingFooter() {
   const { reduced, toggle, isOverridden } = useMotionPrefs();
 
   return (
-    <footer className="relative w-full overflow-hidden px-[var(--gutter)] pb-10 pt-20 sm:pb-12 sm:pt-28">
-      {/* Artwork sits behind a cream wash so link text never competes with it. */}
+    // `isolate` on the footer is load-bearing. The page root is a
+    // `bg-background` wrapper, and negative z-index children paint *before* an
+    // ancestor's own background, so without a stacking context here the
+    // artwork was hidden behind it entirely.
+    <footer className="relative isolate w-full overflow-hidden px-[var(--gutter)] pb-10 pt-20 sm:pb-12 sm:pt-28">
+      {/* Artwork sits behind the closing CTA at full strength, anchored to the
+          bottom edge at its natural aspect ratio. An earlier pass washed it out
+          with opacity-30 under a full-height cream gradient, which erased it
+          entirely; then `isolate` revealed it had been hidden behind the page
+          root's background all along.
+
+          The mask fades the lower third so the wash of trees never sits under
+          the status row and copyright line - the artwork reads through the link
+          columns, and the bottom band lands on clean cream. */}
       <div aria-hidden className="absolute inset-0 -z-10">
         <img
           src={footerBg}
           alt=""
-         className="absolute inset-x-0 bottom-0 h-[70%] w-full object-cover object-bottom opacity-30"
+          className="absolute inset-x-0 bottom-0 h-auto w-full object-bottom [mask-image:linear-gradient(to_bottom,#000_52%,transparent_100%)]"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/70 to-background/40" />
+        <div className="absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-background via-background/75 to-transparent" />
       </div>
 
       {/* Closing CTA */}
