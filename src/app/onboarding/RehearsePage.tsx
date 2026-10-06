@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { GlassCard } from '@stash/card-react';
+import { CARD } from '@stash/card-core';
 import { Button } from '@/app/components/ui/button';
 import { useAuth } from '@/app/auth/AuthContext';
 import { getApiClient, type ApiCard } from '@/lib/api';
@@ -26,6 +27,78 @@ type CameraState =
   | { phase: 'granted' }
   | { phase: 'denied' }
   | { phase: 'not-readable' };
+
+/**
+ * Renders a card at the requested width, then shrinks it if the stage is too
+ * small to hold it.
+ *
+ * Two things make this less trivial than a CSS `max-width`:
+ *
+ *  1. The stage is 16:9, so its height collapses fast. A `min-h` on the stage
+ *     keeps a phone usable, but the card still has to be measured rather than
+ *     guessed at a breakpoint.
+ *  2. `GlassCard` paints at CARD.width and CSS-scales itself, so its *layout*
+ *     box stays 358px wide no matter how small it looks. A transform does not
+ *     feed back into layout, which meant the absolutely-positioned shoulder box
+ *     anchored `right-4` to a 358px box and the card hung ~33px off the left of
+ *     the stage, clipped. So the wrapper is given the scaled dimensions
+ *     explicitly and the card is positioned inside it.
+ */
+function StageFittingCard({
+  stageRef,
+  spec,
+  width,
+}: {
+  stageRef: React.RefObject<HTMLDivElement | null>;
+  spec: unknown;
+  width: number;
+}) {
+  const innerRef = useRef<HTMLDivElement | null>(null);
+  const [fit, setFit] = useState({ scale: 1, w: 0, h: 0 });
+
+  const measure = useCallback(() => {
+    const stage = stageRef.current;
+    const card = innerRef.current?.firstElementChild as HTMLElement | null;
+    if (!stage || !card) return;
+    // GlassCard lays out at CARD.width, so offsetWidth/Height are the unscaled
+    // design metrics; the target width is a uniform scale of those.
+    const w = width;
+    const h = card.offsetHeight * (width / CARD.width);
+    const availW = stage.clientWidth * 0.9;
+    const availH = stage.clientHeight * 0.86;
+    if (w === 0 || h === 0) return;
+    // Floor the scale: below roughly 0.55 the card is technically inside the
+    // stage but practically unreadable, and a clipped card reads better than a
+    // 5px one.
+    const scale = Math.max(0.55, Math.min(1, availW / w, availH / h));
+    setFit({ scale, w: w * scale, h: h * scale });
+  }, [stageRef, width]);
+
+  useEffect(() => {
+    measure();
+    const stage = stageRef.current;
+    const card = innerRef.current?.firstElementChild;
+    if (typeof ResizeObserver === 'undefined' || !stage) return;
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(stage);
+    if (card) ro.observe(card);
+    return () => ro.disconnect();
+  }, [measure, stageRef, spec]);
+
+  return (
+    <div
+      data-stage-card=""
+      className="drop-shadow-[0_10px_30px_rgba(26,21,18,0.28)]"
+      style={{ position: 'relative', width: fit.w || undefined, height: fit.h || undefined }}
+    >
+      <div ref={innerRef} style={{ position: 'absolute', top: 0, left: 0 }}>
+        <div style={{ transform: `scale(${fit.scale})`, transformOrigin: 'top left' }}>
+          <GlassCard spec={spec as any} width={width} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function RehearsePage() {
   const { getAccessToken } = useAuth();
@@ -48,6 +121,7 @@ export default function RehearsePage() {
   }, [positionPreference]);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const animFrameRef = useRef<number | null>(null);
@@ -329,9 +403,13 @@ export default function RehearsePage() {
           </button>
         </div>
 
-        {/* Video Canvas Stage */}
+        {/* Video Canvas Stage.
+              `min-h` overrides the 16:9 ratio on narrow screens: at 390px the
+              ratio alone yields a ~192px-tall stage, which cannot hold a card
+              without shrinking its type to nothing. */}
         <div
-          className="relative w-full transition-all duration-300 aspect-video rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-border bg-background-sunken"
+          ref={stageRef}
+          className="relative w-full transition-all duration-300 aspect-video min-h-[26rem] rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-border bg-background-sunken"
         >
           <video
             ref={(el) => {
@@ -388,90 +466,37 @@ export default function RehearsePage() {
             </div>
           )}
 
-          {/* Over-the-shoulder Card Placement with Adaptive Left/Right Auto-positioning */}
+          {/* Over-the-shoulder card placement.
+              ONE card, rendered whole. This used to split the spec in two: a
+              text-only GlassCard plus a hand-rolled "companion" panel on the
+              opposite shoulder that repeated the title and nested the photo
+              inside three frames (glass panel > white box > image) with
+              letterboxed white bars. `card-core` already supports an `image`
+              block and `ImageBlock` already draws it full-bleed with
+              `object-fit: cover`, so the bespoke panel was only ever making it
+              worse. One card also means one title, and no orphan image. */}
           {generatedCard && (() => {
             const currentSide = positionPreference === 'auto' ? effectiveSide : positionPreference;
-            const oppositeSide = currentSide === 'left' ? 'right' : 'left';
-            const cardWidth = isExpandedStage ? 215 : 195;
-
-            // Find if card has an image block to display on the anti-side
-            const imageBlock = generatedCard.spec.blocks.find((b: any) => b.kind === 'image');
-            // Card without image block for clean, spacious typography
-            const textOnlySpec = {
-              ...generatedCard.spec,
-              blocks: generatedCard.spec.blocks.filter((b: any) => b.kind !== 'image'),
-            };
+            // CARD.width is 358px, authored as "~28% of a 1280px frame". At the
+            // old 215px the whole card was CSS-scaled to 0.6, leaving a 10.2px
+            // title and 9px body - illegible over video. 300px keeps the type
+            // readable while staying out of the presenter's face.
+            const cardWidth = isExpandedStage ? 300 : 236;
 
             return (
-              <>
-                {/* Main Information Card */}
-                <div
-                  className={`absolute top-6 md:top-8 z-20 transition-all duration-300 drop-shadow-2xl ${
-                    currentSide === 'left' ? 'left-4 md:left-6' : 'right-4 md:right-6'
-                  }`}
+              <div
+                className={`absolute top-5 md:top-7 z-20 transition-all duration-300 ${currentSide === 'left' ? 'left-4 md:left-6' : 'right-4 md:right-6'}`}
+              >
+                <StageFittingCard stageRef={stageRef} spec={generatedCard.spec} width={cardWidth} />
+                <button
+                  onClick={() => setGeneratedCard(null)}
+                  className="absolute -top-2 -right-2 z-30 flex size-6 items-center justify-center rounded-full border border-border-strong bg-background/90 text-xs text-foreground opacity-80 shadow-md transition-opacity hover:opacity-100"
+                  title="Dismiss card"
+                  aria-label="Dismiss card"
                 >
-                  <div className="relative group">
-                    <GlassCard
-                      spec={textOnlySpec as any}
-                      width={cardWidth}
-                    />
-                    <button
-                      onClick={() => setGeneratedCard(null)}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-card/90 text-foreground hover:bg-accent text-xs flex items-center justify-center border border-border-strong shadow-md opacity-80 hover:opacity-100 transition-opacity z-30"
-                      title="Dismiss card"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-
-                {/* Anti-Side Companion Image Card (if card has an image) */}
-                {imageBlock && (
-                  <div
-                    className={`absolute top-6 md:top-8 z-20 transition-all duration-300 drop-shadow-2xl ${
-                      oppositeSide === 'left' ? 'left-4 md:left-6' : 'right-4 md:right-6'
-                    }`}
-                  >
-                    {/* The same glass material as every other card, via the
-                        `glass-strong` utility rather than a hand-written
-                        backdrop-filter block. */}
-                    <div
-                      className="glass-strong flex flex-col gap-2 overflow-hidden p-2.5"
-                      style={{ width: `${cardWidth}px` }}
-                    >
-                      <div
-                        className="relative flex w-full items-center justify-center overflow-hidden rounded-lg bg-background-sunken p-1"
-                        style={{ height: `${Math.round(cardWidth * 0.95)}px` }}
-                      >
-                        <img
-                          src={imageBlock.url}
-                          alt={imageBlock.alt || generatedCard.spec.title}
-                          style={{
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            width: 'auto',
-                            height: 'auto',
-                            objectFit: 'contain',
-                            display: 'block',
-                            borderRadius: '6px',
-                          }}
-                          onError={(e) => {
-                            (e.currentTarget as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between px-1">
-                        <span className="text-[11px] font-semibold text-foreground truncate">
-                          {generatedCard.spec.title}
-                        </span>
-                        <span className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground bg-accent px-1.5 py-0.5 rounded">
-                          Visual
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
+                  ✕
+                </button>
+              </div>
             );
           })()}
 
