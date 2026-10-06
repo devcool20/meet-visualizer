@@ -29,6 +29,8 @@ export const TYPE = {
   metricLabel: { size: 14, weight: 500, lineHeight: 18, tracking: 0.6 },
   metricValue: { size: 26, weight: 700, lineHeight: 30 },
   metricValueSmall: { size: 19, weight: 600, lineHeight: 24 },
+  /** Value of a supporting metric in the `stacked` metric-row layout. */
+  metricSupportValue: { size: 16, weight: 600, lineHeight: 20 },
   delta: { size: 14, weight: 600, lineHeight: 18 },
   axis: { size: 14, weight: 500, lineHeight: 16 },
   body: { size: 15, weight: 400, lineHeight: 21 },
@@ -105,6 +107,12 @@ export const METRIC_ROW = {
    */
   emphasisWeight: 2,
   normalWeight: 1,
+  /** Vertical gap between the hero and the support grid in `stacked` mode. */
+  heroGap: 11,
+  /** Support metrics are laid out this many per row in `stacked` mode. */
+  supportColumns: 2,
+  /** Support values wrap to at most this many lines before ellipsising. */
+  maxSupportLines: 2,
 } as const;
 
 /** The subset of a metric item this function needs. */
@@ -174,6 +182,169 @@ export function metricColumnWidths(
   );
   const totalWeight = weights.reduce((a, b) => a + b, 0);
   return weights.map((w) => (available * w) / totalWeight);
+}
+
+/** One resolved metric cell, in card-local coordinates relative to the block. */
+export interface MetricCell {
+  item: MetricColumn;
+  /** x offset from the block's left edge. */
+  x: number;
+  /** Allocated width. */
+  width: number;
+  /** y offset from the block's top edge, for the value baseline box. */
+  y: number;
+  /** Value text, already wrapped in `stacked` mode. */
+  lines: string[];
+}
+
+/**
+ * A fully resolved metric row. Both renderers draw from this and never from
+ * their own copy of the geometry, which is what keeps the DOM preview and the
+ * overlay rasterised into a meeting identical.
+ */
+export type MetricRowLayout =
+  | {
+      mode: 'inline';
+      cells: MetricCell[];
+      height: number;
+    }
+  | {
+      mode: 'stacked';
+      hero: MetricCell;
+      support: MetricCell[];
+      /** Width of each support column. */
+      supportWidth: number;
+      supportRows: number;
+      height: number;
+    };
+
+/** Label + value height of one support row. */
+function supportRowHeight(maxLines: number): number {
+  return TYPE.metricLabel.lineHeight + maxLines * TYPE.metricSupportValue.lineHeight;
+}
+
+/**
+ * Resolve a metric row into one of two layouts.
+ *
+ * `inline` is the original three-across row, kept because short values
+ * ("+40% YoY", "1.8%") read well that way and it keeps the card short.
+ *
+ * `stacked` exists because the inline row cannot hold long values. A card such
+ * as Taj Mahal has "17 hectares / Yamuna / Shah Jahan": sharing 318px three ways
+ * gives the third column ~85px, which ellipsised it to "Shah …". Rather than
+ * truncate a person's name, the row promotes the emphasised metric to a hero
+ * figure and lays the rest out in a two-column grid, where each cell has ~153px
+ * and wraps to two lines.
+ *
+ * The mode is chosen by measurement, not by item count, so a row is never made
+ * taller than it needs to be.
+ */
+export function layoutMetricRow(
+  items: readonly MetricColumn[],
+  measure: TextMeasurer,
+  width: number = contentWidth,
+): MetricRowLayout {
+  if (items.length === 0) return { mode: 'inline', cells: [], height: 0 };
+
+  const widths = metricColumnWidths(items, measure, width);
+
+  // Does every value survive the inline allocation on a single line?
+  const valueStyle = (item: MetricColumn) =>
+    item.emphasis ? TYPE.metricValue : TYPE.metricValueSmall;
+  const fitsInline = items.every((item, i) => {
+    const need = measure(item.value, valueStyle(item).size, valueStyle(item).weight);
+    const labelNeed =
+      measure(
+        item.label.toUpperCase(),
+        TYPE.metricLabel.size,
+        TYPE.metricLabel.weight,
+      ) +
+      TYPE.metricLabel.tracking * item.label.length;
+    return Math.max(need, labelNeed) <= widths[i] + 0.5;
+  });
+
+  const hasDelta = items.some((i) => i.delta);
+
+  if (fitsInline) {
+    const valueLine = items.some((i) => i.emphasis)
+      ? TYPE.metricValue.lineHeight
+      : TYPE.metricValueSmall.lineHeight;
+    return {
+      mode: 'inline',
+      cells: items.map((item, i) => ({
+        item,
+        x: widths.slice(0, i).reduce((a, b) => a + b, 0) + METRIC_ROW.gap * i,
+        width: widths[i],
+        y: TYPE.metricLabel.lineHeight,
+        lines: [item.value],
+      })),
+      height:
+        TYPE.metricLabel.lineHeight + valueLine + (hasDelta ? TYPE.delta.lineHeight : 0),
+    };
+  }
+
+  // Stacked: the emphasised item is the hero, otherwise the widest value.
+  const heroIndex = items.findIndex((i) => i.emphasis);
+  const fallbackIndex = items.reduce(
+    (best, item, i) =>
+      measure(item.value, TYPE.metricValue.size, TYPE.metricValue.weight) >
+      measure(items[best].value, TYPE.metricValue.size, TYPE.metricValue.weight)
+        ? i
+        : best,
+    0,
+  );
+  const heroAt = heroIndex >= 0 ? heroIndex : fallbackIndex;
+  const hero = items[heroAt];
+  const rest = items.filter((_, i) => i !== heroAt);
+
+  // A lone support metric should use the full width rather than sit in the left
+  // half beside dead space, so the grid never has more columns than it needs.
+  const columns = Math.max(1, Math.min(METRIC_ROW.supportColumns, rest.length));
+  const supportWidth = (width - METRIC_ROW.gap * (columns - 1)) / columns;
+
+  const support: MetricCell[] = rest.map((item, i) => {
+    const wrapped = wrapText(
+      item.value,
+      supportWidth,
+      TYPE.metricSupportValue.size,
+      TYPE.metricSupportValue.weight,
+      measure,
+    );
+    const lines =
+      wrapped.length > METRIC_ROW.maxSupportLines
+        ? wrapped.slice(0, METRIC_ROW.maxSupportLines)
+        : wrapped.length
+          ? wrapped
+          : [''];
+    return {
+      item,
+      x: (i % columns) * (supportWidth + METRIC_ROW.gap),
+      width: supportWidth,
+      y: 0,
+      lines,
+    };
+  });
+
+  const supportRows = Math.ceil(support.length / columns);
+  const maxLines = support.reduce((m, c) => Math.max(m, c.lines.length), 1);
+  const heroHeight = TYPE.metricLabel.lineHeight + TYPE.metricValue.lineHeight;
+
+  return {
+    mode: 'stacked',
+    hero: {
+      item: hero,
+      x: 0,
+      width,
+      y: TYPE.metricLabel.lineHeight,
+      lines: [hero.value],
+    },
+    support,
+    supportWidth,
+    supportRows,
+    height:
+      heroHeight +
+      (support.length ? METRIC_ROW.heroGap + supportRowHeight(maxLines) : 0),
+  };
 }
 
 /**
@@ -278,12 +449,8 @@ export function blockHeight(
   width = contentWidth,
 ): number {
   switch (block.kind) {
-    case 'metric_row': {
-      const hasDelta = block.items.some((i) => i.delta);
-      const emphasised = block.items.some((i) => i.emphasis);
-      const valueLine = emphasised ? TYPE.metricValue.lineHeight : TYPE.metricValueSmall.lineHeight;
-      return TYPE.metricLabel.lineHeight + valueLine + (hasDelta ? TYPE.delta.lineHeight : 0);
-    }
+    case 'metric_row':
+      return layoutMetricRow(block.items, measure, width).height;
     case 'bar_chart':
     case 'line_chart':
       return CHART.height;

@@ -1,13 +1,26 @@
 import type { MetricItem, CardTheme } from '@stash/card-spec';
-import { TYPE, deltaGlyph, metricColumnWidths, METRIC_ROW, type TextMeasurer } from '@stash/card-core';
+import {
+  TYPE,
+  deltaGlyph,
+  layoutMetricRow,
+  METRIC_ROW,
+  type MetricCell,
+  type TextMeasurer,
+} from '@stash/card-core';
 
 /**
- * Three-column metric row.
+ * Metric row.
  *
- * Column widths come from `metricColumnWidths` (card-core) — the same function
- * the canvas rasterizer calls — so this DOM surface and the overlay drawn into
- * a meeting allocate identically. Previously both used a hardcoded 1.4 : 1 : 1
- * ratio, which ellipsised the primary value on both.
+ * All geometry comes from `layoutMetricRow` (card-core) — the same function the
+ * canvas rasterizer calls — so this DOM surface and the overlay drawn into a
+ * meeting cannot drift.
+ *
+ * Two layouts, chosen by measurement rather than by item count:
+ *  - `inline`: three short values across (e.g. "+40% YoY", "1.8%"), compact.
+ *  - `stacked`: one hero figure at full size, the rest in a two-column grid.
+ *    A row like "17 hectares / Yamuna / Shah Jahan" cannot survive three
+ *    columns in 318px — it ellipsised the name — so the emphasised metric is
+ *    promoted instead of truncated.
  */
 export function MetricRow({
   block,
@@ -18,78 +31,151 @@ export function MetricRow({
   theme: CardTheme;
   measure: TextMeasurer;
 }) {
-  const widths = metricColumnWidths(block.items, measure);
+  const layout = layoutMetricRow(block.items, measure);
+
+  if (layout.mode === 'inline') {
+    return (
+      <div style={{ position: 'relative', width: '100%', height: layout.height }}>
+        {layout.cells.map((cell, i) => (
+          <Cell key={i} cell={cell} theme={theme} x={cell.x} width={cell.width} />
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div style={{ display: 'flex', height: '100%' }}>
-      {block.items.map((item, i) => {
-        const valueStyle = item.emphasis ? TYPE.metricValue : TYPE.metricValueSmall;
-        // Delta text renders at TYPE.delta.size (14px), below
-        // LEGIBILITY.TEXT_ACCENT_MIN_PX (20px) - accent is reserved for fills,
-        // bars and dots at this size (card-core/tokens.ts), never small text,
-        // because #fb8500 on white has almost no luminance contrast and
-        // smears under 4:2:0 chroma subsampling. Use the neutral text colour
-        // instead; the glyph already carries the direction.
-        const deltaColor = theme.text;
-        return (
+    <div style={{ position: 'relative', width: '100%', height: layout.height }}>
+      <Cell cell={layout.hero} theme={theme} x={0} width={layout.hero.width} hero />
+
+      {layout.support.length > 0 && (
+        <>
+          {/* Hairline separating the hero figure from its supporting metrics. */}
           <div
-            key={i}
+            aria-hidden
             style={{
-              width: widths[i],
-              marginRight: i < block.items.length - 1 ? METRIC_ROW.gap : 0,
-              minWidth: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
+              position: 'absolute',
+              left: 0,
+              top: layout.hero.y + TYPE.metricValue.lineHeight + METRIC_ROW.heroGap / 2,
+              width: '100%',
+              height: 1,
+              background: theme.border || 'rgba(26,21,18,0.08)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: layout.hero.y + TYPE.metricValue.lineHeight + METRIC_ROW.heroGap,
+              width: '100%',
             }}
           >
-            <p
-              style={{
-                margin: 0,
-                fontSize: TYPE.metricLabel.size,
-                fontWeight: TYPE.metricLabel.weight,
-                lineHeight: `${TYPE.metricLabel.lineHeight}px`,
-                letterSpacing: TYPE.metricLabel.tracking,
-                textTransform: 'uppercase',
-                color: theme.textMuted,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {item.label}
-            </p>
-            <p
-              style={{
-                margin: 0,
-                fontSize: valueStyle.size,
-                fontWeight: valueStyle.weight,
-                lineHeight: `${valueStyle.lineHeight}px`,
-                color: item.emphasis ? theme.accent : theme.text,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {item.value}
-            </p>
-            {item.delta && (
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: TYPE.delta.size,
-                  fontWeight: TYPE.delta.weight,
-                  lineHeight: `${TYPE.delta.lineHeight}px`,
-                  color: deltaColor,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {deltaGlyph(item.delta.direction)} {item.delta.value}
-              </p>
-            )}
+            {layout.support.map((cell, i) => (
+              <Cell
+                key={i}
+                cell={cell}
+                theme={theme}
+                x={cell.x}
+                width={cell.width}
+                support
+              />
+            ))}
           </div>
-        );
-      })}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Delta text renders at TYPE.delta.size, below LEGIBILITY.TEXT_ACCENT_MIN_PX. */
+function Cell({
+  cell,
+  theme,
+  x,
+  width,
+  hero,
+  support,
+}: {
+  cell: MetricCell;
+  theme: CardTheme;
+  x: number;
+  width: number;
+  hero?: boolean;
+  support?: boolean;
+}) {
+  const item = cell.item as MetricItem;
+  const emphasis = hero || (!support && Boolean(item.emphasis));
+  const valueStyle = hero
+    ? TYPE.metricValue
+    : support
+      ? TYPE.metricSupportValue
+      : item.emphasis
+        ? TYPE.metricValue
+        : TYPE.metricValueSmall;
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: x,
+        top: 0,
+        width,
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <p
+        style={{
+          margin: 0,
+          fontSize: TYPE.metricLabel.size,
+          fontWeight: TYPE.metricLabel.weight,
+          lineHeight: `${TYPE.metricLabel.lineHeight}px`,
+          letterSpacing: TYPE.metricLabel.tracking,
+          textTransform: 'uppercase',
+          color: theme.textMuted,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {item.label}
+      </p>
+
+      {cell.lines.map((line, i) => (
+        <p
+          key={i}
+          style={{
+            margin: 0,
+            fontSize: valueStyle.size,
+            fontWeight: valueStyle.weight,
+            lineHeight: `${valueStyle.lineHeight}px`,
+            color: emphasis ? theme.accent : theme.text,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {line}
+        </p>
+      ))}
+
+      {/* Delta only makes sense inline, on the emphasised figure. */}
+      {item.delta && !support && (
+        <p
+          style={{
+            margin: 0,
+            fontSize: TYPE.delta.size,
+            fontWeight: TYPE.delta.weight,
+            lineHeight: `${TYPE.delta.lineHeight}px`,
+            color: theme.text,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {deltaGlyph(item.delta.direction)} {item.delta.value}
+        </p>
+      )}
     </div>
   );
 }
