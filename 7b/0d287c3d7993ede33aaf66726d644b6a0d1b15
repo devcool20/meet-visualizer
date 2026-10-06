@@ -1,0 +1,30 @@
+src/app/landing/PresenterStage.tsx
+  s_2541a4ab89fc3c::t_d6a75745703610 13
+  s_2541a4ab89fc3c::t_be47d8a19b446d 176-177,185-187,189-190,192-195,212
+  s_2541a4ab89fc3c::t_af54d0b39cde84 70-75,77-79,87,89-90,93-95
+  s_2541a4ab89fc3c::t_c3fe879ba92a4e 42-62,81-85,97-99
+  s_2541a4ab89fc3c::t_c1320a0ed3e56f 196-211
+  s_2541a4ab89fc3c::t_db780758ae9bd0 20
+src/lib/auth.ts
+  s_2541a4ab89fc3c::t_28aea6a5a4a860 55-69
+src/app/App.tsx
+  s_2541a4ab89fc3c::t_f255d31220e360 72-77
+  s_2541a4ab89fc3c::t_1303f0ad1abced 13
+  s_2541a4ab89fc3c::t_27ff43cd363006 29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b0d287c3d7993ede33aaf66726d644b6a0d1b15",
+  "prompts": {},
+  "sessions": {
+    "s_2541a4ab89fc3c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ef3bb50b4ffe5udvvwmImep6Yv",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
