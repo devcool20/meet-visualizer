@@ -1,0 +1,33 @@
+src/app/landing/MeetPlatform.tsx
+  s_020a720897104a::t_067985def8d3eb 1-153,155-255
+  s_020a720897104a::t_2a6b2d519fcbae 154
+src/app/landing/LandingHeader.tsx
+  s_020a720897104a::t_5656a156f10d72 122,124-137,142
+  s_020a720897104a::t_0cfad20e7b221f 204-212,217
+  s_020a720897104a::t_78f2e77e634c7f 12
+src/app/landing/content.tsx
+  s_020a720897104a::t_5094dae8fe6747 76
+src/app/landing/Hero.tsx
+  s_020a720897104a::t_0a75751c7662c0 20
+  s_020a720897104a::t_824ac95c641557 120-129
+  s_020a720897104a::t_58bcb0aecf8bcc 130
+src/app/App.tsx
+  s_020a720897104a::t_41909a3838b365 66
+  s_020a720897104a::t_003b1301df9e4f 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fef453d6887d0ed9cf0c1138888e6f24cd6b56de",
+  "prompts": {},
+  "sessions": {
+    "s_020a720897104a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee5786cf9ffexTN0Nno3xuExYg",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
