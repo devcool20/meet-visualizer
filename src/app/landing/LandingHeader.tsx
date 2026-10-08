@@ -9,7 +9,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
-import { Menu, X } from "lucide-react";
+import { Menu, Video, X } from "lucide-react";
 import { Action, Wordmark } from "@/app/components/primitives";
 import { cn } from "@/app/components/ui/utils";
 import { EASE, DURATION, useReducedMotion } from "@/app/motion";
@@ -119,13 +119,27 @@ export function LandingHeader() {
             </li>
           </ul>
 
-          {/* Actions */}
+{/* Actions */}
           <div className="flex shrink-0 items-center gap-2">
+            {/* The meeting platform is the front door now, so it gets the first
+                button on the page rather than being buried in the footer. */}
+            <Link
+              to="/meet"
+              className={cn(
+                "hidden items-center gap-2 rounded-full px-3.5 py-2 text-[0.8125rem] font-medium transition-all duration-200 sm:inline-flex",
+                scrolled
+                  ? "bg-foreground text-background hover:opacity-85"
+                  : "bg-[#FBF9F6] text-foreground hover:bg-[#FBF9F6]/88",
+              )}
+            >
+              <Video className="size-3.5" strokeWidth={2.25} />
+              Join Meet
+            </Link>
             <Action
               to={status === "signed-in" ? "/dashboard" : "/signup"}
               size="sm"
               variant={scrolled ? "primary" : "brand"}
-             className="hidden sm:inline-flex"
+              className="hidden sm:inline-flex"
             >
               {status === "signed-in" ? "Dashboard" : "Get started"}
             </Action>
@@ -187,12 +201,20 @@ export function LandingHeader() {
                   </Link>
                 </li>
               </ul>
-              <div className="mt-3 border-t border-border pt-3">
+<div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
+                <Link
+                  to="/meet"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-[0.9375rem] font-medium text-background"
+                >
+                  <Video className="size-4" strokeWidth={2.25} />
+                  Join Meet
+                </Link>
                 <Action
                   to={status === "signed-in" ? "/dashboard" : "/signup"}
                   variant="primary"
                   size="lg"
-                 className="w-full"
+                  className="w-full"
                   onClick={() => setOpen(false)}
                 >
                   {status === "signed-in" ? "Go to Dashboard" : "Get started free"}

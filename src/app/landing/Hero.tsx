@@ -17,7 +17,7 @@
  */
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
-import { ArrowDown, Sparkles } from "lucide-react";
+import { ArrowDown, Sparkles, Video } from "lucide-react";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import { Action } from "@/app/components/primitives";
 import { EASE, DURATION, useReducedMotion } from "@/app/motion";
@@ -116,6 +116,17 @@ export function Hero({ topic }: { topic: TopicKey }) {
 <div className="mt-9 flex flex-wrap items-center gap-3">
               <Action to="/rehearse" variant="brand" size="lg" trailingArrow>
                 Rehearse
+              </Action>
+              {/* The meeting platform is the product now, not a feature inside
+                  somebody else's call, so it gets a first-class hero path. */}
+              <Action
+                to="/meet"
+                variant="outline"
+                size="lg"
+                className="border-[#FBF9F6]/35 bg-[#FBF9F6]/5 text-[#FBF9F6] hover:border-[#FBF9F6]/60 hover:bg-[#FBF9F6]/12"
+              >
+                <Video className="size-4" strokeWidth={2} aria-hidden />
+                Join a meeting
               </Action>
               <Action
                 href="#demo"

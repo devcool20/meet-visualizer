@@ -15,6 +15,7 @@ import { useReducedMotion } from "@/app/motion";
 import { Hero } from "./landing/Hero";
 import { LandingHeader } from "./landing/LandingHeader";
 import { HowItWorks } from "./landing/HowItWorks";
+import { MeetPlatform } from "./landing/MeetPlatform";
 import { EngagementGap } from "./landing/EngagementGap";
 import { TaglineBand } from "./landing/TaglineBand";
 import { Integrations } from "./landing/Integrations";
@@ -62,6 +63,7 @@ export default function App() {
       <main id="main" className="flex-1">
         <Hero topic={topic} />
         <HowItWorks />
+        <MeetPlatform />
         <EngagementGap />
         <TaglineBand />
         <Integrations />

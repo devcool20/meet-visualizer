@@ -73,6 +73,7 @@ export function matchTopic(input: string): TopicKey | null {
 
 export const NAV_SECTIONS = [
   { id: "demo", label: "How it works" },
+  { id: "meet", label: "Meetings" },
   { id: "features", label: "Why Stash Live" },
   { id: "integrations", label: "Integrations" },
 ] as const;
