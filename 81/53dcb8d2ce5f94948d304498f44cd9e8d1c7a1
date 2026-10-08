@@ -1,0 +1,28 @@
+src/app/DocsPage.tsx
+  s_020a720897104a::t_27f3676bdd34ea 453,469,484
+  s_020a720897104a::t_af9fccd16db633 184-277
+  s_020a720897104a::t_35f4c730906090 41
+  s_020a720897104a::t_2ef6f0a55ba023 322,347,372,394,412
+  s_020a720897104a::t_e56a423b5c32a5 433
+README.md
+  s_020a720897104a::t_c6427f0b19d309 146-149
+  s_020a720897104a::t_e5758f7421a0eb 129-132
+  s_020a720897104a::t_698fcfb8444ded 74-114
+  s_020a720897104a::t_e4db90ae8ec61f 150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8153dcb8d2ce5f94948d304498f44cd9e8d1c7a1",
+  "prompts": {},
+  "sessions": {
+    "s_020a720897104a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee5786cf9ffexTN0Nno3xuExYg",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
