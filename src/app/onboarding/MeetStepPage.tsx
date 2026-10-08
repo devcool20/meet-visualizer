@@ -1,5 +1,10 @@
 /**
- * `/meet` — step 5 of 5, the launch pad.
+ * `/setup/meet` — step 5 of 5, the launch pad for the *Google Meet* path.
+ *
+ * Distinct from `/meet`, which is now the built-in Stash Live meeting
+ * platform. This page exists to hand a presenter's first rehearsal off to
+ * Google Meet; the in-product alternative is the `/meet` gate reached from the
+ * landing nav.
  *
  * Two ways to present, then a pre-flight check, then into the product.
  * Fixed here: the two option cards used three different surface alphas, emoji

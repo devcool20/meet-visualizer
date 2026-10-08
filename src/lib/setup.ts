@@ -1,5 +1,5 @@
 /**
- * V1 setup funnel state machine (plan §4).
+ * V1 setup funnel state machine (plan Â§4).
  *
  * Lives alongside the legacy onboarding machine (`src/lib/onboarding.ts`)
  * without modifying it, so `src/lib/onboarding.test.ts` passes unchanged.
@@ -16,7 +16,7 @@ export const SETUP_STEP_ROUTES: Record<SetupStep, string> = {
   extension: '/setup/extension',
   data: '/setup/data',
   rehearse: '/rehearse',
-  meet: '/meet',
+  meet: '/setup/meet',
 };
 
 export interface SetupSignals {
@@ -74,7 +74,7 @@ export function saveSetupStep(step: SetupStep): void {
   try {
     window.localStorage.setItem(SETUP_STEP_KEY, step);
   } catch {
-    // localStorage unavailable — setup still works, just not resumable.
+    // localStorage unavailable â€” setup still works, just not resumable.
   }
 }
 

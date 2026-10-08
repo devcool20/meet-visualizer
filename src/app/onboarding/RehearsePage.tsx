@@ -394,7 +394,7 @@ export default function RehearsePage() {
   function handleContinue() {
     markRehearsed();
     saveSetupStep('meet');
-    navigate('/meet');
+    navigate('/setup/meet');
   }
 
   function handleManualSubmit(e: React.FormEvent) {

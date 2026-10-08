@@ -21,6 +21,12 @@ const VirtualCamDashboard = lazy(() =>
   import("./app/virtualcam/VirtualCamDashboard").then((m) => ({ default: m.VirtualCamDashboard })),
 );
 
+// Stash Live's own meeting platform. Deliberately NOT behind ProtectedRoute:
+// the landing nav's "Join Meet" is a stranger-facing entry point, and requiring
+// an account before someone can see what the product is would defeat it.
+const MeetGatePage = lazy(() => import("./app/meet/MeetGatePage"));
+const MeetRoomPage = lazy(() => import("./app/meet/MeetRoomPage"));
+
 const DashboardShell = lazy(() =>
   import("./app/dashboard/DashboardShell").then((m) => ({ default: m.DashboardShell })),
 );
@@ -84,6 +90,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/meet-app" element={<Page><MeetAddonApp /></Page>} />
           <Route path="/studio" element={<Page><StudioPage /></Page>} />
           <Route path="/virtualcam" element={<Page><VirtualCamDashboard /></Page>} />
+          <Route path="/meet" element={<Page><MeetGatePage /></Page>} />
+          <Route path="/meet/:code" element={<Page><MeetRoomPage /></Page>} />
 
           <Route
             path="/welcome"
@@ -114,7 +122,7 @@ createRoot(document.getElementById("root")!).render(
             }
           />
           <Route
-            path="/meet"
+            path="/setup/meet"
             element={
               <ProtectedRoute>
                 <Page><MeetStepPage /></Page>
