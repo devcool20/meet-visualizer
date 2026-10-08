@@ -38,6 +38,7 @@ const SECTIONS: DocSection[] = [
   { id: "architecture", label: "architecture" },
   { id: "deploy-engine", label: "deploy the engine" },
   { id: "setup", label: "setup" },
+  { id: "meetings", label: "the meeting platform" },
   { id: "publish-extension", label: "publish the extension" },
   { id: "configuration", label: "configuration" },
   { id: "configuration-table", label: "environment variables" },
@@ -180,7 +181,100 @@ npm run dev   # Vite dev server`}</CodeBlock>
           </DocSectionBlock>
 
           {/* Configuration */}
-          <DocSectionBlock index={4} id="configuration" eyebrow="Configuration" title="Environment & tuning" reducedMotion={reducedMotion}>
+          {/* The meeting platform */}
+          <DocSectionBlock index={4} id="meetings" eyebrow="The meeting platform" title="Stash Live's own calls" reducedMotion={reducedMotion}>
+            <Prose>
+              <p>
+                <strong style={{ color: "#1A1512" }}>This is not an extension.</strong> The Chrome
+                extension and the virtual-camera bridge still work, and they are how a presenter uses
+                Stash Live inside Google Meet. But the product now also ships its own meeting room at{" "}
+                <Code>/meet</Code>, and that path is the reason the card integration is exact rather than
+                approximate.
+              </p>
+              <p>
+                In the extension, a card only gets on screen if the page hands us a camera stream we can
+                draw into — we monkeypatch <Code>getUserMedia</Code> and hope the conferencing app keeps
+                using the object we return. In our own room we own the peer connections, so the outbound
+                track is ours to build. Every frame is: the camera into a canvas, the{" "}
+                <Code>CardCompositor</Code> from <Code>@stash/card-canvas</Code> over it, and{" "}
+                <Code>canvas.captureStream()</Code> out to all peers. The card is in the pixels. Nobody has
+                to be sent a link, and a participant cannot dismiss it.
+              </p>
+            </Prose>
+
+            <Prose>
+              <p>
+                <strong style={{ color: "#1A1512" }}>Mesh, not SFU.</strong> Each participant holds one{" "}
+                <Code>RTCPeerConnection</Code> per other participant, so media never touches the engine.
+                The engine is a signalling relay at <Code>/ws/meeting</Code> plus two thin REST routes; it
+                carries SDP, ICE, chat, captions, reactions and cards, and nothing else. That is why the
+                ceiling is low — <Code>STASH_MEETING_MESH_LIMIT</Code>, 6 by default — and why a join past
+                it is refused outright rather than accepted and left to degrade into dropped frames.
+              </p>
+              <p>
+                Offer leadership is deterministic: the lexicographically smaller participant id offers.
+                Both sides know both ids, so both agree without an extra round trip and exactly one offer
+                is ever created. Outbound media changes — a card appearing, the camera being switched, a
+                screen share starting — go through <Code>RTCRtpSender.replaceTrack</Code> rather than a
+                renegotiation, so putting a card on air costs nothing on the wire.
+              </p>
+            </Prose>
+
+            <div className="overflow-x-auto my-5 rounded-2xl" style={GLASS}>
+              <table className="w-full text-sm" style={{ color: "#5A5550" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(26,21,18,0.08)" }}>
+                    <th className="text-left px-5 py-3 font-semibold" style={{ color: "#1A1512" }}>Variable</th>
+                    <th className="text-left px-5 py-3 font-semibold" style={{ color: "#1A1512" }}>Default</th>
+                    <th className="text-left px-5 py-3 font-semibold" style={{ color: "#1A1512" }}>Purpose</th>
+                  </tr>
+                </thead>
+                <tbody style={{ fontFamily: MONO }}>
+                  {[
+                    ["STASH_MEETING_ENABLED", "1", "Set 0 to turn /ws/meeting and the REST routes off."],
+                    ["STASH_MEETING_STUN_URL", "Google STUN", "Comma-separated STUN list."],
+                    ["STASH_MEETING_TURN_URL", "—", "TURN relay. Required for symmetric NAT."],
+                    ["STASH_MEETING_TURN_USERNAME", "—", "TURN credentials, sent only when TURN is set."],
+                    ["STASH_MEETING_TURN_CREDENTIAL", "—", "TURN credentials, sent only when TURN is set."],
+                    ["STASH_MEETING_MESH_LIMIT", "6", "Max remote peers per participant (1–12)."],
+                  ].map(([k, d, p]) => (
+                    <tr key={k} style={{ borderBottom: "1px solid rgba(26,21,18,0.04)" }}>
+                      <td className="px-5 py-3" style={{ color: "#1A1512" }}>{k}</td>
+                      <td className="px-5 py-3">{d}</td>
+                      <td className="px-5 py-3" style={{ fontFamily: "'Inter', sans-serif" }}>{p}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Prose>
+              <p>
+                <strong style={{ color: "#1A1512" }}>Without TURN, expect failures.</strong> STUN is enough
+                for two participants on permissive networks. Symmetric NAT, corporate firewalls and some
+                mobile carriers will simply not connect, and the symptom is a tile that stays on
+                "Connecting…" forever. If your audience includes enterprise networks, run a TURN server
+                (coturn is a handful of lines) and set the three <Code>STASH_MEETING_TURN_*</Code>{" "}
+                variables. Everything else — invite codes, the host gate, cards, chat — works unchanged.
+              </p>
+              <p>
+                <strong style={{ color: "#1A1512" }}>Rooms are in memory.</strong> A process restart loses
+                them. Every client reconnects with jittered backoff and re-sends its join frame, and the
+                landing CTA mints a fresh code over REST, so the only visible effect is that an invite link
+                shared before the restart will need re-sharing. Nothing durable is stored: a room is a
+                roster, a chat buffer and a list of cards.
+              </p>
+              <p>
+                <strong style={{ color: "#1A1512" }}>Captions are device-side.</strong> Each speaker
+                recognises their own voice in the browser and relays the text as data; no audio is sent to
+                an ASR provider. The trade-off is honest and stated in the UI: captions only appear for
+                people whose browser supports the Web Speech API, and quality varies by engine.
+              </p>
+            </Prose>
+          </DocSectionBlock>
+
+          {/* Configuration */}
+          <DocSectionBlock index={5} id="configuration" eyebrow="Configuration" title="Environment & tuning" reducedMotion={reducedMotion}>
             <Prose>
               <p>
                 The engine reads configuration from <Code>engine/.env</Code>. Every variable is
@@ -225,7 +319,7 @@ npm run dev   # Vite dev server`}</CodeBlock>
           </DocSectionBlock>
 
           {/* Usage */}
-          <DocSectionBlock index={5} id="usage" eyebrow="Usage" title="Driving the engine" reducedMotion={reducedMotion}>
+          <DocSectionBlock index={6} id="usage" eyebrow="Usage" title="Driving the engine" reducedMotion={reducedMotion}>
             <Prose>
               <p>
                 <strong style={{ color: "#1A1512" }}>Dashboard.</strong> With the engine running, open{" "}
@@ -250,7 +344,7 @@ npm run dev   # Vite dev server`}</CodeBlock>
           </DocSectionBlock>
 
           {/* Protocol */}
-          <DocSectionBlock index={6} id="protocol" eyebrow="Reference" title="WebSocket protocol" reducedMotion={reducedMotion}>
+          <DocSectionBlock index={7} id="protocol" eyebrow="Reference" title="WebSocket protocol" reducedMotion={reducedMotion}>
             <Prose>
               <p>
                 The dashboard connects to <Code>ws://{"{window.location.host}"}</Code> (so it follows{" "}
@@ -275,7 +369,7 @@ npm run dev   # Vite dev server`}</CodeBlock>
           </DocSectionBlock>
 
           {/* Extension */}
-          <DocSectionBlock index={7} id="extension" eyebrow="Chrome extension" title="Stash Live GMeet Interceptor" reducedMotion={reducedMotion}>
+          <DocSectionBlock index={8} id="extension" eyebrow="Chrome extension" title="Stash Live GMeet Interceptor" reducedMotion={reducedMotion}>
             <Prose>
               <p>
                 The Manifest V3 extension injects <Code>inject.js</Code> into <Code>meet.google.com</Code>
@@ -297,7 +391,7 @@ npm run dev   # Vite dev server`}</CodeBlock>
           </DocSectionBlock>
 
           {/* Frontend */}
-          <DocSectionBlock index={8} id="frontend" eyebrow="This site" title="The landing frontend" reducedMotion={reducedMotion}>
+          <DocSectionBlock index={9} id="frontend" eyebrow="This site" title="The landing frontend" reducedMotion={reducedMotion}>
             <Prose>
               <p>
                 The page you're reading lives in <Code>src/</Code>: React 18 + Vite 6 + TypeScript,
@@ -315,7 +409,7 @@ npm run dev   # Vite dev server`}</CodeBlock>
           </DocSectionBlock>
 
           {/* Testing */}
-          <DocSectionBlock index={9} id="testing" eyebrow="Testing" title="The pipeline harness" reducedMotion={reducedMotion}>
+          <DocSectionBlock index={10} id="testing" eyebrow="Testing" title="The pipeline harness" reducedMotion={reducedMotion}>
             <Prose>
               <p>
                 From <Code>engine/</Code>, run <Code>npm test</Code>. It runs a manual harness (not a
@@ -336,7 +430,7 @@ npm run dev   # Vite dev server`}</CodeBlock>
           </DocSectionBlock>
 
           {/* Troubleshooting */}
-          <DocSectionBlock index={10} id="troubleshooting" eyebrow="Troubleshooting" title="Common issues" reducedMotion={reducedMotion}>
+          <DocSectionBlock index={11} id="troubleshooting" eyebrow="Troubleshooting" title="Common issues" reducedMotion={reducedMotion}>
             <div className="space-y-4">
               {[
                 ["Puppeteer fails to launch on Linux", "Install the Chromium shared libraries, and pass --no-sandbox if running as root. This affects both the compositor and the gmeet proxy."],
@@ -356,7 +450,7 @@ npm run dev   # Vite dev server`}</CodeBlock>
             </div>
           </DocSectionBlock>
 
-          <DocSectionBlock index={11} id="deploy-engine" eyebrow="Manual operator step" title="Deploying the engine" reducedMotion={reducedMotion}>
+          <DocSectionBlock index={12} id="deploy-engine" eyebrow="Manual operator step" title="Deploying the engine" reducedMotion={reducedMotion}>
             <p className="text-sm" style={{ color: '#d4183d', marginBottom: '12px' }}>
               ⚠ Performed by a human, not by the build. The engine is a long-lived Express + ws
               server and cannot run on Vercel (WebSocket timeout limitation).
@@ -372,7 +466,7 @@ npm run dev   # Vite dev server`}</CodeBlock>
             </ol>
           </DocSectionBlock>
 
-          <DocSectionBlock index={12} id="publish-extension" eyebrow="Manual operator step" title="Publishing the Chrome extension" reducedMotion={reducedMotion}>
+          <DocSectionBlock index={13} id="publish-extension" eyebrow="Manual operator step" title="Publishing the Chrome extension" reducedMotion={reducedMotion}>
             <p className="text-sm" style={{ color: '#d4183d', marginBottom: '12px' }}>
               ⚠ Performed by a human, not by the build. Requires a Chrome Web Store developer
               account (one-time registration fee), and a review period measured in days.
@@ -387,7 +481,7 @@ npm run dev   # Vite dev server`}</CodeBlock>
             </ol>
           </DocSectionBlock>
 
-          <DocSectionBlock index={13} id="configuration-table" eyebrow="Reference" title="Configuration values" reducedMotion={reducedMotion}>
+          <DocSectionBlock index={14} id="configuration-table" eyebrow="Reference" title="Configuration values" reducedMotion={reducedMotion}>
             <p className="text-sm mb-3" style={{ color: '#5A5550' }}>
               All client-side env vars with their defaults. The product origin and engine origin
               are now separate — see the deploy instructions above.

@@ -71,6 +71,47 @@ flowchart TD
 
 ---
 
+## 📞 The Meeting Platform (`/meet`)
+
+Stash Live used to be an overlay that had to convince someone else's browser to
+hand us a modified camera stream. It is now also its own meeting room, which is
+what makes the card integration exact rather than approximate.
+
+```
+[ LANDING NAV "Join Meet" ] -> /meet  (new meeting | enter a code)
+                                  |
+                            /meet/:code   (lobby: devices, name, mic meter)
+                                  |
+                            "Join now" -> /ws/meeting  (signalling relay)
+                                  |
+                          WebRTC mesh, peer to peer
+                                  |
+  presenter speaks -> CardSpec -> canvas.composite(camera + card)
+                                  |
+                    captureStream() -> the track every peer receives
+```
+
+| Piece | Where | What it does |
+| --- | --- | --- |
+| Wire contract | `packages/meeting-spec` | Signalling frames, invite codes, validators. Shared by the engine and the browser so they cannot drift. |
+| Room registry | `engine/src/meeting/registry.ts` | Roster, host gate, chat/caption/card buffers, idle reaping. Transport-free, so it is unit-testable without a socket. |
+| Signalling relay | `engine/src/meeting/signaling.ts` | `/ws/meeting`. Relays SDP/ICE point-to-point and fans out room frames. Media never passes through it. |
+| Outbound compositor | `src/app/meet/lib/outbound-compositor.ts` | Camera into a canvas, `CardCompositor` over it, `captureStream()` out. The card is in the pixels. |
+| Mesh | `src/app/meet/hooks/useWebRtcMesh.ts` | One `RTCPeerConnection` per peer. Deterministic offer leadership; track replacement, never renegotiation. |
+| Cards in a call | `src/app/meet/hooks/useStashLiveCards.ts` | Hold-to-talk, ambient, library, or typed topic → the same `generateCard` call the rehearsal page uses. |
+
+**What the platform adds beyond a generic call:** screen share *beside* your
+face rather than instead of it, device-side captions that keep audio on the peer
+connection, a host gate for admitting strangers, and a rail that keeps every
+card anybody put on air so the room can read it properly afterwards.
+
+**Requirements:** a WebRTC-capable browser, and — for anyone behind symmetric
+NAT or a corporate firewall — a TURN relay. See the `STASH_MEETING_*` variables
+in `.env.example` and `render.yaml`. Rooms are in memory; a process restart
+invalidates invite links shared before it, and nothing else.
+
+---
+
 ## 📅 Onboarding Journey & Interactive Checklist
 
 Stash Live V1 provides a guided 5-step onboarding funnel that moves the user from initial sign-up to a working meeting with real overlays.
@@ -85,7 +126,10 @@ flowchart TD
   Data -->|"AI key"| Rehearse["/rehearse — hold-to-talk, real card"]
   Data -->|"Notion (optional)"| Rehearse
   Data -->|"skip"| Rehearse
-  Rehearse --> Meet["/meet — join a real call"]
+  Rehearse --> Meet["/setup/meet — join a real call"]
+  Landing["/ landing page (Vercel)"] --> Gate["/meet — new meeting or enter a code"]
+  Gate --> Lobby["/meet/:code — devices + name"]
+  Lobby -->|"Join now"| Room["The call — mesh + composited cards"]
   Install -.->|"probe target"| ExtId["Extension ID: override, then env var, then dev default"]
   Install -.->|"REST + pairing"| Engine["Engine host (separate always-on service)"]
   Meet --> Dashboard["/dashboard — checklist clears"]
@@ -98,6 +142,11 @@ flowchart TD
 3. **Data & AI Key Configuration**: Set up credentials (Gemini, OpenAI, Anthropic, or Notion) with on-the-spot validation.
 4. **Rehearsal Loop**: Turns on webcam local preview, teaches hotkeys (`Alt+Shift+Space`), and processes real speech-to-card generation in an isolated test canvas.
 5. **Meeting Launch**: Pre-flight checklist explaining permissions, camera interception rules, and troubleshooting tips.
+
+Step 5 hands a presenter's first rehearsal off to Google Meet and now lives at
+`/setup/meet`. The in-product alternative is the `/meet` gate, reachable from
+the landing nav's **Join Meet** button; anyone can reach it and no account is
+needed to join.
 
 ---
 
