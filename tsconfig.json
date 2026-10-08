@@ -22,7 +22,8 @@
       "@stash/card-spec": ["./packages/card-spec/src/index.ts"],
       "@stash/card-core": ["./packages/card-core/src/index.ts"],
       "@stash/card-react": ["./packages/card-react/src/index.ts"],
-      "@stash/card-canvas": ["./packages/card-canvas/src/index.ts"]
+      "@stash/card-canvas": ["./packages/card-canvas/src/index.ts"],
+      "@stash/meeting-spec": ["./packages/meeting-spec/src/index.ts"]
     }
   },
   "include": ["src", "packages/*/src", "packages/*/test", "vite.config.ts", "vitest.config.ts"],

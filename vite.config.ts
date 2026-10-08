@@ -20,7 +20,7 @@ export default defineConfig({
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
-    // Tailwind is not being actively used – do not remove them
+    // Tailwind is not being actively used â€“ do not remove them
     react(),
     tailwindcss(),
   ],
@@ -33,6 +33,7 @@ export default defineConfig({
       '@stash/card-core': path.resolve(__dirname, './packages/card-core/src/index.ts'),
       '@stash/card-react': path.resolve(__dirname, './packages/card-react/src/index.ts'),
       '@stash/card-canvas': path.resolve(__dirname, './packages/card-canvas/src/index.ts'),
+      '@stash/meeting-spec': path.resolve(__dirname, './packages/meeting-spec/src/index.ts'),
     },
   },
 

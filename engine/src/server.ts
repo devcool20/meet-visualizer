@@ -41,6 +41,10 @@ import { createDriveRouter } from './routes/drive.js';
 // Virtual Camera Engine imports
 import { VirtualCamEngine } from './virtualcam/engine.js';
 import { createVirtualCamRouter, attachVirtualCamWs } from './routes/virtualcam.js';
+// Built-in meeting platform imports
+import { MeetingRegistry, buildRtcConfig } from './meeting/registry.js';
+import { attachMeetingWs } from './meeting/signaling.js';
+import { createMeetingRouter } from './routes/meeting.js';
 
 
 /**
@@ -113,6 +117,20 @@ export async function buildApp() {
     cardGenerator,
   });
 
+  // Built-in meeting platform. The registry owns room state; the WS endpoint
+  // is its transport. Media never passes through this process — it is a
+  // signalling relay for a WebRTC mesh.
+  const meetingRegistry = new MeetingRegistry({
+    rtc: buildRtcConfig({
+      stunUrl: config.meeting.stunUrl,
+      turnUrl: config.meeting.turnUrl,
+      turnUser: config.meeting.turnUser,
+      turnCredential: config.meeting.turnCredential,
+      meshLimit: config.meeting.meshLimit,
+    }),
+    log: (msg) => console.log(`[meeting] ${msg}`),
+  });
+
   const app = express();
   app.use(
     cors({
@@ -132,15 +150,17 @@ export async function buildApp() {
   app.use(createVirtualCamRouter(virtualCamEngine, authProvider));
   app.use(createAiKeysRouter(store, authProvider, encryptor));
   app.use(createGenerateCardRouter(authProvider, cardGenerator));
+  app.use(createMeetingRouter(meetingRegistry));
 
   const httpServer = http.createServer(app);
   attachWsServer(httpServer, { store, deviceAuth, tier2, tier3, generator: cardGenerator });
   attachVirtualCamWs(httpServer, virtualCamEngine);
+  const meetingWs = config.meeting.enabled ? attachMeetingWs(httpServer, { registry: meetingRegistry }) : null;
 
   const reconciliation = new ReconciliationSweep(store, notionSync);
   const activitySweep = new ActivitySnippetSweep(store);
 
-  return { app, httpServer, reconciliation, activitySweep, store, virtualCamEngine };
+  return { app, httpServer, reconciliation, activitySweep, store, virtualCamEngine, meetingRegistry, meetingWs };
 }
 
 function buildRealNotionApi(): NotionApi {
@@ -162,7 +182,7 @@ function buildRealNotionApi(): NotionApi {
 }
 
 async function main() {
-  const { httpServer, reconciliation, activitySweep } = await buildApp();
+  const { httpServer, reconciliation, activitySweep, meetingRegistry } = await buildApp();
 
   httpServer.listen(config.port, () => {
     console.log(`[Stash Live Engine] listening on :${config.port} (mode=${config.isLocal ? 'local' : 'production'})`);
@@ -170,11 +190,15 @@ async function main() {
 
   reconciliation.start();
   activitySweep.start();
+  // Reap rooms whose participants stopped talking to us. A disconnected socket
+  // that never fires `close` would otherwise pin a code forever.
+  const stopMeetingReaper = meetingRegistry.start();
 
   const shutdown = () => {
     console.log('\n[Stash Live Engine] shutting down...');
     reconciliation.stop();
     activitySweep.stop();
+    stopMeetingReaper();
     httpServer.close(() => process.exit(0));
   };
   process.on('SIGTERM', shutdown);

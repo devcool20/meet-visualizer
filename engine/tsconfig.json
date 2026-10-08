@@ -14,6 +14,7 @@
       "@stash/card-spec": ["../packages/card-spec/src/index.ts"],
       "@stash/card-core": ["../packages/card-core/src/index.ts"],
       "@stash/card-react": ["../packages/card-react/src/index.ts"],
+      "@stash/meeting-spec": ["../packages/meeting-spec/src/index.ts"],
     }
   },
   "include": ["src/**/*"],

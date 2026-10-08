@@ -132,6 +132,19 @@ export const config = {
   // Mock generation is an EXPLICIT mode: STASH_MOCK_GENERATION=1.
   // It allows live testing of real AI keys in local development.
   useMockGeneration: bool(process.env.STASH_MOCK_GENERATION, false),
+
+  // Built-in meeting platform (signalling relay for the WebRTC mesh).
+  // STASH_MEETING_STUN_URL accepts a comma-separated list; TURN is optional
+  // but without it participants behind symmetric NAT will not connect.
+  meeting: {
+    enabled: bool(process.env.STASH_MEETING_ENABLED, true),
+    path: process.env.STASH_MEETING_WS_PATH || '/ws/meeting',
+    stunUrl: process.env.STASH_MEETING_STUN_URL || '',
+    turnUrl: process.env.STASH_MEETING_TURN_URL || '',
+    turnUser: process.env.STASH_MEETING_TURN_USERNAME || '',
+    turnCredential: process.env.STASH_MEETING_TURN_CREDENTIAL || '',
+    meshLimit: process.env.STASH_MEETING_MESH_LIMIT || '',
+  },
 };
 
 export type Config = typeof config;
