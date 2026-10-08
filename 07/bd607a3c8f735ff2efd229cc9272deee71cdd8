@@ -1,0 +1,27 @@
+src/app/onboarding/RehearsePage.tsx
+  s_020a720897104a::t_2aa853aba84f66 397
+src/main.tsx
+  s_020a720897104a::t_c833f87d091cdc 24-29
+  s_020a720897104a::t_0d58ca84b47eae 93-94
+  s_020a720897104a::t_4db9efc597a260 125
+src/lib/setup.ts
+  s_020a720897104a::t_024e42e5b118ab 2,19,77
+src/app/onboarding/MeetStepPage.tsx
+  s_020a720897104a::t_2cf309e4b6e2bd 2-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "07bd607a3c8f735ff2efd229cc9272deee71cdd8",
+  "prompts": {},
+  "sessions": {
+    "s_020a720897104a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee5786cf9ffexTN0Nno3xuExYg",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
