@@ -1,0 +1,32 @@
+src/app/meet/hooks/useOutboundCompositor.ts
+  s_020a720897104a::t_f82d7c2f6ccc17 127-129
+  s_020a720897104a::t_34fea263df2bca 107-123
+src/app/meet/components/MeetingStage.tsx
+  s_020a720897104a::t_fe894fba8d6e51 142
+  s_020a720897104a::t_cf51d9adedda7d 118-121
+src/app/meet/lib/outbound-compositor.ts
+  s_020a720897104a::t_c59c9b7513b889 462-465,467-480
+src/app/meet/MeetingProvider.tsx
+  s_020a720897104a::t_d776c097efb753 268-280
+  s_020a720897104a::t_b175783d2ba962 74-87
+  s_020a720897104a::t_459ae5751352c9 601
+  s_020a720897104a::t_b15b06806c8319 550
+src/app/meet/lib/outbound-stream.test.ts
+  s_020a720897104a::t_9691df7c1264f2 204-218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1bc75ccf19ab3df391882a9ec0a04d4bb399c8db",
+  "prompts": {},
+  "sessions": {
+    "s_020a720897104a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee5786cf9ffexTN0Nno3xuExYg",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
