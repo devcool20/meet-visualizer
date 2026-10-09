@@ -1,0 +1,28 @@
+src/app/meet/hooks/useRemoteCompositors.ts
+  s_020a720897104a::t_d09f55c22723c8 169-182
+src/app/meet/components/MeetingTile.camera.test.tsx
+  s_020a720897104a::t_45829ac7faaf96 26-43
+  s_020a720897104a::t_4f95f1aa1c8c85 78-83
+  s_020a720897104a::t_4954d1d9fa7ffb 86-89
+  s_020a720897104a::t_96e14ebf1ff8d2 110-137,142
+src/app/meet/components/MeetingTile.tsx
+  s_020a720897104a::t_9bdd9e3defaf8b 39
+  s_020a720897104a::t_6e96287c509835 44-55
+  s_020a720897104a::t_94cb1e75be5955 56-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bde064f82f4c37674c9e157b7ad61ebc2a62af01",
+  "prompts": {},
+  "sessions": {
+    "s_020a720897104a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee5786cf9ffexTN0Nno3xuExYg",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
