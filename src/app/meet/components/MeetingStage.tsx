@@ -46,7 +46,7 @@ export function MeetingStage() {
     });
   }, [ctx.roster, speakingIds]);
 
-  const count = ordered.length;
+const count = ordered.length;
 
   if (sharer) {
     return (
@@ -55,21 +55,69 @@ export function MeetingStage() {
           <ShareTile id={sharer.id} name={sharer.name} isSelf={sharer.id === ctx.selfId} />
         </div>
         <div className="flex min-w-[160px] flex-col gap-2 sm:max-w-[240px]">
-          {ordered
+{ordered
             .filter((p) => p.id !== sharer.id)
             .map((p) => (
               <ParticipantTile key={p.id} participant={p} speaking={speakingIds.has(p.id)} />
             ))}
         </div>
+        <MeetingDebugOverlay />
       </div>
     );
   }
 
-  return (
+return (
     <div className={cn('grid min-h-0 flex-1 gap-2.5 p-3 sm:gap-3 sm:p-4', gridFor(count))}>
       {ordered.map((p) => (
         <ParticipantTile key={p.id} participant={p} speaking={speakingIds.has(p.id)} />
       ))}
+      <MeetingDebugOverlay />
+    </div>
+  );
+}
+
+/**
+ * Per-peer pipeline readout, behind `?debug=1`.
+ *
+ * "The tile is black" has three quite different causes -- no remote stream, a
+ * compositor whose canvas never painted, or a video element that never got a
+ * srcObject -- and the symptom looks identical from outside. Guessing between
+ * them is what made this take so long, so the three are printed directly.
+ *
+ * Reads only state the provider already exposes; it adds no measurement of its
+ * own and changes no behaviour.
+ */
+function MeetingDebugOverlay() {
+  const ctx = useMeetingContext();
+  const enabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
+  if (!enabled) return null;
+
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 max-h-[45%] overflow-auto bg-black/85 p-2 font-mono text-[10px] leading-tight text-lime-300">
+      <div>selfId={ctx.selfId ?? 'null'} cards={ctx.roomCards.length} composites={Object.keys(ctx.composites).length}</div>
+      {ctx.roster.map((p) => {
+        const peer = ctx.peerStreams[p.id];
+        const comp = ctx.composites[p.id];
+        const isSelf = p.id === ctx.selfId;
+        const rawTracks = peer?.stream?.getTracks().length ?? 0;
+        const vReady = peer?.stream?.getVideoTracks()[0]?.readyState ?? '-';
+        return (
+          <div key={p.id} className="border-t border-lime-500/30 pt-0.5">
+            <div>
+              {isSelf ? 'SELF' : 'PEER'} {p.id.slice(0, 8)} name={p.name}
+            </div>
+            <div>
+              conn={peer?.state ?? '-'} rawTracks={rawTracks} vReady={vReady} camOn={isSelf ? ctx.media.camOn : p.state.camOn}
+            </div>
+            {!isSelf && (
+              <div>
+                composite: {comp ? (comp.stream ? 'stream' : 'NULL') : 'none'} card={comp?.card?.id ?? 'none'} trackReady=
+                {comp?.stream?.getVideoTracks()[0]?.readyState ?? '-'}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
