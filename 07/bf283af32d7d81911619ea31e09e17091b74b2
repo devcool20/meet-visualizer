@@ -1,0 +1,30 @@
+src/app/meet/hooks/useRemoteCompositors.ts
+  s_020a720897104a::t_2e923e5bdf8d9e 113-119
+src/app/meet/lib/outbound-compositor.ts
+  s_020a720897104a::t_31357922cfdf4f 147-155
+  s_020a720897104a::t_c8b5d28198517f 306-308
+  s_020a720897104a::t_278437aed553a2 156-158
+src/app/meet/lib/outbound-compositor.canvas.test.ts
+  s_020a720897104a::t_1e4ea37fa21780 42-58,67
+  s_020a720897104a::t_427785085f70f7 102-103,114-118,126-128
+  s_020a720897104a::t_1d9813f597f282 31
+  s_020a720897104a::t_3b57e969307779 1-30,32-41,59-66,68-74,78-80,88-101,104-113,119-122,125,129-132
+  s_020a720897104a::t_4e1ad0d478c48f 75-77,81-87
+  s_020a720897104a::t_ad09c9096a74aa 123-124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "07bf283af32d7d81911619ea31e09e17091b74b2",
+  "prompts": {},
+  "sessions": {
+    "s_020a720897104a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee5786cf9ffexTN0Nno3xuExYg",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
