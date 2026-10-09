@@ -1,0 +1,33 @@
+engine/src/meeting/signaling.ts
+  s_020a720897104a::t_1bdbe487b517c4 178
+src/app/meet/hooks/useMeetingSocket.join.test.ts
+  s_020a720897104a::t_627989ea39e93c 1-85
+packages/meeting-spec/src/types.ts
+  s_020a720897104a::t_1bdbe487b517c4 131
+packages/meeting-spec/src/validate.ts
+  s_020a720897104a::t_1bdbe487b517c4 97-104
+src/app/meet/hooks/useMeetingSocket.ts
+  s_020a720897104a::t_71e4004e4dc086 81-90,93-117,199-200,327,329-346,388-393,528
+src/app/meet/MeetRoomPage.tsx
+  s_020a720897104a::t_043f231ff9493f 83-87
+  s_020a720897104a::t_db193f02cfe882 56-59
+src/app/meet/MeetingProvider.tsx
+  s_020a720897104a::t_c1029bdb322716 164-170,172
+  s_020a720897104a::t_e9ae2777f26875 196,198-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aeef122fe4d5e88b19d2dcb74e79b8924ed33b31",
+  "prompts": {},
+  "sessions": {
+    "s_020a720897104a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee5786cf9ffexTN0Nno3xuExYg",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
