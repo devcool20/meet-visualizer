@@ -42,7 +42,6 @@
 import { CardCompositor, loadImageCorsSafe, resolveTtlMs } from '@stash/card-canvas';
 import type { CardCompositor as CardCompositorType } from '@stash/card-canvas';
 import type { CardPosition, CardSpec, UserSettings } from '@stash/card-spec';
-import { COLORS } from '@stash/card-core';
 
 /** Milliseconds between frames while the tab is backgrounded. */
 const HIDDEN_FRAME_MS = 120;
@@ -52,6 +51,44 @@ const CAPTURE_FPS = 30;
 
 const DEFAULT_WIDTH = 1280;
 const DEFAULT_HEIGHT = 720;
+
+/**
+ * What fills the frame when there is no camera.
+ *
+ * Deliberately NOT the brand's `COLORS.canvas` (#FBF9F6). That colour is a
+ * document background; used as a video base it turns any failure to draw the
+ * camera into a blank white tile that reads as a broken page rather than as a
+ * missing camera. Black is what an empty stage should look like.
+ */
+const NO_CAMERA_FILL = '#000000';
+
+/**
+ * How long to wait for webfonts before showing a card anyway.
+ *
+ * `document.fonts.ready` does not settle while any font request is in flight,
+ * and the product loads Cormorant, Inter and JetBrains Mono from Google. If
+ * that request is slow, blocked by an extension, or offline, an unbounded wait
+ * means the card silently never appears — the presenter holds to talk, sees
+ * "Building…", and no card ever arrives. Canvas text falls back to a system
+ * font gracefully, so a short wait is strictly better than no card.
+ */
+const FONT_WAIT_MS = 600;
+
+/** Races `document.fonts.ready` against a timeout. */
+function fontsReadyWithin(ms: number): Promise<void> {
+  if (typeof document === 'undefined' || !document.fonts) return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(done, ms);
+    document.fonts.ready.then(done, done);
+  });
+}
 
 export type PlaceholderKind = 'generating' | 'error';
 
@@ -93,6 +130,9 @@ export class OutboundCompositor {
   private hiddenTimer: ReturnType<typeof setTimeout> | null = null;
   private running = false;
   private lastFrameAt = 0;
+  private lastErrorMessage: string | null = null;
+  /** Frame counter, for diagnostics. */
+  private frameCount = 0;
 
   /** Resolves once the document's card fonts are usable by canvas text. */
   private fontsReady: Promise<void>;
@@ -120,13 +160,7 @@ export class OutboundCompositor {
     if (!track) throw new Error('captureStream produced no video track');
     this.outboundTrack = track;
 
-    this.fontsReady =
-      typeof document !== 'undefined' && document.fonts
-        ? document.fonts.ready.then(
-            () => undefined,
-            () => undefined,
-          )
-        : Promise.resolve();
+    this.fontsReady = fontsReadyWithin(FONT_WAIT_MS);
 
     this.running = true;
     this.scheduleFrame();
@@ -160,6 +194,17 @@ export class OutboundCompositor {
   /** The card currently on air, if any. */
   get currentCard(): CardSpec | null {
     return this.spec;
+  }
+
+  /**
+   * The last error swallowed by the per-frame catch, if any.
+   *
+   * A throwing draw silently degrades to "the camera does not appear", which
+   * looks like a permissions problem and is impossible to diagnose without this.
+   * The meeting UI surfaces it as a warning.
+   */
+  get lastError(): string | null {
+    return this.lastErrorMessage;
   }
 
   /**
@@ -271,19 +316,29 @@ export class OutboundCompositor {
     if (w !== this.width || h !== this.height) this.resize(w, h);
 
     const el = document.createElement('video');
-    el.muted = true;
+el.muted = true;
     el.defaultMuted = true;
     el.autoplay = true;
     el.playsInline = true;
     el.setAttribute('playsinline', '');
     el.setAttribute('muted', '');
     el.setAttribute('autoplay', '');
+    // Positioned in the extreme corner, microscopic, and near-transparent — but
+    // deliberately NOT fully hidden. A <video> that contributes no visible
+    // pixels (opacity 0, display none, or fully offscreen) is skipped by the
+    // compositor as an optimisation: readyState still advances and rVFC still
+    // fires, but drawImage captures a blank frame. That failure looks exactly
+    // like a dead camera, so the element must stay a real rendered layer.
+    //
+    // At 2x2 and 1% opacity, tucked behind everything, it is invisible in
+    // practice and untouchable (pointer-events off). Do not "improve" this by
+    // hiding it harder.
     el.style.position = 'fixed';
-    el.style.top = '-9999px';
-    el.style.left = '-9999px';
-    el.style.width = '1px';
-    el.style.height = '1px';
-    el.style.opacity = '0';
+    el.style.bottom = '0';
+    el.style.right = '0';
+    el.style.width = '2px';
+    el.style.height = '2px';
+    el.style.opacity = '0.01';
     el.style.pointerEvents = 'none';
     el.style.zIndex = '-1';
     (document.body || document.documentElement).appendChild(el);
@@ -364,6 +419,7 @@ export class OutboundCompositor {
     const now = performance.now();
     const dtMs = this.lastFrameAt === 0 ? 16 : Math.min(100, now - this.lastFrameAt);
     this.lastFrameAt = now;
+    this.frameCount++;
 
     const frame = { width: this.width, height: this.height };
 
@@ -376,9 +432,10 @@ export class OutboundCompositor {
         // the previous card's pixels never influence where this one lands.
         this.compositor.composite(this.ctx, this.spec, frame, dtMs, this.spec.position, this.videoEl ?? undefined);
       }
-    } catch {
+    } catch (err) {
       // Anything at all going wrong degrades to a plain camera frame rather
       // than a black canvas. Never the other way round.
+      this.lastErrorMessage = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
       try {
         this.drawBaseFrame();
       } catch {
@@ -387,11 +444,22 @@ export class OutboundCompositor {
     }
   }
 
+  /** Frames rendered since construction. Diagnostics only. */
+  get frames(): number {
+    return this.frameCount;
+  }
+
   private drawBaseFrame(): void {
     const ctx = this.ctx;
-    ctx.fillStyle = COLORS.canvas;
+    // Black, not the brand alabaster. This is a video frame: when the camera
+    // is absent (data-presenter mode) the audience should see an obviously
+    // empty stage, and a failure to draw the camera should look like "no
+    // camera" rather than like a broken white page.
+    ctx.fillStyle = NO_CAMERA_FILL;
     ctx.fillRect(0, 0, this.width, this.height);
-    if (!this.videoEl || this.videoEl.readyState < 2 || this.videoEl.videoWidth === 0) return;
-    ctx.drawImage(this.videoEl, 0, 0, this.width, this.height);
+
+    const el = this.videoEl;
+    if (!el || el.readyState < 2 || el.videoWidth === 0) return;
+    ctx.drawImage(el, 0, 0, this.width, this.height);
   }
 }

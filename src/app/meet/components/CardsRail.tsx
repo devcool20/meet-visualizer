@@ -14,9 +14,9 @@
  *    into each participant's video, only a broadcast can tell the room that
  *    the numbers on somebody's shoulder are live data.
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GlassCard } from '@stash/card-react';
-import { parseCardSpec } from '@stash/card-spec';
+import { parseCardSpec, type CardSpec } from '@stash/card-spec';
 import { AlertCircle, Library, Radio, Sparkles, X } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { cn } from '@/app/components/ui/utils';
@@ -54,7 +54,7 @@ export function CardsRail() {
           {ctx.stash.card ? (
             <>
               <div className="overflow-hidden rounded-panel">
-                <GlassCard spec={ctx.stash.card} />
+                <FittedCard spec={ctx.stash.card} />
               </div>
               <div className="flex items-center justify-between gap-2">
                 <p className="min-w-0 flex-1 truncate text-[0.75rem] text-muted-foreground">
@@ -146,6 +146,44 @@ export function CardsRail() {
   );
 }
 /* ------------------------------------------------------------------ */
+/**
+ * A `GlassCard` scaled to the width it is actually given.
+ *
+ * `GlassCard` lays out at `CARD.width` (358px) and scales internally from
+ * there, so dropping it into a narrower column without measuring overflows by
+ * however much it is too wide — which clips the image block and cuts the last
+ * line of text off mid-word. Measuring and passing the real width keeps the
+ * card's own layout arithmetic intact and lets it reflow to fit.
+ *
+ * This is the same approach `RehearsePage`'s `StageFittingCard` uses.
+ */
+function FittedCard({ spec }: { spec: CardSpec }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    // Start from the current box so there is no first-paint flash at the
+    // un-scaled width.
+    setWidth(el.clientWidth || null);
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => {
+      const next = entries[0]?.contentRect.width ?? 0;
+      // Ignore sub-pixel churn; it would re-layout the card for nothing.
+      setWidth((prev) => (prev && Math.abs(prev - next) < 1 ? prev : next || null));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div ref={wrapRef} className="w-full overflow-hidden rounded-panel">
+      <GlassCard spec={spec} width={width ?? undefined} />
+    </div>
+  );
+}
+
 function Tabs({
   tab,
   onChange,
@@ -256,7 +294,7 @@ function MeetingCards() {
               ) : null}
             </div>
             <div className="overflow-hidden rounded-panel">
-              <GlassCard spec={parsed.value} />
+              <FittedCard spec={parsed.value} />
             </div>
             {entry.topic ? <p className="text-[0.6875rem] italic text-muted-foreground">“{entry.topic}”</p> : null}
           </li>
