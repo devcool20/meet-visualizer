@@ -44,8 +44,13 @@ export interface UseRemoteCompositorsOptions {
   peers: PeerMap;
   /** Broadcasts, newest last. Filtered per sender inside. */
   cards: { key: string; id: string; card: unknown }[];
-  /** Clears, by sender. */
-  cleared: Set<string>;
+  /**
+   * Senders that have taken their card off air, by id.
+   *
+   * Read-only: nothing here ever mutates it. `MeetingProvider` passes a stable
+   * empty set, because a card present in `cards` is by definition still on air.
+   */
+  cleared: ReadonlySet<string>;
   settings: Pick<UserSettings, 'reducedMotion' | 'position' | 'autoDismissMs'>;
   /** Disables compositing entirely (used when settings say so). */
   enabled?: boolean;

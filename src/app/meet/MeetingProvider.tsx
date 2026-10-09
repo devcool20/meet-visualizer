@@ -141,6 +141,15 @@ export function useMeetingContext(): MeetingContextValue {
 
 const NAME_KEY = 'stash_meeting_name';
 
+/**
+ * No sender has cleared a card, ever.
+ *
+ * A stable empty set so the composites effect does not re-run on every render
+ * just because a new `Set` was allocated. Presence in `socket.cards` already
+ * means "on air"; see the composites call below.
+ */
+const NO_SENDERS_CLEARED: ReadonlySet<string> = new Set<string>();
+
 function loadName(): string {
   try {
     const stored = localStorage.getItem(NAME_KEY)?.trim();
@@ -410,23 +419,23 @@ const joinIntent = useMemo<JoinIntent>(() => {
   /* Receiving-side cards                                               */
   /* ------------------------------------------------------------------ */
 
-  /**
+/**
    * Cards are composited here, on arrival, rather than baked into the sender's
    * video. See `useRemoteCompositors` for why that is the better trade.
+   *
+   * The "cleared" set is deliberately empty. `socket.cards` already removes an
+   * entry when its owner clears it (the `card-cleared` case in
+   * `useMeetingSocket`), so a card present in the log is a card that is on air.
+   *
+   * This used to be derived by collecting the id of every card *present* in
+   * `socket.cards`, which is the exact inverse of "cleared" -- so every card was
+   * filtered out and no peer ever composited one. A card was received, a
+   * compositor existed, and the tile showed a camera with nothing on it.
    */
-  const clearedCardSenders = useMemo(() => {
-    // `socket.cards` already drops entries when their owner clears them, so the
-    // cleared set is only needed for the short window in which a stale card
-    // would otherwise linger on a tile.
-    const seen = new Set<string>();
-    for (const entry of socket.cards) seen.add(entry.id);
-    return seen;
-  }, [socket.cards]);
-
   const composites = useRemoteCompositors({
     peers: mesh.peers,
     cards: socket.cards,
-    cleared: clearedCardSenders,
+    cleared: NO_SENDERS_CLEARED,
     settings,
   });
 
