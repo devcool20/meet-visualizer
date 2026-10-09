@@ -1,0 +1,33 @@
+src/app/meet/lib/outbound-compositor.ts
+  s_020a720897104a::t_ee50a808003c38 55-92
+  s_020a720897104a::t_7c6bafdfc001b8 460-461
+  s_020a720897104a::t_3925c0ea2bbf4b 454-458,462-463
+  s_020a720897104a::t_143e4a530b53eb 422,435,438,447-449
+  s_020a720897104a::t_055c6ebfd154a0 163
+  s_020a720897104a::t_66d1daebaa41ec 319,326-335,337-341
+  s_020a720897104a::t_8a7e0478d576fc 200-209,450
+  s_020a720897104a::t_dcbeb27d4104db 133-135
+  s_020a720897104a::t_99f32a85d70d53 199
+  s_020a720897104a::t_6464ca9c8ac4b7 451
+src/app/meet/components/CardsRail.tsx
+  s_020a720897104a::t_9ae515f12afc99 17,19
+  s_020a720897104a::t_ca121b5a12f102 57
+  s_020a720897104a::t_ab9f450475afb7 297
+  s_020a720897104a::t_c39047084b2ea2 149-186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0dc3c024c450d5612f499e181def9ecbed26750b",
+  "prompts": {},
+  "sessions": {
+    "s_020a720897104a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee5786cf9ffexTN0Nno3xuExYg",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
