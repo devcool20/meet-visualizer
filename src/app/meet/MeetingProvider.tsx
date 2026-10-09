@@ -22,6 +22,7 @@ import { useAuth } from '@/app/auth/AuthContext';
 import { getApiClient } from '@/lib/api';
 import { useLocalMedia } from './hooks/useLocalMedia';
 import { useMeetingSocket, type JoinIntent } from './hooks/useMeetingSocket';
+import { useRemoteCompositors } from './hooks/useRemoteCompositors';
 import { useWebRtcMesh, type MeshEvent, type PeerMap } from './hooks/useWebRtcMesh';
 import { useOutboundCompositor } from './hooks/useOutboundCompositor';
 import { useScreenShare } from './hooks/useScreenShare';
@@ -63,6 +64,8 @@ export interface MeetingContextValue {
   micLevel: { level: number; speaking: boolean };
   remoteLevels: Record<string, { level: number; speaking: boolean }>;
   peerStreams: PeerMap;
+  /** Per-peer streams with any card composited over them, for remote tiles. */
+  composites: Record<string, { stream: MediaStream | null; card: CardSpec | null }>;
   selfState: MeetingParticipant['state'];
   setMicOn: (on: boolean) => void;
   setCamOn: (on: boolean) => void;
@@ -263,7 +266,20 @@ export function MeetingProvider({ intent, children }: MeetingProviderProps) {
     settings,
   });
 
-  const outbound = joined ? compositor.outbound : null;
+  /**
+   * What leaves this browser.
+   *
+   * Always the raw camera. The card travels as data over the signalling
+   * socket and is composited by each receiver (`useRemoteCompositors`), so the
+   * presenter's camera and a card can never interfere with each other. Baking
+   * the card in was inherited from the extension, where injecting into somebody
+   * else's browser was the only option available.
+   */
+  const outbound = useMemo<MediaStream | null>(() => {
+    if (!joined) return null;
+    const tracks = [micTrack, cameraTrack].filter((t): t is MediaStreamTrack => !!t && t.readyState !== 'ended');
+    return tracks.length > 0 ? new MediaStream(tracks) : null;
+  }, [joined, micTrack, cameraTrack]);
 
   /**
    * The self tile's stream: the camera, straight from the device.
@@ -387,6 +403,30 @@ export function MeetingProvider({ intent, children }: MeetingProviderProps) {
   }, [mesh.peers]);
 
   const remoteLevels = useRemoteLevels(levelStreams);
+
+  /* ------------------------------------------------------------------ */
+  /* Receiving-side cards                                               */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * Cards are composited here, on arrival, rather than baked into the sender's
+   * video. See `useRemoteCompositors` for why that is the better trade.
+   */
+  const clearedCardSenders = useMemo(() => {
+    // `socket.cards` already drops entries when their owner clears them, so the
+    // cleared set is only needed for the short window in which a stale card
+    // would otherwise linger on a tile.
+    const seen = new Set<string>();
+    for (const entry of socket.cards) seen.add(entry.id);
+    return seen;
+  }, [socket.cards]);
+
+  const composites = useRemoteCompositors({
+    peers: mesh.peers,
+    cards: socket.cards,
+    cleared: clearedCardSenders,
+    settings,
+  });
 
   /* ------------------------------------------------------------------ */
   /* Derived room state                                                 */
@@ -540,6 +580,7 @@ export function MeetingProvider({ intent, children }: MeetingProviderProps) {
       micLevel,
       remoteLevels,
       peerStreams: mesh.peers,
+      composites,
       selfState,
       setMicOn: media.setMicOn,
       setCamOn: media.setCamOn,

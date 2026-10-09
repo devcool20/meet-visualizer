@@ -14,6 +14,7 @@
 import { useMemo } from 'react';
 import { MeetingTile } from './MeetingTile';
 import { useMeetingContext } from '../MeetingProvider';
+import { Sparkles } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
 
 export function MeetingStage() {
@@ -112,14 +113,19 @@ function ParticipantTile({
   speaking: boolean;
 }) {
   const ctx = useMeetingContext();
-  const isSelf = participant.id === ctx.selfId;
-  const peer = ctx.peerStreams[participant.id];
-
 // The self tile renders `ctx.preview`, which is the raw camera. The card is
   // previewed properly in the cards rail, which shows the real GlassCard at full
   // size. Routing the self view through the compositor instead would put the
   // presenter's only view of themselves behind the entire compositing pipeline.
-  const stream = isSelf ? ctx.preview : (peer?.stream ?? null);
+  const isSelf = participant.id === ctx.selfId;
+  const peer = ctx.peerStreams[participant.id];
+
+  // Remote tiles render their composited stream when this client has a card
+  // drawn over them; otherwise the raw remote video. Compositing happens here
+  // rather than on the sender, so a card can never corrupt anybody's camera.
+  const composite = ctx.composites[participant.id];
+  const remoteStream = composite && composite.stream ? composite.stream : (peer?.stream ?? null);
+  const stream = isSelf ? ctx.preview : remoteStream;
   const camOn = isSelf ? ctx.media.camOn : participant.state.camOn;
   const micOn = isSelf ? ctx.media.micOn : participant.state.micOn;
   const screen = isSelf ? null : (peer?.screen ?? null);
@@ -140,11 +146,21 @@ function ParticipantTile({
       connectionState={isSelf ? undefined : peer?.state}
     >
       {isSelf && ctx.compositing ? <OnAirBadge /> : null}
+      {!isSelf && ctx.composites[participant.id]?.card ? <RemoteCardBadge name={participant.name} /> : null}
     </MeetingTile>
   );
 }
 
-/** A quiet confirmation that the card really is in the outgoing video. */
+/** Marks a remote tile whose video currently carries somebody's card. */
+function RemoteCardBadge({ name }: { name: string }) {
+  return (
+    <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1.5 rounded-full bg-background/75 px-2 py-1 text-[0.6875rem] font-medium text-brand backdrop-blur-md">
+      <Sparkles className="size-3" aria-hidden />
+      {name.split(/\s+/)[0]}&rsquo;s card
+    </div>
+  );
+}
+/** A quiet confirmation that the card really is on the wire. */
 function OnAirBadge() {
   return (
     <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1.5 rounded-full bg-background/75 px-2 py-1 text-[0.6875rem] font-medium text-brand backdrop-blur-md">

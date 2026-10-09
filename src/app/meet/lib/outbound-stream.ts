@@ -24,10 +24,30 @@
  * stores it; the track is handed straight to WebRTC.
  */
 
+/**
+ * Resolves the stream the presenter transmits.
+ *
+ * ## The rule: this is never a composite
+ *
+ * The card travels as data and is drawn by each *receiver*. The presenter
+ * sends their camera exactly as the camera produced it, always. That is the
+ * whole architectural point, and it is what makes a card incapable of taking
+ * the presenter's camera away from them or from everyone watching.
+ *
+ * An earlier version of the platform composited on the sender — inherited from
+ * the extension, where injecting into a browser we do not control was the only
+ * option. In our own room that constraint is gone, and keeping it was strictly
+ * worse: it corrupted the presenter's video whenever the compositor misbehaved,
+ * it cost bandwidth (a composited canvas full of glass edges and small text
+ * compresses far worse than a clean camera frame), and it capped card quality
+ * at the sender's resolution instead of each receiver's.
+ *
+ * Audio is forwarded untouched. Nothing here reads, mixes or buffers it.
+ */
 export interface OutboundInputs {
-  /** The composited video track, or null when there is no compositor. */
+  /** The composited video track. Accepted only so an unhealthy case is visible. */
   compositedTrack: MediaStreamTrack | null;
-  /** Whether a real card or a placeholder occupies the card slot. */
+  /** Whether a card is on air. Deliberately ignored — see the note above. */
   hasOverlay: boolean;
   /** The live camera track, or null when the camera is off or absent. */
   cameraTrack: MediaStreamTrack | null;
@@ -40,26 +60,14 @@ function live(track: MediaStreamTrack | null): MediaStreamTrack | null {
   return track.readyState === 'ended' ? null : track;
 }
 
-function build(tracks: (MediaStreamTrack | null)[]): MediaStream | null {
-  const present = tracks.filter((t): t is MediaStreamTrack => !!t);
-  return present.length > 0 ? new MediaStream(present) : null;
-}
-
-/** Resolves the stream every peer should receive, or null to send nothing. */
+/**
+ * What leaves the presenter's browser: their camera and microphone, or just the
+ * microphone with the camera off so peers can still hear them and draw a
+ * camera-off tile instead of silence.
+ */
 export function resolveOutboundStream(inputs: OutboundInputs): MediaStream | null {
-  const audio = live(inputs.micTrack);
-  const camera = live(inputs.cameraTrack);
-  const composited = live(inputs.compositedTrack);
-
-  // 1. No compositor: passthrough. The card is dropped, the presenter is not.
-  if (!inputs.compositedTrack) return build([audio, camera]);
-
-  // 2. Something is on air, so the composited track is what the room sees.
-  if (inputs.hasOverlay && composited) return build([audio, composited]);
-
-  // 3. Camera off with nothing to show.
-  if (!camera) return build([audio]);
-
-  // 4. Camera on, nothing composited.
-  return build([audio, camera]);
+  void inputs.compositedTrack;
+  void inputs.hasOverlay;
+  const tracks = [live(inputs.micTrack), live(inputs.cameraTrack)].filter((t): t is MediaStreamTrack => !!t);
+  return tracks.length > 0 ? new MediaStream(tracks) : null;
 }

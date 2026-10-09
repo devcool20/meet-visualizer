@@ -65,6 +65,21 @@ function MeetingLifecycle({ creating, code }: { creating: boolean; code: string 
   const [inviteOpen, setInviteOpen] = useState(false);
   const outage = useJoinStall(ctx.joined, ctx.status, ctx.selfId);
 
+  /**
+   * The address bar is the canonical link to this meeting.
+   *
+   * A room can end up on a different code than the one in the URL — an engine
+   * restart between reserving a code and claiming it, or a host reloading a link
+   * whose room has since closed. When that happens the invite button hands out
+   * a code the address bar does not show, and pasting the address bar into a
+   * second window lands somewhere else entirely. Replacing the URL makes the two
+   * agree, so the link in the browser is always the link you share.
+   */
+  useEffect(() => {
+    if (!ctx.code || ctx.code === code) return;
+    navigate(`/meet/${ctx.code}${creating ? '?host=1' : ''}`, { replace: true });
+  }, [ctx.code, code, creating, navigate]);
+
   // Leaving is a hard stop: this client must stop sending media and stop
   // holding the camera indicator before it navigates anywhere else.
   const onLeave = useCallback(() => {
