@@ -1,0 +1,23 @@
+src/app/meet/components/MeetingStage.tsx
+  s_020a720897104a::t_63d8db7e11fa56 79-120
+  s_020a720897104a::t_9264cf1dcb885a 58,64
+  s_020a720897104a::t_80deb4e2661c97 69,74-76
+  s_020a720897104a::t_e035024dc23fdd 49
+  s_020a720897104a::t_457e995ea76912 77-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2757fe782ff4962690f27f6cde14c8eb67968318",
+  "prompts": {},
+  "sessions": {
+    "s_020a720897104a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee5786cf9ffexTN0Nno3xuExYg",
+        "model": "unknown"
+      },
+      "human_author": "devcool20 <sharmadivyanshu265@gmail.com>"
+    }
+  }
+}
