@@ -161,13 +161,15 @@ function persistName(name: string): void {
 }
 
 export interface MeetingProviderProps {
-  /**
-   * Which room this client is claiming, before a name is attached. The gate
-   * page always mints a code, so both modes carry one: `create` claims the
-   * reservation the CTA already made and seats as host, `join` walks into an
-   * existing room as a guest.
+/**
+   * How this client claims the room.
+   *
+   * `enter` is the default and the important one: a link's code may or may not
+   * still be live, so join it if it is and start it if it is not. Hardcoding
+   * `create` here is what made every shared link silently mint a brand-new
+   * meeting under a different code.
    */
-  intent: { mode: 'create' | 'join'; code: string; lockOnJoin?: boolean };
+  intent: { mode: 'create' | 'enter' | 'join'; code: string; lockOnJoin?: boolean };
   children: ReactNode;
 }
 
@@ -191,11 +193,11 @@ export function MeetingProvider({ intent, children }: MeetingProviderProps) {
     persistName(v);
   }, []);
 
-  const joinIntent = useMemo<JoinIntent>(() => {
+const joinIntent = useMemo<JoinIntent>(() => {
     const name = effectiveName || 'Guest';
-    return intent.mode === 'create'
-      ? { mode: 'create', name, code: intent.code, lockOnJoin: intent.lockOnJoin }
-      : { mode: 'join', name, code: intent.code };
+    if (intent.mode === 'enter') return { mode: 'enter', name, code: intent.code };
+    if (intent.mode === 'join') return { mode: 'join', name, code: intent.code };
+    return { mode: 'create', name, code: intent.code, lockOnJoin: intent.lockOnJoin };
   }, [intent, effectiveName]);
 
   /* ------------------------------------------------------------------ */

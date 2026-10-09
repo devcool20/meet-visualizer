@@ -78,9 +78,43 @@ export interface MeetingSocketFailure {
   message: string;
 }
 
+/**
+ * How a client claims a room.
+ *
+ * - `create` — the gate just reserved this code; claim it and become host.
+ * - `join`  — the code is known to exist; join it as a guest.
+ * - `enter` — the code came from a link, so its existence is unknown. Join it,
+ *   and if nobody is there, start it. This is what a shared link means: opening
+ *   it takes you to whatever is happening, and never dead-ends on a code whose
+ *   meeting already ended.
+ */
 export type JoinIntent =
   | { mode: 'create'; name: string; code?: string; lockOnJoin?: boolean }
-  | { mode: 'join'; name: string; code: string };
+  | { mode: 'join'; name: string; code: string }
+  | { mode: 'enter'; name: string; code: string };
+
+/**
+ * The frame to send for an intent, given an error from the previous attempt.
+ *
+ * This is the rule that fixes "I opened the link and got a different meeting":
+ * an `enter` that is told the room does not exist becomes a `create` for the
+ * *same* code. It must never silently mint a new code, because a link is a
+ * promise about which meeting you are going to.
+ */
+export function nextJoinFrame(
+  intent: JoinIntent,
+  failedWith: string | null,
+): MeetingClientMsg {
+  if (intent.mode === 'enter' && failedWith === 'room_not_found') {
+    // Same code, not a new one. Minting a fresh code here is what made an
+    // invite link open a different meeting entirely.
+    return { t: 'create', name: intent.name, lockOnJoin: false, code: intent.code };
+  }
+  if (intent.mode === 'create') {
+    return { t: 'create', name: intent.name, lockOnJoin: intent.lockOnJoin, code: intent.code };
+  }
+  return { t: 'join', code: intent.code, name: intent.name };
+}
 
 export interface UseMeetingSocketOptions {
   intent: JoinIntent;
@@ -162,6 +196,8 @@ export function useMeetingSocket(opts: UseMeetingSocketOptions): UseMeetingSocke
   const disposedRef = useRef(false);
   const seatedRef = useRef(false);
   const terminalRef = useRef(false);
+  /** The error that produced the current socket, consumed by `nextJoinFrame`. */
+  const lastErrorCodeRef = useRef<string | null>(null);
 
   // Latest-value refs keep the socket callbacks stable, so a reconnect is never
   // scheduled because a React state value changed identity.
@@ -288,7 +324,26 @@ export function useMeetingSocket(opts: UseMeetingSocketOptions): UseMeetingSocke
         return;
       case 'error': {
         const terminal = TERMINAL_CODES.has(msg.code);
+        lastErrorCodeRef.current = msg.code;
         if (terminal) {
+          // A link whose meeting has ended is not an error the visitor can act
+          // on — the whole point of a link is that it keeps working. Reconnect so
+          // `nextJoinFrame` can turn the `enter` into a create for the same
+          // code. Every other terminal error really is terminal.
+          const recoverable = intentRef.current.mode === 'enter' && msg.code === 'room_not_found';
+          if (recoverable) {
+            terminalRef.current = false;
+            seatedRef.current = false;
+            // Reconnect so `nextJoinFrame` sees the failure and retries as a
+            // create for the same code.
+            try {
+              wsRef.current?.close();
+            } catch {
+              /* already closing */
+            }
+            scheduleReconnectRef.current();
+            return;
+          }
           terminalRef.current = true;
           seatedRef.current = false;
           try {
@@ -330,12 +385,12 @@ export function useMeetingSocket(opts: UseMeetingSocketOptions): UseMeetingSocke
       seatedRef.current = false;
       // Re-seat on every open: after a reconnect the server has no record of
       // this socket, so the join frame is what re-establishes membership.
-      const intent = intentRef.current;
-      if (intent.mode === 'create') {
-        send({ t: 'create', name: intent.name, lockOnJoin: intent.lockOnJoin });
-      } else {
-        send({ t: 'join', code: intent.code, name: intent.name });
-      }
+      const errorRef = lastErrorCodeRef.current;
+      lastErrorCodeRef.current = null;
+      send(nextJoinFrame(intentRef.current, errorRef));
+
+
+
       if (heartbeatRef.current) clearInterval(heartbeatRef.current);
       heartbeatRef.current = setInterval(() => send({ t: 'ping' }), HEARTBEAT_MS);
     };

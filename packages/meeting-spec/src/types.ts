@@ -128,7 +128,7 @@ export interface MeetingCardFrame {
 export type ParticipantStatePatch = Partial<ParticipantState>;
 
 export type MeetingClientMsg =
-  | { t: 'create'; name: string; lockOnJoin?: boolean }
+  | { t: 'create'; name: string; lockOnJoin?: boolean; code?: string }
   | { t: 'join'; code: string; name: string }
   | { t: 'signal'; to: string; data: SignalPayload }
   | { t: 'state'; state: ParticipantStatePatch }

@@ -53,7 +53,10 @@ export default function MeetRoomPage() {
   }
 
   return (
-    <MeetingProvider intent={{ mode: 'create', code, lockOnJoin: false }}>
+    // `?host=1` means the gate just reserved this code and is handing it to its
+    // own host, so claim it. Anything else is a link: join the meeting if one is
+    // there, and start it if not.
+    <MeetingProvider intent={{ mode: creating ? 'create' : 'enter', code }}>
       <MeetingLifecycle creating={creating} code={code} />
     </MeetingProvider>
   );
@@ -77,7 +80,11 @@ function MeetingLifecycle({ creating, code }: { creating: boolean; code: string 
    */
   useEffect(() => {
     if (!ctx.code || ctx.code === code) return;
-    navigate(`/meet/${ctx.code}${creating ? '?host=1' : ''}`, { replace: true });
+    // Only the host flow may rewrite the URL. A guest whose room differs from
+    // the link means the client ended up somewhere else, and quietly
+    // rewriting the address bar to match would hide that instead of showing it.
+    if (!creating) return;
+    navigate(`/meet/${ctx.code}?host=1`, { replace: true });
   }, [ctx.code, code, creating, navigate]);
 
   // Leaving is a hard stop: this client must stop sending media and stop

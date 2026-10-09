@@ -175,7 +175,7 @@ export function attachMeetingWs(httpServer: HttpServer, deps: MeetingWsDeps): We
           // If this socket already made a room, tear it down first: a client
           // that double-taps "New meeting" should end up in exactly one room.
           retireCurrentRoom(registry, session, 'create');
-          const result = registry.create(conn, msg.name, { lockOnJoin: msg.lockOnJoin });
+          const result = registry.create(conn, msg.name, { lockOnJoin: msg.lockOnJoin, code: msg.code });
           if (result.kind === 'error') return error(result.code, result.message);
           session.code = result.room.code;
           session.seated = true;

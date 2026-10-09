@@ -94,7 +94,14 @@ const signalPayloadSchema = z.discriminatedUnion('kind', [
 /* ------------------------------------------------------------------ */
 
 export const meetingClientMsgSchema = z.discriminatedUnion('t', [
-  z.object({ t: z.literal('create'), name: z.string().max(MEETING_LIMITS.nameMax), lockOnJoin: z.boolean().optional() }),
+  z.object({
+    t: z.literal('create'),
+    name: z.string().max(MEETING_LIMITS.nameMax),
+    lockOnJoin: z.boolean().optional(),
+    // The code to claim. Required for the link path, where re-using the same
+    // code is what makes the link keep pointing at the same meeting.
+    code: z.string().max(32).optional(),
+  }),
   z.object({ t: z.literal('join'), code: z.string().max(32), name: z.string().max(MEETING_LIMITS.nameMax) }),
   z.object({ t: z.literal('signal'), to: z.string().min(1).max(64), data: signalPayloadSchema }),
   z.object({ t: z.literal('state'), state: participantStateSchema }),
