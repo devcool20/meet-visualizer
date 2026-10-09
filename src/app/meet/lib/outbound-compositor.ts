@@ -144,6 +144,24 @@ export class OutboundCompositor {
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.width;
     this.canvas.height = this.height;
+    // The canvas must be a real rendered layer, not a detached one. This is the
+    // same constraint the camera <video> below is mounted to satisfy: a canvas
+    // that contributes no visible pixels can be skipped by the compositor, and
+    // `captureStream()` then yields a track that never produces a frame. The
+    // symptom is a healthy-looking connection whose tile is pure black, with no
+    // error anywhere -- which is exactly what a remote peer sees.
+    //
+    // 2x2 and near-transparent, behind everything and unclickable. Do not
+    // "tidy" this by hiding it harder; that reintroduces the black tile.
+    this.canvas.style.position = 'fixed';
+    this.canvas.style.bottom = '0';
+    this.canvas.style.right = '0';
+    this.canvas.style.width = '2px';
+    this.canvas.style.height = '2px';
+    this.canvas.style.opacity = '0.01';
+    this.canvas.style.pointerEvents = 'none';
+    this.canvas.style.zIndex = '-1';
+    (document.body || document.documentElement).appendChild(this.canvas);
     const ctx = this.canvas.getContext('2d', { alpha: false });
     if (!ctx) throw new Error('2D canvas context unavailable');
     this.ctx = ctx;
@@ -285,6 +303,9 @@ export class OutboundCompositor {
     this.outboundTrack.stop();
     this.canvas.width = 1;
     this.canvas.height = 1;
+    // The canvas is mounted so `captureStream` keeps producing frames, so it has
+    // to come back off the page or every peer leaks a node for the call's life.
+    this.canvas.remove();
     this.images.clear();
   }
 

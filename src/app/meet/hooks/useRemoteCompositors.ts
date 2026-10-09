@@ -110,6 +110,13 @@ export function useRemoteCompositors(
           continue;
         }
         compsRef.current.set(id, comp);
+
+        // A card can be broadcast before this peer's first video track lands --
+        // the card effect then had no compositor to push it to, and nothing
+        // replayed it, so the card silently never appeared. Apply whatever is
+        // already on air the moment the compositor exists.
+        const pending = cardsRef.current.get(id);
+        if (pending) void comp.show(pending, settingsRef.current);
       }
       comp.setCameraTrack(track);
     }
