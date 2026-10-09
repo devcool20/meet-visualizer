@@ -41,10 +41,19 @@ export function MeetingTile(props: MeetingTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const screenRef = useRef<HTMLVideoElement>(null);
 
+  // A video paints only when there is something to paint *and* an element to
+  // paint into. Both are required, and they can become true at different times.
+  const showVideo = cameraOn && !!stream;
+
+  // `showVideo` gates whether the <video> exists at all, so this must depend on
+  // it as well as on `stream`. The track normally arrives *before* the owner's
+  // presence state round-trips the socket, so keying this on `stream` alone
+  // meant the effect ran against a null ref and never ran again -- leaving a
+  // permanently black tile on a perfectly healthy connection.
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
-    if (!stream) {
+    if (!stream || !showVideo) {
       el.srcObject = null;
       return;
     }
@@ -57,7 +66,7 @@ export function MeetingTile(props: MeetingTileProps) {
     void el.play().catch(() => {
       /* autoplay policy — muted elements are allowed, this is belt and braces */
     });
-  }, [stream]);
+  }, [stream, showVideo]);
 
   useEffect(() => {
     const el = screenRef.current;
@@ -66,7 +75,6 @@ export function MeetingTile(props: MeetingTileProps) {
     if (screen) void el.play().catch(() => {});
   }, [screen]);
 
-  const showVideo = cameraOn && !!stream;
   const hue = useMemo(() => hueOf(id), [id]);
 
   const degraded = props.connectionState === 'failed' || props.connectionState === 'disconnected';
