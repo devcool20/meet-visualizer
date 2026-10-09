@@ -115,8 +115,10 @@ function ParticipantTile({
   const isSelf = participant.id === ctx.selfId;
   const peer = ctx.peerStreams[participant.id];
 
-  // The self tile renders the composited outbound stream, so a presenter can
-  // verify their own card is on air without asking anybody.
+// The self tile renders `ctx.preview`, which is the raw camera. The card is
+  // previewed properly in the cards rail, which shows the real GlassCard at full
+  // size. Routing the self view through the compositor instead would put the
+  // presenter's only view of themselves behind the entire compositing pipeline.
   const stream = isSelf ? ctx.preview : (peer?.stream ?? null);
   const camOn = isSelf ? ctx.media.camOn : participant.state.camOn;
   const micOn = isSelf ? ctx.media.micOn : participant.state.micOn;
@@ -137,7 +139,7 @@ function ParticipantTile({
       alignLabel={isSelf ? 'right' : 'left'}
       connectionState={isSelf ? undefined : peer?.state}
     >
-      {isSelf && ctx.stash.phase === 'live' ? <OnAirBadge /> : null}
+      {isSelf && ctx.compositing ? <OnAirBadge /> : null}
     </MeetingTile>
   );
 }

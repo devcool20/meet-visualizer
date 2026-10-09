@@ -71,8 +71,20 @@ export interface MeetingContextValue {
   /* ---- stash live ---- */
   stash: ReturnType<typeof useStashLiveCards>;
   /** The stream other participants receive. */
-  outbound: MediaStream | null;
-  /** The stream the self tile renders — identical to `outbound`. */
+outbound: MediaStream | null;
+  /**
+   * What the self tile renders. Deliberately the RAW camera, never the
+   * composited stream.
+   *
+   * These used to be the same object, on the theory that a presenter should see
+   * exactly what the room sees. That is right in principle and wrong in
+   * practice: it puts the presenter's only view of themselves behind the entire
+   * compositing pipeline, so any fault in that pipeline — a card whose raster
+   * goes wrong, a tainted canvas, a backdrop that overdraws — takes away the
+   * one thing the presenter must never lose. The card is previewed properly in
+   * the cards rail, which renders the real `GlassCard` at full size instead of
+   * shrinking it into a video frame.
+   */
   preview: MediaStream | null;
   compositing: boolean;
   compositorError: string | null;
@@ -252,6 +264,19 @@ export function MeetingProvider({ intent, children }: MeetingProviderProps) {
   });
 
   const outbound = joined ? compositor.outbound : null;
+
+  /**
+   * The self tile's stream: the camera, straight from the device.
+   *
+   * Built here rather than in the compositor so it is structurally impossible
+   * for a compositing fault to reach the presenter's own view. A new stream
+   * object per render is fine — `MeetingTile` reassigns `srcObject` and calls
+   * `play()`, and the camera track identity never changes.
+   */
+  const preview = useMemo<MediaStream | null>(() => {
+    const tracks = [micTrack, cameraTrack].filter((t): t is MediaStreamTrack => !!t && t.readyState !== 'ended');
+    return tracks.length > 0 ? new MediaStream(tracks) : null;
+  }, [micTrack, cameraTrack]);
 
   /* ------------------------------------------------------------------ */
   /* Mesh                                                               */
@@ -522,7 +547,7 @@ export function MeetingProvider({ intent, children }: MeetingProviderProps) {
 
       stash,
       outbound,
-      preview: outbound,
+      preview,
       compositing: compositor.compositing,
       compositorError: compositor.error,
       connectionWarning,
@@ -573,6 +598,7 @@ export function MeetingProvider({ intent, children }: MeetingProviderProps) {
       toggleShare,
       stash,
       outbound,
+      preview,
       compositor.compositing,
       compositor.error,
       connectionWarning,

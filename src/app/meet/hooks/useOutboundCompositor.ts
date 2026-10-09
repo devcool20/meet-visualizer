@@ -104,22 +104,29 @@ export function useOutboundCompositor(opts: UseOutboundCompositorOptions): UseOu
   }, [opts.card, opts.placeholder, opts.settings]);
 
 /**
- * The arbitration policy itself lives in `resolveOutboundStream`, so it can be
- * tested exhaustively. This hook only supplies its inputs.
- */
-  const outbound = useMemo<MediaStream | null>(
-    () =>
-      resolveOutboundStream({
-        compositedTrack: compositorRef.current?.videoTrack ?? null,
-        hasOverlay: !!compositorRef.current?.hasOverlay,
-        cameraTrack: opts.cameraTrack,
-        micTrack: opts.micTrack,
-      }),
-    [ready, opts.card, opts.placeholder, opts.cameraTrack, opts.micTrack],
-  );
+   * The arbitration policy lives in `resolveOutboundStream`, so it can be tested
+   * exhaustively; this hook supplies its inputs and adds one override.
+   *
+   * The override is the health gate. A compositor that is running but is not
+   * producing a usable frame must never be the thing the room sees, so an
+   * unhealthy compositor falls through to the raw camera rather than
+   * transmitting whatever happens to be on the canvas.
+   */
+  const outbound = useMemo<MediaStream | null>(() => {
+    const unhealthy = ready && !!compositorRef.current && !compositorRef.current.healthy;
+    return resolveOutboundStream({
+      compositedTrack: unhealthy ? null : (compositorRef.current?.videoTrack ?? null),
+      hasOverlay: !unhealthy && !!compositorRef.current?.hasOverlay,
+      cameraTrack: opts.cameraTrack,
+      micTrack: opts.micTrack,
+    });
+  }, [ready, opts.card, opts.placeholder, opts.cameraTrack, opts.micTrack]);
 
   return {
     outbound,
+    // The composited stream, exposed for callers that explicitly want the
+    // composite. `MeetingProvider` deliberately does NOT use it for the self
+    // tile: the presenter's own view must not depend on the compositor.
     preview: outbound,
     compositing: ready && (!!opts.card || !!opts.placeholder),
     error,

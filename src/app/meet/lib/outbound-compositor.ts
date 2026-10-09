@@ -459,7 +459,24 @@ el.muted = true;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const el = this.videoEl;
-    if (!el || el.readyState < 2 || el.videoWidth === 0) return;
+    if (!el || el.readyState < 2 || el.videoWidth === 0) {
+      this.cameraOk = false;
+      return;
+    }
     ctx.drawImage(el, 0, 0, this.width, this.height);
+    this.cameraOk = true;
+  }
+
+  private cameraOk = false;
+
+  /**
+   * True when the camera is being drawn into the frame.
+   *
+   * Watched by the caller, which drops back to sending the raw camera track if
+   * the composited output ever stops containing the presenter. A broken card is
+   * a cosmetic failure; sending the room a blank frame is not.
+   */
+  get healthy(): boolean {
+    return this.cameraOk || this.cameraTrack === null;
   }
 }

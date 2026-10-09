@@ -201,7 +201,21 @@ describe('resolveOutboundStream', () => {
     expect(stream?.getTracks()).toContain(camera);
   });
 
-  it('returns a fresh stream object per call so a replaceTrack actually fires', () => {
+  it('falls back to the raw camera when the compositor is not producing frames', () => {
+  // The health gate is expressed by the caller passing `compositedTrack: null`
+  // when the compositor is unhealthy, which is exactly what this asserts: a
+  // broken compositor must never be what the room sees.
+  const camera = track('video');
+  const stream = resolveOutboundStream({
+    compositedTrack: null,
+    hasOverlay: true,
+    cameraTrack: camera,
+    micTrack: track('audio'),
+  });
+  expect(stream?.getTracks()).toContain(camera);
+});
+
+it('returns a fresh stream object per call so a replaceTrack actually fires', () => {
     const inputs = {
       compositedTrack: track('video'),
       hasOverlay: false,
