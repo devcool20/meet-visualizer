@@ -36,14 +36,25 @@ export interface MeetingTileProps {
 }
 
 export function MeetingTile(props: MeetingTileProps) {
-  const { stream, screen, cameraOn, id, name, children, className } = props;
+  const { stream, screen, id, name, children, className } = props;
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const screenRef = useRef<HTMLVideoElement>(null);
 
-  // A video paints only when there is something to paint *and* an element to
-  // paint into. Both are required, and they can become true at different times.
-  const showVideo = cameraOn && !!stream;
+  // A live video track is the only authority on whether there is a picture.
+  //
+  // This used to be `cameraOn && !!stream`, which required a *reported* presence
+  // flag to agree with the media actually in hand. `cameraOn` arrives over the
+  // signalling socket on a different path from the track, so the two disagree
+  // for a window -- and when they disagreed in the wrong direction the tile
+  // rendered a <video> with a real, live track and nothing to show, which is a
+  // black tile with no initials.
+  //
+  // So: show video whenever a video track actually exists and has not ended,
+  // and fall back to initials only when there is genuinely no camera. A flag
+  // that says "camera off" while a live track is arriving is simply stale.
+  const videoTrack = stream?.getVideoTracks().find((t) => t.readyState !== 'ended') ?? null;
+  const showVideo = !!videoTrack;
 
   // `showVideo` gates whether the <video> exists at all, so this must depend on
   // it as well as on `stream`. The track normally arrives *before* the owner's

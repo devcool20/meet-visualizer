@@ -166,9 +166,20 @@ export function useRemoteCompositors(
       const raw = peer?.stream ?? null;
       const comp = enabled ? compsRef.current.get(id) : undefined;
       const card = comp?.currentCard ?? null;
-      // Never hand out a composited stream that has lost the camera: the raw
-      // stream is strictly better than a card over nobody's face.
-      next[id] = comp && comp.healthy && comp.hasOverlay ? { stream: comp.previewStream, card } : { stream: raw, card: null };
+      // Only swap the raw camera for the composited canvas once the canvas has
+      // actually put the camera on it. `healthy` alone is not enough: a
+      // compositor whose hidden <video> never reaches readyState 2 still
+      // reports healthy when it has no camera track, and its canvas is a black
+      // rectangle. Handing that to the tile replaces a working camera with
+      // nothing -- which is how a healthy connection ends up showing a black
+      // tile with no card on it.
+      //
+      // So: prefer the composite, but fall back to the raw stream unless the
+      // compositor is demonstrably drawing frames *and* currently has an
+      // overlay. A missing card is a cosmetic loss; losing the camera entirely
+      // is not.
+      const composited = comp && comp.healthy && comp.hasOverlay && comp.frames > 0;
+      next[id] = composited ? { stream: comp.previewStream, card } : { stream: raw, card: composited ? card : null };
     }
     setOut(next);
     // `peers` identity changes on every state update, which is exactly when a

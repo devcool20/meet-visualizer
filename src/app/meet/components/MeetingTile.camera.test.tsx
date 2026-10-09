@@ -23,8 +23,24 @@ import { createRoot } from 'react-dom/client';
 import { act, createElement } from 'react';
 import { MeetingTile, type MeetingTileProps } from './MeetingTile';
 
-/** A stream stand-in; jsdom's `MediaStream` is not implemented. */
-const stream = { id: 'remote-camera' } as unknown as MediaStream;
+/**
+ * A stream stand-in. jsdom implements neither `MediaStream` nor
+ * `MediaStreamTrack`, and the tile asks the stream whether it has a live video
+ * track -- that question is the whole point of these tests, so it is modelled
+ * honestly rather than stubbed away.
+ */
+const liveTrack = () => ({ kind: 'video', id: 'v1', readyState: 'live' }) as unknown as MediaStreamTrack;
+const endedTrack = () => ({ kind: 'video', id: 'v1', readyState: 'ended' }) as unknown as MediaStreamTrack;
+
+const streamWith = (tracks: MediaStreamTrack[]) =>
+  ({
+    id: 'remote-camera',
+    getVideoTracks: () => tracks,
+    getAudioTracks: () => [],
+    getTracks: () => tracks,
+  }) as unknown as MediaStream;
+
+const stream = streamWith([liveTrack()]);
 
 let container: HTMLDivElement;
 let root: ReturnType<typeof createRoot>;
@@ -59,20 +75,18 @@ const base = (over: Partial<MeetingTileProps> = {}): MeetingTileProps => ({
   ...over,
 });
 
-const video = (): HTMLVideoElement | null => container.querySelector('video');
+/**
+ * The camera element specifically, not just any `<video>`: the tile also renders
+ * one for a screen share, and React reuses DOM nodes across renders, so a bare
+ * `querySelector('video')` can hand back an element from a previous state.
+ */
+const video = (): HTMLVideoElement | null => container.querySelector('video[aria-label$="camera"]');
 
 describe('MeetingTile camera attachment', () => {
-  it('attaches the stream when the element mounts after the stream arrives', async () => {
-    // Step 1: the track lands first, with `cameraOn` still false, so no
-    // `<video>` exists yet -- exactly what the socket round trip produces.
-    await act(async () => {
-      root.render(createElement(MeetingTile, base({ stream, cameraOn: false })));
-    });
-    expect(video()).toBeNull();
-
-    // Step 2: the owner's presence state arrives and the camera is on. The tile
-    // now renders a `<video>`, which must immediately receive the stream that
-    // has been available all along.
+  it('attaches the stream as soon as the element mounts', async () => {
+    // The element mounts with the stream already attached, in the same commit.
+    // Previously the effect keyed only on `stream`, so a mount triggered by some
+    // other prop left the element with no srcObject -- a permanently black tile.
     await act(async () => {
       root.render(createElement(MeetingTile, base({ stream, cameraOn: true })));
     });
@@ -93,12 +107,39 @@ describe('MeetingTile camera attachment', () => {
     expect(video()!.srcObject).toBe(stream);
   });
 
-  it('detaches the stream when the camera turns off', async () => {
+  it('shows video when a live track exists even if the reported flag says off', async () => {
+    // The regression, straight from the `?debug=1` overlay: a healthy
+    // connection with a live video track, but `camOn` reading false because the
+    // presence flag travels on a different path and had not caught up. The tile
+    // trusted the flag, rendered a <video>, and painted nothing.
+    await act(async () => {
+      root.render(createElement(MeetingTile, base({ stream, cameraOn: false })));
+    });
+
+    expect(video()).not.toBeNull();
+    expect(video()!.srcObject).toBe(stream);
+  });
+
+  it('falls back to initials only when there is genuinely no camera', async () => {
+    // A stream carrying no video track, or one that has ended, is a real
+    // "camera off" -- so initials, not a black element.
+    await act(async () => {
+      root.render(createElement(MeetingTile, base({ stream: null, cameraOn: true })));
+    });
+    expect(video()).toBeNull();
+
+    await act(async () => {
+      root.render(createElement(MeetingTile, base({ stream: streamWith([endedTrack()]), cameraOn: true })));
+    });
+    expect(video()).toBeNull();
+  });
+
+  it('detaches the stream when the track ends', async () => {
     await act(async () => {
       root.render(createElement(MeetingTile, base({ stream, cameraOn: true })));
     });
     await act(async () => {
-      root.render(createElement(MeetingTile, base({ stream, cameraOn: false })));
+      root.render(createElement(MeetingTile, base({ stream: streamWith([endedTrack()]), cameraOn: true })));
     });
 
     // With the camera off there is no `<video>` at all, so nothing can keep
