@@ -25,6 +25,7 @@ import { Pill, SkeletonRows, StatusMessage, Surface, Telemetry } from "@/app/com
 import { cn } from "@/app/components/ui/utils";
 import { AiProviderPanel } from "./AiProviderPanel";
 import { TriggerModePanel } from "./TriggerModePanel";
+import { useActionFeedback } from "@/app/hooks/useActionFeedback";
 import { PageHeader } from "./PageHeader";
 
 const POSITIONS: { value: CardPosition; label: string; Icon: typeof AlignLeft; hint: string }[] = [
@@ -98,45 +99,43 @@ export default function SettingsPage() {
   const { getAccessToken } = useAuth();
   const [user, setUser] = useState<ApiUser | null>(null);
   const [devices, setDevices] = useState<ApiDevice[]>([]);
-  const [saving, setSaving] = useState(false);
+  const action = useActionFeedback();
+  const saving = action.pending !== null;
+  const [loadError, setLoadError] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [sensitivityDraft, setSensitivityDraft] = useState<number | null>(null);
 
   useEffect(() => {
     const api = getApiClient(getAccessToken);
-    api.getMe().then(setUser);
+    setLoadError(false);
+    api.getMe().then(setUser).catch(() => setLoadError(true));
     api.listDevices().then(setDevices).catch(() => setDevices([]));
-  }, [getAccessToken]);
+  }, [getAccessToken, retry]);
 
   async function patchSettings(patch: Partial<UserSettings>) {
     if (!user) return;
-    setSaving(true);
-    try {
-      const api = getApiClient(getAccessToken);
-      setUser(await api.updateSettings(patch));
-    } catch {
-      /* the server is the source of truth; a failed write leaves state unchanged */
-    } finally {
-      setSaving(false);
-    }
+    await action.run("settings", async () => {
+      setUser(await getApiClient(getAccessToken).updateSettings(patch));
+    }, "Could not save your settings. Your previous settings are still active; try again.");
   }
 
   async function revoke(device: ApiDevice) {
-    const api = getApiClient(getAccessToken);
-    await api.revokeDevice(device.id);
-    setDevices((prev) =>
-      prev.map((d) => (d.id === device.id ? { ...d, revokedAt: new Date().toISOString() } : d)),
-    );
+    await action.run(device.id, async () => {
+      await getApiClient(getAccessToken).revokeDevice(device.id);
+      setDevices((prev) => prev.map((d) => d.id === device.id ? { ...d, revokedAt: new Date().toISOString() } : d));
+    }, "Could not revoke this device. Try again.");
   }
 
   if (!user) {
     return (
       <div className="space-y-8">
         <PageHeader title="Settings" />
-        <SkeletonRows count={4} />
+        {loadError ? <StatusMessage tone="danger">Could not load settings. <button type="button" className="underline" onClick={() => setRetry((n) => n + 1)}>Try again</button></StatusMessage> : <SkeletonRows count={4} />}
       </div>
     );
   }
 
-  const stopIndex = sensitivityToStopIndex(user.settings.sensitivity);
+  const stopIndex = sensitivityDraft ?? sensitivityToStopIndex(user.settings.sensitivity);
   const triggerMode =
     (user.settings as UserSettings & { triggerMode?: "hold-to-talk" | "ambient" }).triggerMode ===
     "ambient"
@@ -150,6 +149,8 @@ export default function SettingsPage() {
         title="Settings"
         description="These apply straight away — including in a meeting you are already in. There is nothing to rejoin."
       />
+
+      {action.error && <StatusMessage tone="danger">{action.error}</StatusMessage>}
 
       {/* Announced once, centrally, rather than per-panel. */}
       <div aria-live="polite" className="sr-only">
@@ -189,7 +190,9 @@ export default function SettingsPage() {
               max={SENSITIVITY_STOPS.length - 1}
               step={1}
               value={[stopIndex]}
-              onValueChange={([v]) => patchSettings({ sensitivity: stopIndexToSensitivity(v) })}
+              disabled={saving}
+              onValueCommit={async ([v]) => { await patchSettings({ sensitivity: stopIndexToSensitivity(v) }); setSensitivityDraft(null); }}
+              onValueChange={([v]) => setSensitivityDraft(v)}
               aria-label="Matching sensitivity"
             />
             <div className="mt-3 flex items-baseline justify-between gap-4">
@@ -201,7 +204,7 @@ export default function SettingsPage() {
               </Telemetry>
             </div>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {SENSITIVITY_HINT[user.settings.sensitivity]}
+              {SENSITIVITY_HINT[stopIndexToSensitivity(stopIndex)]}
             </p>
           </div>
 
@@ -218,6 +221,7 @@ export default function SettingsPage() {
                     key={value}
                     type="button"
                     onClick={() => patchSettings({ position: value })}
+                    disabled={saving}
                     aria-pressed={active}
                     title={hint}
                     className={cn(
@@ -244,6 +248,7 @@ export default function SettingsPage() {
             description="Cards appear instantly instead of animating in. Useful for low-power machines or if you present often."
             control={
               <Switch
+                disabled={saving}
                 checked={user.settings.reducedMotion}
                 onCheckedChange={(v) => patchSettings({ reducedMotion: v })}
                 aria-label="Reduce card motion"
@@ -255,6 +260,7 @@ export default function SettingsPage() {
             description="Off by default. When on, near-miss transcript text is kept for 24 hours so you can tune the phrases that did not fire."
             control={
               <Switch
+                disabled={saving}
                 checked={user.settings.storeSnippets}
                 onCheckedChange={(v) => patchSettings({ storeSnippets: v })}
                 aria-label="Save transcript snippets"
@@ -280,7 +286,7 @@ export default function SettingsPage() {
                 {d.revokedAt ? (
                   <Pill>Revoked</Pill>
                 ) : (
-                  <Button variant="outline" size="sm" onClick={() => revoke(d)}>
+                  <Button variant="outline" size="sm" disabled={saving} onClick={() => revoke(d)}>
                     Revoke
                   </Button>
                 )}

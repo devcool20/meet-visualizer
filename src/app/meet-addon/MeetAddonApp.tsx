@@ -15,7 +15,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { GlassCard } from '@stash/card-react';
+import { CardPreview } from '@/app/components/CardPreview';
 import type { CardSpec } from '@stash/card-spec';
 import {
   meetAddonManager,
@@ -384,6 +384,7 @@ export default function MeetAddonApp() {
                   backdropFilter: 'blur(16px)',
                   border: isMainStage ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(26,21,18,0.06)',
                   width: isMainStage ? '360px' : '280px',
+                  maxWidth: '100%',
                 }}
               >
                 <div className="w-8 h-8 rounded-full border-2 border-[#fb8500] border-t-transparent animate-spin" />
@@ -405,10 +406,9 @@ export default function MeetAddonApp() {
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 className="flex justify-center w-full"
               >
-                <GlassCard
+                <CardPreview
                   spec={activeCard}
-                  width={isMainStage ? 358 : 280}
-                  className="shadow-2xl"
+                  maxWidth={isMainStage ? 358 : 280}
                 />
               </motion.div>
             )}
@@ -568,7 +568,7 @@ export default function MeetAddonApp() {
               borderColor: isMainStage ? 'rgba(255,255,255,0.1)' : 'rgba(26,21,18,0.08)',
             }}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between">
               <span className="text-xs font-semibold" style={{ color: isMainStage ? '#FBF9F6' : '#1A1512' }}>
                 Recent Meeting Cards
               </span>

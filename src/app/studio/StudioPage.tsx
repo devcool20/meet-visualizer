@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, Mic } from 'lucide-react';
-import { GlassCard } from '@stash/card-react';
+import { CardPreview } from '@/app/components/CardPreview';
 import type { CardSpec } from '@stash/card-spec';
 import { getApiClient } from '@/lib/api';
 import { useAuth } from '@/app/auth/AuthContext';
@@ -56,6 +56,8 @@ export default function StudioPage() {
   const [positionMode, setPositionMode] = useState<'auto' | 'left' | 'right'>('auto');
   const [effectiveSide, setEffectiveSide] = useState<'left' | 'right'>('right');
   const [audioLevel, setAudioLevel] = useState(0);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [mediaAttempt, setMediaAttempt] = useState(0);
   const [showMeetHelp, setShowMeetHelp] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -68,6 +70,8 @@ export default function StudioPage() {
 
   // 1. Initialize Camera & Audio Meter
   useEffect(() => {
+    let cancelled = false;
+    setCameraError(null);
     async function startMedia() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -75,6 +79,7 @@ export default function StudioPage() {
           audio: true,
         });
 
+        if (cancelled) { stream.getTracks().forEach((track) => track.stop()); return; }
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -107,6 +112,7 @@ export default function StudioPage() {
           console.warn('Audio analyzer error:', e);
         }
       } catch (err) {
+        if (!cancelled) setCameraError('Camera or microphone unavailable. Check your browser permissions, or type a topic below.');
         console.warn('Camera/mic error:', err);
       }
     }
@@ -114,13 +120,14 @@ export default function StudioPage() {
     void startMedia();
 
     return () => {
+      cancelled = true;
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
         audioCtxRef.current.close().catch(() => {});
       }
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
-  }, []);
+  }, [mediaAttempt]);
 
   // 2. Connect to Engine WebSocket
   useEffect(() => {
@@ -372,19 +379,10 @@ export default function StudioPage() {
             muted
             className="size-full -scale-x-100 object-cover"
           />
-          {/* Live Camera Stream */}
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover transform -scale-x-100"
-          />
-
           {/* Over-the-Shoulder Card Container */}
           <div
-            className={`absolute top-8 ${
-              effectiveSide === 'left' ? 'left-8' : 'right-8'
+            className={`absolute inset-y-3 w-[44%] sm:inset-y-8 ${
+              effectiveSide === 'left' ? 'left-3 sm:left-8' : 'right-3 sm:right-8'
             } z-20 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]`}
           >
             <AnimatePresence mode="wait">
@@ -394,7 +392,7 @@ export default function StudioPage() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center gap-3 rounded-card border border-border bg-black/60 p-4 text-xs shadow-lifted backdrop-blur-xl"
+                  className="flex max-w-full flex-wrap items-center gap-3 rounded-card border border-border bg-black/60 p-4 text-xs shadow-lifted backdrop-blur-xl"
                   role="status"
                 >
                   <Loader2 className="size-4 animate-spin text-brand" strokeWidth={2.2} aria-hidden />
@@ -404,13 +402,14 @@ export default function StudioPage() {
 
               {!isGenerating && activeCard && (
                 <motion.div
+                  className="h-full w-full"
                   key={activeCard.id || activeCard.title}
                   initial={{ opacity: 0, scale: 0.92, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.92, y: -10 }}
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <GlassCard spec={activeCard} width={220} />
+                  <CardPreview spec={activeCard} maxWidth={220} fitHeight />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -423,6 +422,7 @@ export default function StudioPage() {
           </div>
         </div>
 
+        {cameraError && <StatusMessage tone="neutral" className="w-full max-w-3xl">{cameraError} <button type="button" className="underline" onClick={() => setMediaAttempt((n) => n + 1)}>Try again</button></StatusMessage>}
         {/* ── Studio Bottom Controls ── */}
         <div className="w-full max-w-3xl space-y-3">
           {/* Live Voice Indicator */}
@@ -443,23 +443,23 @@ export default function StudioPage() {
 
           {errorMessage && <StatusMessage tone="danger">{errorMessage}</StatusMessage>}
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {/* The product's signature control. Hold to talk. */}
             <button
               type="button"
-              onMouseDown={startListening}
-              onMouseUp={stopListening}
-              onTouchStart={startListening}
-              onTouchEnd={stopListening}
+              onPointerDown={(event) => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); startListening(); }}
+              onPointerUp={stopListening}
+              onPointerCancel={stopListening}
+              onLostPointerCapture={stopListening}
               onKeyDown={(e) => {
-                if ((e.key === " " || e.key === "Enter") && !e.repeat) startListening();
+                if ((e.key === " " || e.key === "Enter") && !e.repeat) { e.preventDefault(); startListening(); }
               }}
               onKeyUp={(e) => {
-                if (e.key === " " || e.key === "Enter") stopListening();
+                if (e.key === " " || e.key === "Enter") { e.preventDefault(); stopListening(); }
               }}
               onBlur={stopListening}
               aria-pressed={isListening}
-              className={`group flex flex-1 select-none items-center justify-center gap-2.5 rounded-card px-6 py-3.5 text-sm font-medium transition-all duration-200 active:scale-[0.99] ${
+              className={`group flex min-w-0 flex-1 touch-none select-none items-center justify-center gap-2.5 rounded-card px-6 py-3.5 text-sm font-medium transition-all duration-200 active:scale-[0.99] ${
                 isListening
                   ? "bg-brand text-white shadow-brand-lg"
                   : "bg-foreground text-background hover:bg-foreground/90"
@@ -468,7 +468,7 @@ export default function StudioPage() {
               <Mic className="size-4 shrink-0" strokeWidth={2} aria-hidden />
               <span>{isListening ? "Release to generate" : "Hold to speak"}</span>
               <kbd
-                className={`telemetry ml-1 rounded px-2 py-0.5 text-[0.625rem] ${
+                className={`telemetry ml-1 hidden rounded px-2 sm:inline py-0.5 text-[0.625rem] ${
                   isListening ? "bg-white/20 text-white" : "bg-background/15 text-background"
                 }`}
               >

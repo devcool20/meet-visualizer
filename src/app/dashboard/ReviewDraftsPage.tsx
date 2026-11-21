@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 /**
  * Review drafts — the Notion inference approval screen.
  *
@@ -7,7 +8,7 @@
  * no confirmation.
  */
 import { useEffect, useState } from "react";
-import { GlassCard } from "@stash/card-react";
+import { CardPreview } from "@/app/components/CardPreview";
 import { Check, Inbox, Trash2 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -23,36 +24,42 @@ import {
 import { useAuth } from "@/app/auth/AuthContext";
 import { getApiClient, type ApiCard } from "@/lib/api";
 import { EmptyState, Pill, SkeletonRows, StatusMessage, Surface } from "@/app/components/primitives";
+import { useActionFeedback } from "@/app/hooks/useActionFeedback";
 import { PageHeader } from "./PageHeader";
 
 export default function ReviewDraftsPage() {
   const { getAccessToken } = useAuth();
+  const action = useActionFeedback();
   const [drafts, setDrafts] = useState<ApiCard[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
   const [pendingReject, setPendingReject] = useState<ApiCard | null>(null);
 
   useEffect(() => {
+    setError(null);
     const api = getApiClient(getAccessToken);
     api
       .listCards({ status: "draft" })
       .then(setDrafts)
       .catch(() => setError("Could not load drafts. Check your connection and try again."));
-  }, [getAccessToken]);
+  }, [getAccessToken, retry]);
 
   const remove = (id: string) =>
     setDrafts((prev) => prev?.filter((c) => c.id !== id) ?? null);
 
   async function approve(card: ApiCard) {
-    const api = getApiClient(getAccessToken);
-    await api.approveCard(card.id);
-    remove(card.id);
+    await action.run(card.id, async () => {
+      await getApiClient(getAccessToken).approveCard(card.id);
+      remove(card.id);
+    }, "Could not approve this draft. It is still available to review.");
   }
 
   async function reject(card: ApiCard) {
-    const api = getApiClient(getAccessToken);
-    await api.deleteCard(card.id);
-    remove(card.id);
-    setPendingReject(null);
+    await action.run(card.id, async () => {
+      await getApiClient(getAccessToken).deleteCard(card.id);
+      remove(card.id);
+      setPendingReject(null);
+    }, "Could not delete this draft. Try again.");
   }
 
   return (
@@ -63,7 +70,8 @@ export default function ReviewDraftsPage() {
         description="Cards Stash Live inferred from your connected sources. Nothing goes live on your feed until you approve it here."
       />
 
-      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+      {error && <StatusMessage tone="danger">{error} <button type="button" className="underline" onClick={() => setRetry((n) => n + 1)}>Try again</button></StatusMessage>}
+      {action.error && <StatusMessage tone="danger">{action.error}</StatusMessage>}
 
       {drafts === null && !error && <SkeletonRows count={2} />}
 
@@ -74,7 +82,7 @@ export default function ReviewDraftsPage() {
           description="Drafts appear here when Stash Live infers a card from Notion. Yours will show up the next time you connect a workspace."
           action={
             <Button asChild variant="outline">
-              <a href="/dashboard/cards">Back to cards</a>
+              <Link to="/dashboard/cards">Back to cards</Link>
             </Button>
           }
         />
@@ -100,7 +108,7 @@ export default function ReviewDraftsPage() {
                 </div>
 
                 <div className="flex justify-center py-1">
-                  <GlassCard spec={card.spec} width={248} />
+                  <CardPreview spec={card.spec} maxWidth={248} />
                 </div>
 
                 {card.phrases.length > 0 && (
@@ -117,11 +125,12 @@ export default function ReviewDraftsPage() {
                 )}
 
                 <div className="mt-auto flex gap-2">
-                  <Button className="flex-1" onClick={() => approve(card)}>
+                  <Button className="flex-1" disabled={action.pending !== null} onClick={() => approve(card)}>
                     <Check className="size-3.5" strokeWidth={2.5} aria-hidden />
-                    Approve
+                    {action.pending === card.id ? "Approving…" : "Approve"}
                   </Button>
                   <Button
+                    disabled={action.pending !== null}
                     variant="outline"
                    className="flex-1 text-destructive hover:border-destructive/40 hover:bg-destructive-surface"
                     onClick={() => setPendingReject(card)}
@@ -139,7 +148,7 @@ export default function ReviewDraftsPage() {
       {/* Rejection is destructive and irreversible — confirm before deleting. */}
       <AlertDialog
         open={pendingReject !== null}
-        onOpenChange={(open) => !open && setPendingReject(null)}
+        onOpenChange={(open) => !open && !action.pending && setPendingReject(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -150,9 +159,10 @@ export default function ReviewDraftsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep it</AlertDialogCancel>
-            <AlertDialogAction onClick={() => pendingReject && reject(pendingReject)}>
-              Reject and delete
+            <AlertDialogCancel disabled={action.pending !== null}>Keep it</AlertDialogCancel>
+            {action.error && <StatusMessage tone="danger">{action.error}</StatusMessage>}
+            <AlertDialogAction disabled={action.pending !== null} onClick={(event) => { event.preventDefault(); if (pendingReject) void reject(pendingReject); }}>
+              {action.pending ? "Deleting…" : "Reject and delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

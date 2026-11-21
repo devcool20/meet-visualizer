@@ -13,7 +13,8 @@ import { ArrowRight, Plug, RefreshCw } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { useAuth } from "@/app/auth/AuthContext";
 import { getApiClient, type NotionConnection } from "@/lib/api";
-import { Pill, StatusMessage, Surface, Telemetry } from "@/app/components/primitives";
+import { useActionFeedback } from "@/app/hooks/useActionFeedback";
+import { Pill, SkeletonRows, StatusMessage, Surface, Telemetry } from "@/app/components/primitives";
 import { cn } from "@/app/components/ui/utils";
 import { PageHeader } from "./PageHeader";
 
@@ -21,6 +22,9 @@ const COMING_SOON = ["Airtable", "Google Drive", "Google Sheets", "Salesforce", 
 
 export default function IntegrationsPage() {
   const { getAccessToken } = useAuth();
+  const action = useActionFeedback();
+  const [loadError, setLoadError] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [connection, setConnection] = useState<NotionConnection | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -29,34 +33,38 @@ export default function IntegrationsPage() {
   const fromOnboarding = params.get("from") === "onboarding";
 
   useEffect(() => {
+    setLoaded(false);
+    setLoadError(false);
     const api = getApiClient(getAccessToken);
     api
       .getNotionConnection()
       .then(setConnection)
+      .catch(() => setLoadError(true))
       .finally(() => setLoaded(true));
-  }, [getAccessToken]);
+  }, [getAccessToken, retry]);
 
   async function handleConnect() {
-    const api = getApiClient(getAccessToken);
-    const { url } = await api.notionAuthorize();
-    window.location.href = url;
+    await action.run("connect", async () => {
+      const { url } = await getApiClient(getAccessToken).notionAuthorize();
+      window.location.href = url;
+    }, "Could not open the Notion connection. Try again.");
   }
 
   async function handleResync() {
     setSyncing(true);
-    const api = getApiClient(getAccessToken);
-    try {
+    await action.run("sync", async () => {
+      const api = getApiClient(getAccessToken);
       await api.notionSync("default");
       setConnection(await api.getNotionConnection());
-    } finally {
-      setSyncing(false);
-    }
+    }, "Could not sync Notion. Your connection has been kept; try again.");
+    setSyncing(false);
   }
 
   async function handleDisconnect() {
-    const api = getApiClient(getAccessToken);
-    await api.deleteNotionConnection();
-    setConnection(null);
+    await action.run("disconnect", async () => {
+      await getApiClient(getAccessToken).deleteNotionConnection();
+      setConnection(null);
+    }, "Could not disconnect Notion. Try again.");
   }
 
   return (
@@ -68,11 +76,11 @@ export default function IntegrationsPage() {
         actions={
           connection && (
             <>
-              <Button variant="outline" size="sm" disabled={syncing} onClick={handleResync}>
+              <Button variant="outline" size="sm" disabled={action.pending !== null} onClick={handleResync}>
                 <RefreshCw className={cn("size-3.5", syncing && "animate-spin")} strokeWidth={2} aria-hidden />
                 {syncing ? "Syncing…" : "Resync now"}
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleDisconnect}>
+              <Button variant="ghost" size="sm" disabled={action.pending !== null} onClick={handleDisconnect}>
                 Disconnect
               </Button>
             </>
@@ -80,6 +88,9 @@ export default function IntegrationsPage() {
         }
       />
 
+      {action.error && <StatusMessage tone="danger">{action.error}</StatusMessage>}
+      {loadError && <StatusMessage tone="danger">Could not check your Notion connection. <button type="button" className="underline" onClick={() => setRetry((n) => n + 1)}>Try again</button></StatusMessage>}
+      {!loaded && <SkeletonRows count={1} />}
       {fromOnboarding && (
         <Surface tone="brand" className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm leading-relaxed text-foreground">
@@ -118,7 +129,7 @@ export default function IntegrationsPage() {
               {connection ? (
                 <Pill tone="success">Connected</Pill>
               ) : (
-                <Pill>Not connected</Pill>
+                <Pill>{!loaded ? "Checking…" : loadError ? "Status unavailable" : "Not connected"}</Pill>
               )}
             </div>
           </div>
@@ -167,10 +178,10 @@ export default function IntegrationsPage() {
             </div>
           )}
 
-          {!connection && loaded && (
+          {!connection && loaded && !loadError && (
             <div className="border-t border-border px-6 py-5">
-              <Button onClick={handleConnect}>
-                Connect Notion
+              <Button disabled={action.pending !== null} onClick={handleConnect}>
+                {action.pending === "connect" ? "Connecting…" : "Connect Notion"}
                 <ArrowRight className="size-3.5" strokeWidth={2} aria-hidden />
               </Button>
             </div>

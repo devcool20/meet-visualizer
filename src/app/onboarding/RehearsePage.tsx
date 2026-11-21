@@ -70,10 +70,8 @@ function StageFittingCard({
     const availW = stage.clientWidth * 0.9;
     const availH = maxHeight ?? stage.clientHeight * 0.86;
     if (w === 0 || h === 0 || availH <= 0) return;
-    // Floor the scale: below roughly 0.55 the card is technically inside the
-    // stage but practically unreadable, and a clipped card reads better than a
-    // 5px one.
-    const scale = Math.max(0.55, Math.min(1, availW / w, availH / h));
+    // Keep tall cards inside their measured stage budget on narrow screens.
+    const scale = Math.max(0.1, Math.min(1, availW / w, availH / h));
     setFit({ scale, w: w * scale, h: h * scale });
   }, [stageRef, width, maxHeight]);
 
@@ -494,7 +492,7 @@ export default function RehearsePage() {
               hold even one card legibly. */}
         <div
           ref={stageRef}
-          className="relative w-full transition-all duration-300 aspect-video min-h-[28rem] rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-border bg-background-sunken"
+          className="relative w-full transition-all duration-300 aspect-[4/3] sm:aspect-video sm:min-h-[28rem] rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-border bg-background-sunken"
         >
           <video
             ref={(el) => {
@@ -532,7 +530,7 @@ export default function RehearsePage() {
 
           {/* Live Audio Visualizer Overlay (bottom left of video) */}
           {camera.phase === 'granted' && (
-            <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur text-[11px] text-foreground border border-border font-mono">
+            <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur text-[11px] text-white border border-border font-mono">
               <span className="w-2 h-2 rounded-full bg-success" />
               <span>LIVE</span>
               <div className="flex items-center gap-0.5 ml-1">
@@ -651,7 +649,7 @@ export default function RehearsePage() {
 
           {/* HUD State Indicator */}
           {h2t.state.phase === 'generating' && (
-            <div className="absolute right-4 top-4 z-20 flex items-center gap-2 rounded-xl border border-border bg-black/70 px-3 py-2 text-xs text-foreground backdrop-blur">
+            <div className="absolute right-4 top-4 z-20 flex items-center gap-2 rounded-xl border border-border bg-black/70 px-3 py-2 text-xs text-white backdrop-blur">
               <Loader2 className="size-3 animate-spin text-warning" strokeWidth={2.4} aria-hidden />
               <span>Synthesizing card…</span>
             </div>
@@ -705,7 +703,8 @@ export default function RehearsePage() {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
             placeholder="Or type a topic: Fable 5, Ranbir Kapoor, ARR metrics…"
-            className="flex-1 rounded-full px-4 py-2 text-sm bg-input-background border border-border-strong focus:outline-none focus-visible:outline-2 focus-visible:outline-brand text-foreground"
+            aria-label="Topic for your rehearsal card"
+            className="min-w-0 flex-1 rounded-full px-4 py-2 text-sm bg-input-background border border-border-strong focus:outline-none focus-visible:outline-2 focus-visible:outline-brand text-foreground"
           />
           <Button type="submit" size="sm" variant="secondary" className="rounded-full px-4">
             Generate

@@ -121,7 +121,7 @@ export function ChatPanel() {
           onKeyDown={(e) => {
             // Enter sends, Shift+Enter is a newline — the convention people
             // expect from every chat that is not a messaging app.
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
               submit(e);
             }

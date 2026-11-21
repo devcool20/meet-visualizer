@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 /**
  * Cards library.
  *
@@ -7,7 +8,7 @@
  * cards.
  */
 import { useEffect, useState } from "react";
-import { GlassCard } from "@stash/card-react";
+import { CardPreview } from "@/app/components/CardPreview";
 import { Layers } from "lucide-react";
 import { Switch } from "@/app/components/ui/switch";
 import { Button } from "@/app/components/ui/button";
@@ -22,6 +23,7 @@ import {
   StatusMessage,
   Surface,
 } from "@/app/components/primitives";
+import { useActionFeedback } from "@/app/hooks/useActionFeedback";
 import { PageHeader } from "./PageHeader";
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -32,38 +34,38 @@ const SOURCE_LABEL: Record<string, string> = {
 
 export default function CardsLibraryPage() {
   const { getAccessToken } = useAuth();
+  const action = useActionFeedback();
   const [cards, setCards] = useState<ApiCard[] | null>(null);
   const [recentAiCards, setRecentAiCards] = useState<RecentAiCard[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
+    setError(null);
     const api = getApiClient(getAccessToken);
     api
       .listCards()
       .then(setCards)
       .catch(() => setError("Could not load your cards. Check your connection and try again."));
     setRecentAiCards(listGeneratedCards());
-  }, [getAccessToken]);
+  }, [getAccessToken, retry]);
 
   async function toggleEnabled(card: ApiCard) {
-    const api = getApiClient(getAccessToken);
-    const updated = await api.updateCard(card.id, { enabled: !card.enabled });
-    setCards((prev) => prev?.map((c) => (c.id === updated.id ? updated : c)) ?? null);
+    await action.run(card.id, async () => {
+      const api = getApiClient(getAccessToken);
+      const updated = await api.updateCard(card.id, { enabled: !card.enabled });
+      setCards((prev) => prev?.map((c) => c.id === updated.id ? updated : c) ?? null);
+    }, "Could not update this card. Try again.");
   }
 
   async function saveToLibrary(aiCard: RecentAiCard) {
-    const api = getApiClient(getAccessToken);
-    await api.createCard({
-      title: aiCard.title,
-      spec: aiCard.spec as never,
-      phrases: [],
-      source: "ai",
-      status: "draft",
-      enabled: false,
-    });
-    removeGeneratedCard(aiCard.id);
-    setRecentAiCards(listGeneratedCards());
-    setCards(await api.listCards());
+    await action.run(aiCard.id, async () => {
+      const api = getApiClient(getAccessToken);
+      const created = await api.createCard({ title: aiCard.title, spec: aiCard.spec as never, phrases: [], source: "ai", status: "draft", enabled: false });
+      removeGeneratedCard(aiCard.id);
+      setRecentAiCards(listGeneratedCards());
+      setCards((prev) => prev ? [...prev, created] : [created]);
+    }, "Could not save this card. Your generated card is still here; try again.");
   }
 
   function discardAiCard(aiCard: RecentAiCard) {
@@ -82,13 +84,14 @@ export default function CardsLibraryPage() {
         actions={
           hasDrafts ? (
             <Button asChild variant="outline">
-              <a href="/dashboard/review">Review drafts</a>
+              <Link to="/dashboard/review">Review drafts</Link>
             </Button>
           ) : undefined
         }
       />
 
-      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+      {error && <StatusMessage tone="danger">{error} <button type="button" className="underline" onClick={() => setRetry((n) => n + 1)}>Try again</button></StatusMessage>}
+      {action.error && <StatusMessage tone="danger">{action.error}</StatusMessage>}
 
       {/* Recent AI generations — a transient shelf above the permanent library. */}
       {recentAiCards.length > 0 && (
@@ -105,13 +108,13 @@ export default function CardsLibraryPage() {
               >
                 <span aria-hidden className="absolute inset-y-0 left-0 w-0.5 bg-brand" />
                 <div className="flex justify-center py-1">
-                  <GlassCard spec={aiCard.spec as never} width={230} />
+                  <CardPreview spec={aiCard.spec as never} maxWidth={230} />
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => saveToLibrary(aiCard)}>
-                    Save to library
+                  <Button size="sm" disabled={action.pending !== null} onClick={() => saveToLibrary(aiCard)}>
+                    {action.pending === aiCard.id ? "Saving…" : "Save to library"}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => discardAiCard(aiCard)}>
+                  <Button size="sm" variant="ghost" disabled={action.pending !== null} onClick={() => discardAiCard(aiCard)}>
                     Discard
                   </Button>
                 </div>
@@ -151,13 +154,14 @@ export default function CardsLibraryPage() {
                   </div>
                   <Switch
                     checked={card.enabled}
+                    disabled={action.pending !== null}
                     onCheckedChange={() => toggleEnabled(card)}
                     aria-label={`Enable ${card.title}`}
                   />
                 </div>
 
                 <div className="flex justify-center py-1">
-                  <GlassCard spec={card.spec} width={252} />
+                  <CardPreview spec={card.spec} maxWidth={252} />
                 </div>
 
                 {card.phrases.length > 0 && (
@@ -175,7 +179,7 @@ export default function CardsLibraryPage() {
 
                 <div className="mt-auto">
                   <Button asChild variant="outline" size="sm" className="w-full">
-                    <a href={`/dashboard/cards/${card.id}`}>Edit card</a>
+                    <Link to={`/dashboard/cards/${card.id}`}>Edit card</Link>
                   </Button>
                 </div>
               </Surface>

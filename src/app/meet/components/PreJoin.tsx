@@ -50,7 +50,7 @@ export function PreJoin({
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
       <header className="flex shrink-0 items-center justify-between px-5 py-4 sm:px-7">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <Wordmark size="sm" className="text-foreground" />
           <span aria-hidden="true" className="h-4 w-px bg-border" />
           <span className="telemetry text-[0.75rem] text-muted-foreground">{code}</span>
@@ -64,7 +64,7 @@ export function PreJoin({
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-5 pb-12 lg:flex-row lg:items-start lg:gap-10">
         {/* Preview */}
         <motion.div
-          className="flex w-full flex-col gap-4 lg:max-w-[560px]"
+          className="flex min-w-0 w-full flex-col gap-4 lg:max-w-[560px]"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: EASE }}
@@ -91,7 +91,7 @@ export function PreJoin({
 
         {/* Controls */}
         <motion.div
-          className="flex w-full flex-col gap-6"
+          className="flex min-w-0 w-full flex-col gap-6"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
@@ -198,11 +198,12 @@ export function PreJoin({
           <Button
             type="button"
             size="lg"
-            disabled={!canJoin}
+            disabled={!canJoin || ctx.joined}
+            aria-busy={ctx.joined}
             onClick={() => ctx.setJoined(true)}
             className={cn('h-12 w-full rounded-full text-[0.9375rem]', !canJoin && 'opacity-60')}
           >
-            {joining ? 'Join now' : 'Start meeting'}
+            {ctx.joined ? 'Joining…' : joining ? 'Join now' : 'Start meeting'}
           </Button>
 
           <p className="flex items-start gap-2 text-[0.75rem] leading-relaxed text-muted-foreground">
@@ -234,7 +235,7 @@ interface DeviceSelectProps {
 
 function DeviceSelect({ icon, label, value, options, fallback, onChange, disabled }: DeviceSelectProps) {
   return (
-    <label className={cn('flex flex-col gap-1.5', disabled && 'opacity-50')}>
+    <label className={cn('flex min-w-0 flex-col gap-1.5', disabled && 'opacity-50')}>
       <span className="flex items-center gap-1.5 text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground">
         {icon}
         {label}
@@ -248,7 +249,7 @@ function DeviceSelect({ icon, label, value, options, fallback, onChange, disable
           value={value ?? ''}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className="w-full rounded-lg border border-border bg-input-background px-3 py-2 text-[0.8125rem] text-foreground outline-none focus:border-brand disabled:cursor-not-allowed"
+          className="w-full min-w-0 rounded-lg border border-border bg-input-background px-3 py-2 text-[0.8125rem] text-foreground outline-none focus:border-brand disabled:cursor-not-allowed"
         >
           {options.map((o) => (
             <option key={o.deviceId} value={o.deviceId}>
