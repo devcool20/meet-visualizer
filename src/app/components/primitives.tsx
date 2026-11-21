@@ -223,7 +223,7 @@ export function Reveal({
     <motion.div
       className={className}
       initial={reduced ? { opacity: 1 } : { opacity: 0, y, filter: "blur(5px)" }}
-      whileInView={reduced ? { opacity: 1 } : { opacity: 1, y: 0, filter: "blur(0px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, margin: "-12% 0px -8% 0px" }}
       transition={revealTransition(reduced, delay)}
       {...props}
