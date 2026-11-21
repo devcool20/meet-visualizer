@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 /**
  * Activity — the match log.
  *
@@ -21,6 +22,7 @@ import {
   Telemetry,
 } from "@/app/components/primitives";
 import { cn } from "@/app/components/ui/utils";
+import { useActionFeedback } from "@/app/hooks/useActionFeedback";
 import { PageHeader } from "./PageHeader";
 
 /** Plain-language outcome, never an internal token. */
@@ -65,19 +67,22 @@ function dayKey(iso: string): string {
 
 export default function ActivityPage() {
   const { getAccessToken } = useAuth();
+  const action = useActionFeedback();
   const [events, setEvents] = useState<ApiActivityEvent[] | null>(null);
   const [cards, setCards] = useState<ApiCard[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
   const [savedIds, setSavedIds] = useState<string[]>([]);
 
   useEffect(() => {
+    setError(null);
     const api = getApiClient(getAccessToken);
     api
       .listActivity()
       .then(setEvents)
       .catch(() => setError("Could not load activity. Check your connection and try again."));
     api.listCards().then(setCards).catch(() => setCards([]));
-  }, [getAccessToken]);
+  }, [getAccessToken, retry]);
 
   const grouped = useMemo(() => {
     if (!events) return [];
@@ -97,15 +102,12 @@ export default function ActivityPage() {
     if (!event.snippet || !event.cardId) return;
     const card = cards.find((c) => c.id === event.cardId);
     if (!card) return;
-    const api = getApiClient(getAccessToken);
-    // Optimistic local update — otherwise the row silently changes nothing and
-    // the button appears broken.
-    const nextPhrases = card.phrases.includes(event.snippet)
-      ? card.phrases
-      : [...card.phrases, event.snippet];
-    const updated = await api.updateCard(card.id, { phrases: nextPhrases });
-    setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-    setSavedIds((prev) => [...prev, event.id]);
+    await action.run(event.id, async () => {
+      const nextPhrases = card.phrases.includes(event.snippet!) ? card.phrases : [...card.phrases, event.snippet!];
+      const updated = await getApiClient(getAccessToken).updateCard(card.id, { phrases: nextPhrases });
+      setCards((prev) => prev.map((c) => c.id === updated.id ? updated : c));
+      setSavedIds((prev) => [...prev, event.id]);
+    }, "Could not add this phrase. Try again.");
   }
 
   return (
@@ -116,7 +118,8 @@ export default function ActivityPage() {
         description="Every time the engine considered a card, whether or not it fired. Near misses are the fastest way to tune your phrases."
       />
 
-      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+      {error && <StatusMessage tone="danger">{error} <button type="button" className="underline" onClick={() => setRetry((n) => n + 1)}>Try again</button></StatusMessage>}
+      {action.error && <StatusMessage tone="danger">{action.error}</StatusMessage>}
       {events === null && !error && <SkeletonRows count={4} />}
 
       {events !== null && events.length === 0 && (
@@ -126,7 +129,7 @@ export default function ActivityPage() {
           description="Once you speak in a rehearsal or a live meeting, every match decision will be logged here with its confidence score."
           action={
             <Button asChild variant="outline">
-              <a href="/rehearse">Open rehearsal</a>
+              <Link to="/rehearse">Open rehearsal</Link>
             </Button>
           }
         />
@@ -178,7 +181,7 @@ export default function ActivityPage() {
                       <Button
                         variant={saved ? "ghost" : "outline"}
                         size="sm"
-                        disabled={saved}
+                        disabled={saved || action.pending !== null || !card}
                         onClick={() => addPhraseToCard(event)}
                         className={cn("shrink-0", saved && "text-success")}
                       >
@@ -190,7 +193,7 @@ export default function ActivityPage() {
                         ) : (
                           <>
                             <Plus className="size-3.5" strokeWidth={2.2} aria-hidden />
-                            Add phrase to card
+                            {action.pending === event.id ? "Adding…" : "Add phrase to card"}
                           </>
                         )}
                       </Button>

@@ -45,8 +45,8 @@ export default function MeetStepPage() {
       const api = getApiClient(getAccessToken);
       let aiAvailable = false;
       try {
-        const state = await api.getAiProvider();
-        aiAvailable = state.source !== "none";
+        const [state, notion] = await Promise.all([api.getAiProvider(), api.getNotionConnection().catch(() => null)]);
+        aiAvailable = state.source !== "none" || Boolean(notion);
       } catch {
         /* treat an unreachable engine as "not configured" rather than blocking */
       }

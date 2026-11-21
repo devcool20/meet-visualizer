@@ -22,7 +22,7 @@ import { useLocalMedia } from './hooks/useLocalMedia';
 import { MeetingPreview } from './components/MeetingPreview';
 import { MeetFrame, MeetScrim } from './components/MeetFrame';
 import { normalizeCode, CODE_PLACEHOLDER } from '@stash/meeting-spec';
-import { MeetingUnavailableError, meetingApiBase, reserveRoom } from './lib/meeting-url';
+import { MeetingUnavailableError, reserveRoom } from './lib/meeting-url';
 
 type Busy = 'idle' | 'creating' | 'joining';
 
@@ -38,7 +38,7 @@ export default function MeetGatePage() {
   // The code field is the reason people land here. Focus it on mount so a
   // keyboard user can type the code straight away.
   useEffect(() => {
-    inputRef.current?.focus();
+    if (window.matchMedia("(min-width: 1024px) and (pointer: fine)").matches) inputRef.current?.focus();
   }, []);
 
   const normalized = normalizeCode(rawCode);
@@ -66,7 +66,7 @@ export default function MeetGatePage() {
   return (
     <MeetFrame>
       <MeetScrim />
-      <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
         {/* Top bar */}
         <header className="flex shrink-0 items-center justify-between px-5 py-4 sm:px-7">
           <Link to="/" aria-label="Stash Live home" className="rounded-full transition-opacity hover:opacity-80">
@@ -80,10 +80,10 @@ export default function MeetGatePage() {
           </Link>
         </header>
 
-        <main className="flex min-h-0 flex-1 flex-col items-center justify-center gap-10 px-5 pb-10 lg:flex-row lg:gap-16 lg:px-10">
+        <main className="flex shrink-0 flex-1 flex-col items-center justify-start lg:justify-center gap-10 px-5 pb-10 lg:flex-row lg:gap-16 lg:px-10">
           {/* Left: the value proposition + preview */}
           <motion.div
-            className="flex w-full max-w-xl flex-col gap-7"
+            className="flex w-full min-w-0 max-w-xl flex-col gap-7"
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: EASE }}
@@ -144,7 +144,7 @@ export default function MeetGatePage() {
 
           {/* Right: the two doors in */}
           <motion.div
-            className="glass w-full max-w-sm rounded-panel p-6"
+            className="glass w-full shrink-0 max-w-sm rounded-panel p-6"
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: EASE, delay: 0.06 }}
@@ -216,9 +216,7 @@ export default function MeetGatePage() {
               >
                 <p className="text-[0.8125rem] font-medium text-destructive">{outage.message}</p>
                 <p className="text-[0.75rem] leading-relaxed text-muted-foreground">{outage.remedy}</p>
-                <p className="telemetry text-[0.6875rem] text-muted-foreground">
-                  engine: {meetingApiBase() || '(same origin)'}
-                </p>
+
                 <div className="flex gap-2 pt-0.5">
                   <Button
                     type="button"

@@ -7,8 +7,8 @@
  * control uses the shared input treatment.
  */
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router";
-import { GlassCard } from "@stash/card-react";
+import { Link, useParams } from "react-router";
+import { CardPreview } from "@/app/components/CardPreview";
 import { Camera, Check, X } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -56,6 +56,10 @@ export default function CardEditorPage() {
   const [card, setCard] = useState<ApiCard | null>(null);
   const [allCards, setAllCards] = useState<ApiCard[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [phraseText, setPhraseText] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [pendingSaves, setPendingSaves] = useState(0);
+  const saveQueue = useRef(Promise.resolve());
   const [testInput, setTestInput] = useState("");
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
   const [cameraStill, setCameraStill] = useState<string | null>(null);
@@ -68,7 +72,7 @@ export default function CardEditorPage() {
     const api = getApiClient(getAccessToken);
     api
       .getCard(id)
-      .then(setCard)
+      .then((loaded) => { setCard(loaded); setPhraseText(loaded.phrases.join("\n")); })
       .catch(() => setError("Could not load this card. It may have been deleted."));
     api.listCards().then(setAllCards).catch(() => setAllCards([]));
     return () => {
@@ -78,9 +82,19 @@ export default function CardEditorPage() {
 
   async function save(patch: Partial<ApiCard>) {
     if (!card) return;
-    const api = getApiClient(getAccessToken);
-    const updated = await api.updateCard(card.id, patch);
-    setCard(updated);
+    const cardId = card.id;
+    setPendingSaves((n) => n + 1);
+    saveQueue.current = saveQueue.current.then(async () => {
+      setSaveError(null);
+      try {
+        const updated = await getApiClient(getAccessToken).updateCard(cardId, patch);
+        // A title may have been typed while an earlier blur-save was pending.
+        setCard((current) => current?.id === updated.id ? { ...updated, title: current.title } : current);
+      } catch {
+        setSaveError("Could not save your changes. Your text is still here; try again.");
+      } finally { setPendingSaves((n) => n - 1); }
+    });
+    await saveQueue.current;
   }
 
   /**
@@ -108,6 +122,9 @@ export default function CardEditorPage() {
     } catch {
       setCameraStill(null);
       setCameraError("Camera unavailable — the preview is shown on a neutral background instead.");
+    } finally {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
     }
   }
 
@@ -138,7 +155,7 @@ export default function CardEditorPage() {
       return;
     }
 
-    const hit = card.phrases.some((p) => {
+    const hit = phraseText.split("\n").map((p) => p.trim()).filter(Boolean).some((p) => {
       const saved = p.toLowerCase();
       return normalized.includes(saved) || saved.includes(normalized);
     });
@@ -180,12 +197,14 @@ export default function CardEditorPage() {
               {card.enabled ? "Armed" : "Disabled"}
             </Pill>
             <Button asChild variant="outline" size="sm">
-              <a href="/dashboard/cards">Back to library</a>
+              <Link to="/dashboard/cards">Back to library</Link>
             </Button>
           </>
         }
       />
 
+      {saveError && <StatusMessage tone="danger">{saveError} <button type="button" className="underline" onClick={() => save({ title: card.title, phrases: phraseText.split("\n").map((p) => p.trim()).filter(Boolean) })}>Try again</button></StatusMessage>}
+      <p role="status" className="text-xs text-muted-foreground">{pendingSaves > 0 ? "Saving changes…" : saveError ? "Changes not saved" : "Changes save when you leave a field."}</p>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         {/* ── Preview ── */}
         <div className="space-y-4 lg:sticky lg:top-10 lg:self-start">
@@ -200,9 +219,9 @@ export default function CardEditorPage() {
                className="absolute inset-0 size-full object-cover opacity-70"
               />
             )}
-            <div className="relative">
+            <div className="relative h-full w-full p-5">
               {/* Reflect the in-progress title so the preview matches the form. */}
-              <GlassCard spec={{ ...card.spec, title: card.title }} width={300} />
+              <CardPreview spec={{ ...card.spec, title: card.title }} maxWidth={300} fitHeight />
             </div>
           </div>
 
@@ -279,11 +298,9 @@ export default function CardEditorPage() {
               <textarea
                 id="card-phrases"
                 rows={5}
-                value={card.phrases.join("\n")}
-                onChange={(e) =>
-                  setCard({ ...card, phrases: e.target.value.split("\n").filter(Boolean) })
-                }
-                onBlur={() => save({ phrases: card.phrases })}
+                value={phraseText}
+                onChange={(e) => setPhraseText(e.target.value)}
+                onBlur={() => save({ phrases: phraseText.split("\n").map((p) => p.trim()).filter(Boolean) })}
                 className="w-full resize-y rounded-lg border border-border bg-input-background px-3 py-2.5 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-subtle focus-visible:border-brand/40"
                 placeholder={"q2 revenue\nrevenue numbers\nhow much revenue"}
               />
@@ -299,6 +316,7 @@ export default function CardEditorPage() {
               <Button
                 variant={card.enabled ? "destructive" : "outline"}
                 size="sm"
+                disabled={pendingSaves > 0}
                 onClick={() => save({ enabled: !card.enabled })}
               >
                 {card.enabled ? "Disable" : "Arm"}

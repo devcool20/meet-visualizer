@@ -12,8 +12,9 @@ import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { getApiClient } from "@/lib/api";
 import { useAuth } from "@/app/auth/AuthContext";
+import { useActionFeedback } from "@/app/hooks/useActionFeedback";
 import { saveSetupStep } from "@/lib/setup";
-import { Pill, Surface } from "@/app/components/primitives";
+import { Pill, StatusMessage, Surface } from "@/app/components/primitives";
 import { OnboardingShell } from "./OnboardingShell";
 import { StepActions, StepHeader } from "./StepHeader";
 
@@ -34,13 +35,15 @@ const STEPS = [
 
 export default function NotionInterstitialPage() {
   const { getAccessToken } = useAuth();
+  const action = useActionFeedback();
   const navigate = useNavigate();
 
   async function handleConnect() {
-    const api = getApiClient(getAccessToken);
-    const { url } = await api.notionAuthorize();
-    saveSetupStep("rehearse");
-    window.location.href = url;
+    await action.run("connect", async () => {
+      const { url } = await getApiClient(getAccessToken).notionAuthorize();
+      saveSetupStep("rehearse");
+      window.location.href = url;
+    }, "Could not open Notion. Try again, or skip this step for now.");
   }
 
   function advance() {
@@ -57,7 +60,7 @@ export default function NotionInterstitialPage() {
       />
 
       <Surface className="mt-10 p-6 text-left">
-        <div className="mb-5 flex items-center gap-2.5">
+        <div className="mb-5 flex flex-wrap items-center gap-2.5">
           <ShieldCheck className="size-4 text-brand" strokeWidth={1.9} aria-hidden />
           <h2 className="font-serif text-lg font-normal text-foreground">What happens next</h2>
           <Pill className="ml-auto">Private by default</Pill>
@@ -78,6 +81,7 @@ export default function NotionInterstitialPage() {
         </ol>
       </Surface>
 
+      {action.error && <StatusMessage tone="danger" className="mt-6">{action.error}</StatusMessage>}
       <StepActions className="mt-8">
         <Button variant="ghost" onClick={() => navigate("/setup/data")}>
           <ArrowLeft className="size-3.5" strokeWidth={2} aria-hidden />
@@ -86,7 +90,7 @@ export default function NotionInterstitialPage() {
         <Button variant="outline" onClick={advance}>
           Skip for now
         </Button>
-        <Button size="lg" onClick={handleConnect}>
+        <Button size="lg" disabled={action.pending !== null} onClick={handleConnect}>
           Connect Notion
           <ArrowRight className="size-4" strokeWidth={2} aria-hidden />
         </Button>

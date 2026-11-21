@@ -10,12 +10,13 @@
  * inline.
  */
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Check, Database, KeyRound } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { useAuth } from "@/app/auth/AuthContext";
 import { getApiClient, type NotionConnection } from "@/lib/api";
 import { AiProviderPanel } from "@/app/dashboard/AiProviderPanel";
+import { useActionFeedback } from "@/app/hooks/useActionFeedback";
 import { saveSetupStep } from "@/lib/setup";
 import { Pill, SkeletonRows, StatusMessage, Surface } from "@/app/components/primitives";
 import { OnboardingShell } from "./OnboardingShell";
@@ -23,6 +24,7 @@ import { StepActions, StepHeader } from "./StepHeader";
 
 export default function DataSetupPage() {
   const { getAccessToken } = useAuth();
+  const action = useActionFeedback();
   const navigate = useNavigate();
   const [notion, setNotion] = useState<NotionConnection | null | "loading">("loading");
   const [aiProviderSource, setAiProviderSource] = useState<string | null>(null);
@@ -30,18 +32,20 @@ export default function DataSetupPage() {
   useEffect(() => {
     const api = getApiClient(getAccessToken);
     api.getNotionConnection().then(setNotion).catch(() => setNotion(null));
+    api.getAiProvider().then((state) => setAiProviderSource(state.source)).catch(() => setAiProviderSource(null));
   }, [getAccessToken]);
 
   function handleAiChange() {
     const api = getApiClient(getAccessToken);
-    api.getAiProvider().then((state) => setAiProviderSource(state.source));
+    api.getAiProvider().then((state) => setAiProviderSource(state.source)).catch(() => setAiProviderSource(null));
   }
 
   async function handleConnectNotion() {
-    const api = getApiClient(getAccessToken);
-    const { url } = await api.notionAuthorize();
-    saveSetupStep("rehearse");
-    window.location.href = url;
+    await action.run("connect", async () => {
+      const { url } = await getApiClient(getAccessToken).notionAuthorize();
+      saveSetupStep("rehearse");
+      window.location.href = url;
+    }, "Could not open Notion. Try again, or skip this step for now.");
   }
 
   function advance() {
@@ -97,7 +101,7 @@ export default function DataSetupPage() {
                 you say their trigger phrases. You can skip this — an AI key on its own is enough to
                 continue.
               </p>
-              <Button variant="outline" onClick={handleConnectNotion}>
+              <Button variant="outline" disabled={action.pending !== null} onClick={handleConnectNotion}>
                 Connect Notion
               </Button>
             </div>
@@ -119,17 +123,18 @@ export default function DataSetupPage() {
                   })}
                 </p>
               )}
-              <a
-                href="/dashboard/integrations"
+              <Link
+                to="/dashboard/integrations"
                className="inline-block text-xs text-brand underline decoration-brand/30 underline-offset-2 transition-colors hover:text-brand-hover"
               >
                 Manage in Integrations
-              </a>
+              </Link>
             </div>
           )}
         </Surface>
       </div>
 
+      {action.error && <StatusMessage tone="danger" className="mt-6">{action.error}</StatusMessage>}
       {/* Say what is blocking, rather than presenting a dead button. */}
       {!stepSatisfied && (
         <StatusMessage tone="neutral" className="mt-6">

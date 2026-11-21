@@ -12,7 +12,7 @@
  *    actually applies (it was an inline style, which does not transition).
  *  - The extension status chip announces changes via `aria-live`.
  */
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import {
   Layers,
@@ -30,7 +30,8 @@ import { isMockMode } from "@/lib/env";
 import { useAuth } from "@/app/auth/AuthContext";
 import { useSetupStatus } from "@/app/hooks/useSetupStatus";
 import { SetupChecklist } from "@/app/onboarding/SetupChecklist";
-import { Pill, StatusDot, Wordmark } from "@/app/components/primitives";
+import { Pill, StatusDot, StatusMessage, Wordmark } from "@/app/components/primitives";
+import { useActionFeedback } from "@/app/hooks/useActionFeedback";
 import { cn } from "@/app/components/ui/utils";
 
 const NAV_ITEMS = [
@@ -44,7 +45,10 @@ const NAV_ITEMS = [
 export function DashboardShell({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { signOut } = useAuth();
+  const signOutAction = useActionFeedback();
   const [extensionPresent, setExtensionPresent] = useState<boolean | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const { signals, loading } = useSetupStatus();
 
@@ -65,6 +69,25 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   // Close the mobile drawer whenever the route changes.
   useEffect(() => setMenuOpen(false), [location.pathname]);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const controls = () => Array.from(menuRef.current?.querySelectorAll<HTMLElement>('a[href],button') ?? []);
+    controls()[0]?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+      if (event.key !== 'Tab') return;
+      const items = [menuButtonRef.current, ...controls()].filter((item): item is HTMLElement => Boolean(item));
+      const index = items.indexOf(document.activeElement as HTMLElement);
+      if (event.shiftKey && index <= 0) { event.preventDefault(); items.at(-1)?.focus(); }
+      else if (!event.shiftKey && (index < 0 || index === items.length - 1)) { event.preventDefault(); items[0]?.focus(); }
+    };
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const resize = () => { if (desktop.matches) setMenuOpen(false); };
+    desktop.addEventListener('change', resize);
+    window.addEventListener('keydown', onKey);
+    return () => { desktop.removeEventListener('change', resize); window.removeEventListener('keydown', onKey); menuButtonRef.current?.focus(); };
+  }, [menuOpen]);
+
   const statusTone =
     extensionPresent === null ? "neutral" : extensionPresent ? "success" : "danger";
 
@@ -77,7 +100,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           className={({ isActive }) =>
             cn(
               "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-200",
-              isActive
+              (isActive || (to === "/dashboard/cards" && location.pathname === "/dashboard"))
                 ? "bg-accent font-medium text-foreground"
                 : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
             )
@@ -90,7 +113,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 aria-hidden
                 className={cn(
                   "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-brand transition-opacity duration-200",
-                  isActive ? "opacity-100" : "opacity-0",
+                  (isActive || (to === "/dashboard/cards" && location.pathname === "/dashboard")) ? "opacity-100" : "opacity-0",
                 )}
               />
               <Icon className="size-4 shrink-0" strokeWidth={1.9} aria-hidden />
@@ -113,7 +136,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       </a>
 
       {/* ── Sidebar ── */}
-      <aside className="sticky top-0 z-40 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-background px-4 py-6 lg:flex">
+      <aside className="sticky top-0 z-40 hidden h-dvh w-60 shrink-0 flex-col overflow-y-auto border-r border-border bg-background px-4 py-6 lg:flex">
         <div className="mb-8 flex items-center justify-between gap-2 px-1">
           <Link to="/" aria-label="Stash Live home" className="transition-opacity hover:opacity-70">
             <Wordmark size="md" className="block text-foreground" />
@@ -155,7 +178,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </NavLink>
             <button
               type="button"
-              onClick={() => signOut()}
+              disabled={signOutAction.pending !== null}
+              onClick={() => signOutAction.run("sign-out", signOut, "Could not sign out. Try again.")}
              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors duration-200 hover:bg-accent/60 hover:text-foreground"
             >
               <LogOut className="size-4 shrink-0" strokeWidth={1.9} aria-hidden />
@@ -171,6 +195,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <Wordmark size="sm" className="block text-foreground" />
         </Link>
         <button
+          ref={menuButtonRef}
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
           aria-expanded={menuOpen}
@@ -185,6 +210,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       {/* ── Mobile drawer ── */}
       {menuOpen && (
         <div
+          ref={menuRef}
           id="dashboard-drawer"
          className="sticky top-[3.75rem] z-30 border-b border-border bg-background px-4 py-4 lg:hidden"
         >
@@ -199,7 +225,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </NavLink>
             <button
               type="button"
-              onClick={() => signOut()}
+              disabled={signOutAction.pending !== null}
+              onClick={() => signOutAction.run("sign-out", signOut, "Could not sign out. Try again.")}
              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors duration-200 hover:bg-accent/60 hover:text-foreground"
             >
               <LogOut className="size-4 shrink-0" strokeWidth={1.9} aria-hidden />
@@ -210,8 +237,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       )}
 
       {/* ── Main ── */}
-      <main id="dashboard-main" className="flex-1 px-[var(--gutter)] py-8 lg:py-10">
+      <main id="dashboard-main" className="min-w-0 flex-1 px-[var(--gutter)] py-8 lg:py-10">
         <div className="mx-auto w-full max-w-5xl">
+          {signOutAction.error && <StatusMessage tone="danger" className="mb-6">{signOutAction.error}</StatusMessage>}
           {!loading && <SetupChecklist signals={signals} />}
           {children}
         </div>

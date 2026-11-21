@@ -14,8 +14,8 @@
  *    into each participant's video, only a broadcast can tell the room that
  *    the numbers on somebody's shoulder are live data.
  */
-import { useEffect, useRef, useState } from 'react';
-import { GlassCard } from '@stash/card-react';
+import { useState } from 'react';
+import { CardPreview } from '@/app/components/CardPreview';
 import { parseCardSpec, type CardSpec } from '@stash/card-spec';
 import { AlertCircle, Library, Radio, Sparkles, X } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
@@ -158,30 +158,7 @@ export function CardsRail() {
  * This is the same approach `RehearsePage`'s `StageFittingCard` uses.
  */
 function FittedCard({ spec }: { spec: CardSpec }) {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    // Start from the current box so there is no first-paint flash at the
-    // un-scaled width.
-    setWidth(el.clientWidth || null);
-    if (typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver((entries) => {
-      const next = entries[0]?.contentRect.width ?? 0;
-      // Ignore sub-pixel churn; it would re-layout the card for nothing.
-      setWidth((prev) => (prev && Math.abs(prev - next) < 1 ? prev : next || null));
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  return (
-    <div ref={wrapRef} className="w-full overflow-hidden rounded-panel">
-      <GlassCard spec={spec} width={width ?? undefined} />
-    </div>
-  );
+  return <CardPreview spec={spec} maxWidth={358} />;
 }
 
 function Tabs({

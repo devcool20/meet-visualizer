@@ -162,9 +162,9 @@ function MeetingTopBar({ onOpenInvite }: { onOpenInvite: () => void }) {
         <button
           type="button"
           onClick={onOpenInvite}
-          className="hidden items-center gap-2 rounded-full border border-border px-3 py-1.5 text-[0.8125rem] text-foreground transition-colors hover:bg-accent sm:inline-flex"
+          className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-[0.8125rem] text-foreground transition-colors hover:bg-accent"
         >
-          <span className="telemetry">{ctx.code}</span>
+          <span className="telemetry hidden sm:inline">{ctx.code}</span>
           <span className="text-muted-foreground">Invite</span>
         </button>
         <span className="flex size-8 items-center justify-center rounded-full bg-brand/15 text-[0.75rem] font-medium text-brand">
@@ -413,7 +413,7 @@ function JoinFailure({
           ) : null}
           <p className="telemetry text-[0.75rem] text-muted-foreground">{code}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <Button type="button" variant="secondary" onClick={() => navigate('/meet')} className="rounded-full">
             <Users className="size-4" />
             Enter another code

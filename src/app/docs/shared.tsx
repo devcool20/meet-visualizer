@@ -53,20 +53,22 @@ export function Code({ children }: { children: React.ReactNode }) {
 
 export function CodeBlock({ children, lang = "bash" }: { children: string; lang?: string }) {
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
     if (copyTimer.current) clearTimeout(copyTimer.current);
   }, []);
-  const copy = () => {
-    navigator.clipboard?.writeText(children).then(
-      () => {
-        setCopied(true);
-        if (copyTimer.current) clearTimeout(copyTimer.current);
-        copyTimer.current = setTimeout(() => setCopied(false), 1600);
-      },
-      () => {},
-    );
+  const copy = async () => {
+    setCopyFailed(false);
+    try {
+      if (!navigator.clipboard) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(children);
+      setCopied(true);
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopied(false), 1600);
+    } catch { setCopyFailed(true); }
   };
+
   return (
     <div className="rounded-2xl overflow-hidden my-5" style={GLASS}>
       <div
@@ -89,7 +91,8 @@ export function CodeBlock({ children, lang = "bash" }: { children: string; lang?
           {copied ? "copied ✓" : "copy"}
         </button>
       </div>
-      <pre className="telemetry overflow-x-auto p-5 text-sm leading-relaxed text-foreground" >
+      {copyFailed && <p role="status" className="px-5 text-xs text-muted-foreground">Could not copy. Select the code below to copy it manually.</p>}
+      <pre tabIndex={0} aria-label={`${lang} code`} className="telemetry overflow-x-auto p-5 text-sm leading-relaxed text-foreground" >
         <code>{children}</code>
       </pre>
     </div>
@@ -98,7 +101,7 @@ export function CodeBlock({ children, lang = "bash" }: { children: string; lang?
 
 export function Prose({ children }: { children: React.ReactNode }) {
   return (
-    <div className="space-y-4 space-y-4 text-[0.9375rem]">
+    <div className="space-y-4 text-[0.9375rem]">
       {children}
     </div>
   );
@@ -129,7 +132,7 @@ export function Callout({ children }: { children: React.ReactNode }) {
       >
         !
       </span>
-      <div>{children}</div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
@@ -202,7 +205,7 @@ export function DocSectionBlock({
         </div>
       </Reveal>
       <Reveal reducedMotion={reducedMotion} delay={0.05}>
-        <div>{children}</div>
+        <div className="min-w-0">{children}</div>
       </Reveal>
     </section>
   );
@@ -242,6 +245,12 @@ export function DocsPageShell({
   const reducedMotion = useReducedMotion();
   const motionPrefs = useMotionPrefs();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const key = (event: KeyboardEvent) => { if (event.key === 'Escape') setIsMenuOpen(false); };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, [isMenuOpen]);
   const isScrollingToRef = useRef<string | null>(null);
 
   const { scrollYProgress } = useScroll();
@@ -292,13 +301,13 @@ export function DocsPageShell({
       />
 
       {/* ─── HEADER ─── */}
-      <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl rounded-full z-50 px-4 py-2.5 md:px-8 md:py-3.5">
+      <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%_-_2rem)] max-w-5xl rounded-full z-50 px-4 py-2.5 md:px-8 md:py-3.5">
         <div className="absolute inset-0 rounded-full -z-10 overflow-hidden" style={GLASS} />
         <div className="flex items-center justify-between w-full relative">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMenuOpen((v) => !v)}
-             className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors duration-200 hover:bg-accent md:hidden"
+             className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors duration-200 hover:bg-accent lg:hidden"
               aria-label="Toggle docs menu"
               aria-expanded={isMenuOpen}
               aria-controls="docs-mobile-menu"
@@ -321,7 +330,7 @@ export function DocsPageShell({
 
             <Link
               to="/"
-              className="hidden items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground md:flex"
+              className="hidden items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground lg:flex"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -358,7 +367,7 @@ export function DocsPageShell({
               animate={{ opacity: 1, y: 0 }}
               exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-             className="rounded-2xl p-4 md:hidden"
+             className="max-h-[70dvh] overflow-y-auto rounded-2xl p-4 lg:hidden"
               style={GLASS}
             >
               <Link
@@ -466,7 +475,7 @@ export function DocsPageShell({
           </div>
         </aside>
 
-        <main className="min-w-0">
+        <main className="min-w-0 [overflow-wrap:anywhere]">
           {children}
 
           <Reveal reducedMotion={reducedMotion}>

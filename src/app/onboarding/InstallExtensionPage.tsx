@@ -50,6 +50,11 @@ export default function InstallExtensionPage() {
   const [advExtId, setAdvExtId] = useState(resolveExtensionId());
   const [showAdvanced, setShowAdvanced] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (pollingRef.current) clearInterval(pollingRef.current);
+    if (pollingTimeoutRef.current) clearTimeout(pollingTimeoutRef.current);
+  }, []);
 
   // Check origin first.
   useEffect(() => {
@@ -124,10 +129,11 @@ export default function InstallExtensionPage() {
       }
     }, 2000);
     // Stop polling after 2 minutes.
-    setTimeout(() => stopPolling(), 120_000);
+    pollingTimeoutRef.current = setTimeout(() => stopPolling(), 120_000);
   }
 
   function stopPolling() {
+    if (pollingTimeoutRef.current) { clearTimeout(pollingTimeoutRef.current); pollingTimeoutRef.current = null; }
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;

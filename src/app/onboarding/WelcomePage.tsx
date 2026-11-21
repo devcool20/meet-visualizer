@@ -12,7 +12,7 @@
  */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { GlassCard } from "@stash/card-react";
+import { CardPreview } from "@/app/components/CardPreview";
 import { Button } from "@/app/components/ui/button";
 import { useAuth } from "@/app/auth/AuthContext";
 import { getApiClient, type ApiCard } from "@/lib/api";
@@ -26,8 +26,10 @@ export default function WelcomePage() {
   const navigate = useNavigate();
   const [cards, setCards] = useState<ApiCard[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
+    setError(null);
     const api = getApiClient(getAccessToken);
     let cancelled = false;
     api
@@ -44,7 +46,7 @@ export default function WelcomePage() {
     return () => {
       cancelled = true;
     };
-  }, [getAccessToken]);
+  }, [getAccessToken, retry]);
 
   function handleContinue() {
     saveSetupStep("extension");
@@ -61,7 +63,7 @@ export default function WelcomePage() {
 
       {error && (
         <StatusMessage tone="danger" className="mx-auto mt-8 max-w-md">
-          {error}
+          {error} <button type="button" className="underline" onClick={() => setRetry((n) => n + 1)}>Try again</button>
         </StatusMessage>
       )}
 
@@ -75,7 +77,7 @@ export default function WelcomePage() {
                 key={card.id}
                className="flex flex-col items-center gap-4 rounded-card border border-border bg-background-sunken/50 p-5"
               >
-                <GlassCard spec={card.spec} width={252} />
+                <CardPreview spec={card.spec} maxWidth={252} />
                 {card.phrases.length > 0 && (
                   <ul className="flex flex-wrap justify-center gap-1.5">
                     {card.phrases.slice(0, 3).map((phrase) => (
