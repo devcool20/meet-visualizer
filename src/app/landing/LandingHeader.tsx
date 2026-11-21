@@ -6,7 +6,7 @@
  * scrolls away — driven by scroll progress, not by a section spy, so it can
  * never disagree with what is on screen.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
 import { Menu, Video, X } from "lucide-react";
@@ -21,6 +21,8 @@ export function LandingHeader() {
   const { status } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (y) => {
@@ -39,11 +41,25 @@ export function LandingHeader() {
 
   useEffect(() => {
     if (!open) return;
+    const focusable = () => Array.from(menuRef.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled])') ?? []);
+    focusable()[0]?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
+      if (e.key !== "Tab") return;
+      const elements = [triggerRef.current, ...focusable()].filter((el): el is HTMLElement => Boolean(el));
+      const index = elements.indexOf(document.activeElement as HTMLElement);
+      if (e.shiftKey && index <= 0) { e.preventDefault(); elements.at(-1)?.focus(); }
+      else if (!e.shiftKey && (index === elements.length - 1 || index < 0)) { e.preventDefault(); elements[0]?.focus(); }
     };
+    const desktop = window.matchMedia("(min-width: 1280px)");
+    const onResize = () => { if (desktop.matches) setOpen(false); };
+    desktop.addEventListener("change", onResize);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      desktop.removeEventListener("change", onResize);
+      window.removeEventListener("keydown", onKey);
+      triggerRef.current?.focus();
+    };
   }, [open]);
 
   return (
@@ -90,7 +106,7 @@ export function LandingHeader() {
           </Link>
 
           {/* Section links — desktop */}
-          <ul className="hidden items-center gap-0.5 md:flex">
+          <ul className="hidden items-center gap-0.5 xl:flex">
             {NAV_SECTIONS.map((item) => (
               <li key={item.id}>
                 <a
@@ -145,12 +161,13 @@ export function LandingHeader() {
             </Action>
 
             <button
+              ref={triggerRef}
               type="button"
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
               aria-controls="landing-mobile-menu"
               aria-label={open ? "Close menu" : "Open menu"}
-              className={`flex size-9 items-center justify-center rounded-full transition-colors duration-200 md:hidden ${
+              className={`flex size-9 items-center justify-center rounded-full transition-colors duration-200 xl:hidden ${
                 scrolled
                   ? "text-foreground hover:bg-accent"
                   : "text-[#FBF9F6] hover:bg-[#FBF9F6]/12"
@@ -166,8 +183,9 @@ export function LandingHeader() {
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={menuRef}
             id="landing-mobile-menu"
-           className="fixed inset-x-0 top-0 z-40 px-4 pt-[4.75rem] md:hidden"
+           className="fixed inset-x-0 top-0 z-40 px-4 pt-[4.75rem] xl:hidden"
             initial={reduced ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={reduced ? { opacity: 0 } : { opacity: 0 }}

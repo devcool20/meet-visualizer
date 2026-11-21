@@ -24,7 +24,7 @@ import {
   Video,
 } from "lucide-react";
 import { Accent, Action, Reveal, SectionHeading, Surface, Telemetry } from "@/app/components/primitives";
-import { GlassCard } from "@stash/card-react";
+import { FittedCard } from "./FittedCard";
 import { REVENUE_CARD } from "@stash/card-core";
 import { EASE, useReducedMotion } from "@/app/motion";
 
@@ -69,7 +69,7 @@ export function MeetPlatform() {
       id="meet"
       className="relative w-full scroll-mt-24 overflow-x-clip border-b border-border bg-background py-24 sm:py-28"
     >
-      <div className="mx-auto grid w-full max-w-[1240px] items-center gap-16 px-[var(--gutter)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-20">
+      <div className="mx-auto grid w-full max-w-[1240px] items-start gap-10 px-[var(--gutter)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-x-12 lg:gap-y-10">
         <div>
           <SectionHeading
             eyebrow="Stash Live meetings"
@@ -104,28 +104,10 @@ export function MeetPlatform() {
               </Action>
             </div>
           </Reveal>
-
-          <Reveal delay={0.26}>
-            <ul className="mt-10 grid gap-x-8 gap-y-5 sm:grid-cols-2">
-              {CAPABILITIES.map(({ icon: Icon, title, body }) => (
-                <li key={title} className="flex gap-3">
-                  <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/12">
-                    <Icon className="size-3.5 text-brand" strokeWidth={2} aria-hidden />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[0.875rem] font-medium text-foreground">{title}</span>
-                    <span className="mt-0.5 block text-[0.8125rem] leading-relaxed text-muted-foreground">
-                      {body}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Reveal>
         </div>
 
         {/* Illustration: a meeting stage with the card inside the video frame. */}
-        <Reveal delay={0.12}>
+        <Reveal delay={0.12} className="min-w-0 lg:sticky lg:top-28">
           <div className="relative isolate">
             <div
               aria-hidden
@@ -137,6 +119,23 @@ export function MeetPlatform() {
             />
             <CallFrame reduced={reduced} />
           </div>
+        </Reveal>
+        <Reveal delay={0.26} className="lg:col-span-2">
+          <ul className="grid gap-x-8 gap-y-6 border-t border-border pt-8 sm:grid-cols-2 lg:grid-cols-3">
+            {CAPABILITIES.map(({ icon: Icon, title, body }) => (
+              <li key={title} className="flex gap-3">
+                <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/12">
+                  <Icon className="size-3.5 text-brand" strokeWidth={2} aria-hidden />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[0.875rem] font-medium text-foreground">{title}</span>
+                  <span className="mt-0.5 block text-[0.8125rem] leading-relaxed text-muted-foreground">
+                    {body}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
         </Reveal>
       </div>
     </section>
@@ -151,9 +150,9 @@ function CallFrame({ reduced }: { reduced: boolean }) {
   return (
     <Surface tone="default" radius="panel" className="overflow-hidden p-3">
       <div className="flex items-center justify-between gap-3 px-1 pb-3">
-        <span className="eyebrow">abc-efgj-pqrt</span>
+        <span className="eyebrow text-[0.5rem] sm:text-[0.6875rem]">abc-efgj-pqrt</span>
         <div className="flex items-center gap-2">
-          <Telemetry className="text-[0.6875rem] text-muted-subtle">4 in the meeting</Telemetry>
+          <Telemetry className="hidden text-[0.6875rem] text-muted-subtle sm:block">4 in the meeting</Telemetry>
           <span className="flex items-center gap-1.5 rounded-full bg-brand/12 px-2 py-0.5 font-mono text-[0.625rem] uppercase tracking-[0.1em] text-brand-ink">
             <span className="size-1 rounded-full bg-brand" aria-hidden />
             live
@@ -163,7 +162,7 @@ function CallFrame({ reduced }: { reduced: boolean }) {
 
       <div className="grid gap-2.5 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         {/* Presenter tile, with the card composited into the frame. */}
-        <div className="relative aspect-video overflow-hidden rounded-[0.875rem] bg-[#1F1A17]">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-[0.875rem] bg-[#1F1A17]">
           <div
             className="absolute inset-0"
             style={{
@@ -190,29 +189,27 @@ function CallFrame({ reduced }: { reduced: boolean }) {
           {/* The card, inside the video frame, at video scale. */}
           <div className="absolute inset-y-3 right-3 flex w-[42%] items-center">
             <motion.div
-              className="w-full origin-right"
+              className="h-full w-full origin-right"
               initial={reduced ? { opacity: 1 } : { opacity: 0, x: 14 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-15% 0px" }}
               transition={reduced ? { duration: 0.01 } : { duration: 0.6, ease: EASE, delay: 0.2 }}
             >
-              <div className="[&>div]:!text-[0.5rem] [&_p]:!leading-[1.35] [&_span]:!text-[0.44rem]">
-                <GlassCard spec={REVENUE_CARD} />
-              </div>
+              <FittedCard spec={REVENUE_CARD} reduced={reduced} fitHeight />
             </motion.div>
           </div>
 
-          <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[0.625rem] text-[#FBF9F6] backdrop-blur-sm">
+          <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[0.5rem] sm:text-[0.625rem] text-[#FBF9F6] backdrop-blur-sm">
             Priya · presenting
           </span>
-          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-brand/90 px-2 py-0.5 text-[0.625rem] font-medium text-[#1A1512]">
+          <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-brand/90 px-2 py-0.5 text-[0.5rem] sm:text-[0.625rem] font-medium text-[#1A1512]">
             <Sparkles className="size-2.5" aria-hidden />
             on air
           </span>
         </div>
 
         {/* Attendees. */}
-        <div className="flex flex-col gap-2.5">
+        <div className="grid grid-cols-3 gap-2.5 sm:flex sm:min-h-0 sm:flex-col">
           {[
             { initials: 'AR', hue: 168, name: 'Ana', speaking: true },
             { initials: 'MJ', hue: 268, name: 'Marcus', speaking: false },
@@ -220,12 +217,12 @@ function CallFrame({ reduced }: { reduced: boolean }) {
           ].map((p) => (
             <div
               key={p.initials}
-              className={`relative flex flex-1 items-center justify-center overflow-hidden rounded-[0.875rem] ${
+              className={`relative flex min-h-16 flex-1 items-center justify-center overflow-hidden sm:min-h-0 rounded-[0.875rem] ${
                 p.speaking ? "ring-2 ring-brand" : ""
               }`}
               style={{ background: `linear-gradient(150deg, hsl(${p.hue} 24% 20%), hsl(${p.hue + 30} 20% 13%))` }}
             >
-              <span className="font-serif text-2xl text-[#FBF9F6]/80">{p.initials}</span>
+              <span className="font-serif text-lg sm:text-2xl text-[#FBF9F6]/80">{p.initials}</span>
               <span className="absolute bottom-1.5 left-2 text-[0.625rem] text-[#FBF9F6]/70">{p.name}</span>
             </div>
           ))}
@@ -233,11 +230,11 @@ function CallFrame({ reduced }: { reduced: boolean }) {
       </div>
 
       {/* Control bar, reduced. */}
-      <div className="mt-3 flex items-center justify-center gap-2 px-1">
+      <div className="mt-3 flex items-center justify-center gap-1.5 px-1 sm:gap-2">
         {[Video, MonitorUp, Sparkles, Captions, MessageSquare].map((Icon, i) => (
           <span
             key={i}
-            className={`flex size-9 items-center justify-center rounded-full border ${
+            className={`flex size-7 items-center sm:size-9 justify-center rounded-full border ${
               i === 2
                 ? "border-brand/40 bg-brand/16 text-brand"
                 : "border-border bg-card/60 text-muted-foreground"
@@ -246,7 +243,7 @@ function CallFrame({ reduced }: { reduced: boolean }) {
             <Icon className="size-4" aria-hidden />
           </span>
         ))}
-        <span className="ml-2 rounded-full bg-destructive px-4 py-2 text-[0.75rem] font-medium text-destructive-foreground">
+        <span className="ml-2 rounded-full bg-destructive px-3 py-2 text-[0.75rem] font-medium text-destructive-foreground">
           Leave
         </span>
       </div>

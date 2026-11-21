@@ -84,7 +84,7 @@ export function Hero({ topic }: { topic: TopicKey }) {
       {/* Bottom fade melts the hero into the cream canvas below. */}
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-0 -z-10 h-56 bg-gradient-to-t from-background via-background/55 to-transparent"
+        className="absolute inset-x-0 bottom-0 -z-10 h-32 bg-gradient-to-t from-background via-background/55 to-transparent"
       />
       {/* Top scrim keeps the floating nav legible against the photograph. */}
       <div
@@ -99,22 +99,22 @@ export function Hero({ topic }: { topic: TopicKey }) {
       >
         {/* `minmax(0,1fr)` (not the implicit `auto`) so a narrow viewport can
             never be widened by the type column's intrinsic max-width. */}
-        <div className="mx-auto grid w-full max-w-[1240px] grid-cols-[minmax(0,1fr)] items-center gap-14 lg:grid-cols-[minmax(0,42ch)_minmax(0,1fr)] lg:gap-16">
+        <div className="mx-auto grid w-full max-w-[1240px] grid-cols-[minmax(0,1fr)] items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-12">
           {/* Type column */}
-          <motion.div {...rise(0.05)} className="min-w-0 max-w-full lg:max-w-[42ch]">
-            <h1 className="font-serif text-[clamp(2.5rem,6.2vw,4.75rem)] font-light leading-[0.98] tracking-[-0.03em] text-[#FBF9F6] text-balance">
-              Project live metrics,{" "}
-              <span className="italic text-brand">as you speak.</span>
+          <motion.div {...rise(0.05)} className="min-w-0 max-w-full lg:max-w-[480px]">
+            <h1 className="font-serif text-[clamp(2.75rem,5.8vw,4.75rem)] font-light leading-[0.98] tracking-[-0.03em] text-[#FBF9F6] text-balance">
+              <span className="block">Project live metrics,</span>{" "}
+              <span className="block italic text-brand">as you speak.</span>
             </h1>
 
-            <p className="mt-7 max-w-full text-[1.0625rem] leading-[1.65] text-[#FBF9F6]/72 lg:max-w-[46ch]">
+            <p className="mt-7 max-w-full text-[0.9375rem] sm:text-[1.0625rem] leading-[1.65] text-[#FBF9F6]/72 lg:max-w-[46ch]">
               Stash Live listens to your voice during a call and projects real-time charts and data
               from Notion, Airtable, and Google&nbsp;Drive straight onto your camera feed. Your face
               stays on screen the whole time.
             </p>
 
 <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Action to="/rehearse" variant="brand" size="lg" trailingArrow>
+              <Action to="/rehearse" variant="brand" size="lg" className="w-full px-6 sm:w-auto" trailingArrow>
                 Rehearse
               </Action>
               {/* The meeting platform is the product now, not a feature inside
@@ -123,16 +123,16 @@ export function Hero({ topic }: { topic: TopicKey }) {
                 to="/meet"
                 variant="outline"
                 size="lg"
-                className="border-[#FBF9F6]/35 bg-[#FBF9F6]/5 text-[#FBF9F6] hover:border-[#FBF9F6]/60 hover:bg-[#FBF9F6]/12"
+                className="border-[#FBF9F6]/35 bg-[#FBF9F6]/5 w-full px-6 sm:w-auto text-[#FBF9F6] hover:border-[#FBF9F6]/60 hover:bg-[#FBF9F6]/12"
               >
                 <Video className="size-4" strokeWidth={2} aria-hidden />
                 Join a meeting
               </Action>
               <Action
                 href="#demo"
-                variant="outline"
+                variant="ghost"
                 size="lg"
-                className="border-[#FBF9F6]/35 bg-[#FBF9F6]/5 text-[#FBF9F6] hover:border-[#FBF9F6]/60 hover:bg-[#FBF9F6]/12"
+                className="basis-full justify-start px-0 text-[#FBF9F6]/80 hover:bg-transparent hover:text-[#FBF9F6]"
               >
                 <ArrowDown className="size-4" strokeWidth={2} aria-hidden />
                 See it work
@@ -155,7 +155,7 @@ export function Hero({ topic }: { topic: TopicKey }) {
           {/* Product preview — anchored, deliberately smaller than the type block */}
           <motion.div
             {...rise(0.24)}
-           className="relative mx-auto w-full min-w-0 max-w-[560px] lg:justify-self-end"
+           className="relative mx-auto w-full min-w-0 max-w-[520px] lg:justify-self-end"
           >
             <PresenterStage topic={topic} />
           </motion.div>

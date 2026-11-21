@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Mic, MicOff, TriangleAlert, Info } from "lucide-react";
-import { GlassCard } from "@stash/card-react";
+import { FittedCard } from "./FittedCard";
 import { Pill, Surface, StatusMessage, StatusDot, Telemetry } from "@/app/components/primitives";
 import { EASE, DURATION, useReducedMotion } from "@/app/motion";
 import { matchTopic, TOPIC_CARDS, TOPIC_KEYS, TOPIC_METRICS, type TopicKey } from "./content";
@@ -153,12 +153,19 @@ export function VoiceDemo() {
     }
   }, [active, stop]);
 
+  useEffect(() => () => {
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+    recognition.onstart = recognition.onend = recognition.onerror = recognition.onresult = null;
+    try { recognition.stop(); } catch { /* already stopped */ }
+  }, []);
+
   // Type a keyword by clicking it. The demo should never require a keyboard.
   const pickTopic = (key: TopicKey) => {
     setWarning(null);
     setNotice(null);
+    stop();
     setInput(key);
-    if (!active) setListening(false);
   };
 
   return (
@@ -288,13 +295,14 @@ export function VoiceDemo() {
           <AnimatePresence mode="wait" initial={false}>
             {topic ? (
               <motion.div
+                className="w-full"
                 key={topic}
                 initial={reduced ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.95 }}
                 animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
                 exit={reduced ? { opacity: 0 } : { opacity: 0, y: -14, scale: 0.96 }}
                 transition={reduced ? { duration: 0.01 } : { duration: DURATION.base, ease: EASE }}
               >
-                <GlassCard spec={TOPIC_CARDS[topic]} width={330} reducedMotion={reduced} />
+                <FittedCard spec={TOPIC_CARDS[topic]} reduced={reduced} />
               </motion.div>
             ) : (
               <motion.div

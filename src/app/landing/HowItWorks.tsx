@@ -27,7 +27,7 @@ export function HowItWorks() {
       <div className="mx-auto w-full max-w-[1240px] px-[var(--gutter)]">
         <div className="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-20">
           {/* Explanation first on mobile — the argument before the toy. */}
-          <div className="order-2 lg:order-1 lg:sticky lg:top-28">
+          <div className="order-1 lg:sticky lg:top-28">
             <SectionHeading
               eyebrow="How it works"
               title={
@@ -62,7 +62,7 @@ export function HowItWorks() {
             </RevealGroup>
           </div>
 
-          <Reveal delay={0.1} className="order-1 lg:order-2">
+          <Reveal delay={0.1} className="order-2">
             <VoiceDemo />
           </Reveal>
         </div>
