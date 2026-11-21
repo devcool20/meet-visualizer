@@ -5,20 +5,13 @@
  * simulator otherwise, so the demo always responds. The projected card is the
  * same renderer the extension uses.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Mic, MicOff, TriangleAlert, Info } from "lucide-react";
-import { GlassCard, createDomTextMeasurer } from "@stash/card-react";
-import { CARD, layoutCard } from "@stash/card-core";
-import {
-  Pill,
-  Surface,
-  StatusMessage,
-  StatusDot,
-  Telemetry,
-} from "@/app/components/primitives";
+import { FittedCard } from "./FittedCard";
+import { Pill, Surface, StatusMessage, StatusDot, Telemetry } from "@/app/components/primitives";
 import { EASE, DURATION, useReducedMotion } from "@/app/motion";
-import { matchTopic, TOPIC_CARDS, TOPIC_KEYS, type TopicKey } from "./content";
+import { matchTopic, TOPIC_CARDS, TOPIC_KEYS, TOPIC_METRICS, type TopicKey } from "./content";
 
 type SpeechRecognitionLike = {
   lang: string;
@@ -29,9 +22,7 @@ type SpeechRecognitionLike = {
   onstart: (() => void) | null;
   onend: (() => void) | null;
   onerror: ((e: { error?: string }) => void) | null;
-  onresult:
-    | ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void)
-    | null;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
 };
 
 function getRecognitionCtor(): (new () => SpeechRecognitionLike) | null {
@@ -43,66 +34,16 @@ function getRecognitionCtor(): (new () => SpeechRecognitionLike) | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-const DEMO_THEME = { accent: "#a75a00" };
-
 export function VoiceDemo() {
   const reduced = useReducedMotion();
-  const [input, setInput] = useState("revenue");
+  const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
   const [speechLive, setSpeechLive] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const previewRef = useRef<HTMLDivElement>(null);
-  const [cardWidth, setCardWidth] = useState(260);
-  const [fontsReady, setFontsReady] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    document.fonts.ready.then(() => {
-      if (alive) setFontsReady(true);
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const element = previewRef.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => {
-      setCardWidth(Math.max(120, Math.min(330, entry.contentRect.width - 32)));
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(
-    () => () => {
-      const recognition = recognitionRef.current;
-      if (!recognition) return;
-      recognition.onstart =
-        recognition.onend =
-        recognition.onerror =
-        recognition.onresult =
-          null;
-      try {
-        recognition.stop();
-      } catch {
-        /* already stopped */
-      }
-    },
-    [],
-  );
 
   const topic = matchTopic(input);
-  const cardHeight = useMemo(() => {
-    if (!topic) return 0;
-    return Math.ceil(
-      (layoutCard(TOPIC_CARDS[topic], createDomTextMeasurer()).height *
-        cardWidth) /
-        CARD.width,
-    );
-  }, [topic, cardWidth, fontsReady]);
   const active = listening || speechLive;
 
   /* ── Typed simulator, used when the Web Speech API is unavailable ── */
@@ -168,9 +109,7 @@ export function VoiceDemo() {
 
     const Recognition = getRecognitionCtor();
     if (!Recognition) {
-      setNotice(
-        "Speech recognition is unavailable in this browser — running the typed simulator.",
-      );
+      setNotice("Speech recognition is unavailable in this browser — running the typed simulator.");
       setListening(true);
       return;
     }
@@ -202,9 +141,7 @@ export function VoiceDemo() {
           setWarning(null);
         } else {
           setInput(transcript.toLowerCase());
-          setWarning(
-            `No card matched “${transcript}”. Try: revenue, team, product, or growth.`,
-          );
+          setWarning(`No card matched “${transcript}”. Try: revenue, team, product, or growth.`);
         }
         setListening(false);
       };
@@ -215,6 +152,13 @@ export function VoiceDemo() {
       setListening(true);
     }
   }, [active, stop]);
+
+  useEffect(() => () => {
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+    recognition.onstart = recognition.onend = recognition.onerror = recognition.onresult = null;
+    try { recognition.stop(); } catch { /* already stopped */ }
+  }, []);
 
   // Type a keyword by clicking it. The demo should never require a keyboard.
   const pickTopic = (key: TopicKey) => {
@@ -229,7 +173,7 @@ export function VoiceDemo() {
       {/* Input row */}
       <div className="flex items-baseline justify-between gap-4">
         <label htmlFor="voice-demo-input" className="eyebrow">
-          Type or say a topic
+          Try saying
         </label>
         <Telemetry className="text-[0.625rem] text-muted-subtle">
           {topic ? "matched" : "engine idle"}
@@ -261,10 +205,7 @@ export function VoiceDemo() {
             style={
               reduced
                 ? undefined
-                : {
-                    animation:
-                      "pulse-ring 1.7s cubic-bezier(0.16,1,0.3,1) infinite",
-                  }
+                : { animation: "pulse-ring 1.7s cubic-bezier(0.16,1,0.3,1) infinite" }
             }
           />
         )}
@@ -275,7 +216,7 @@ export function VoiceDemo() {
           aria-pressed={active}
           aria-label={active ? "Stop listening" : "Start listening"}
           title={active ? "Stop listening" : "Start listening"}
-          className="absolute right-0 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground"
+         className="absolute right-0 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground"
         >
           {active ? (
             <Mic className="size-4 text-brand" strokeWidth={2} />
@@ -286,7 +227,7 @@ export function VoiceDemo() {
       </div>
 
       {/* Keyword chips double as buttons */}
-      <div className="demo-topics mt-4">
+      <div className="mt-4 flex flex-wrap gap-2">
         {TOPIC_KEYS.map((key) => {
           const isMatch = topic === key;
           return (
@@ -307,49 +248,61 @@ export function VoiceDemo() {
         })}
       </div>
 
+      {/* Metric strip — appears only on a match */}
+      <AnimatePresence initial={false}>
+        {topic && (
+          <motion.div
+            key={topic}
+            initial={reduced ? { opacity: 0 } : { height: 0, opacity: 0, marginTop: 0 }}
+            animate={reduced ? { opacity: 1 } : { height: "auto", opacity: 1, marginTop: 20 }}
+            exit={reduced ? { opacity: 0 } : { height: 0, opacity: 0, marginTop: 0 }}
+            transition={
+              reduced
+                ? { duration: 0.01 }
+                : { height: { duration: 0.34, ease: EASE }, opacity: { duration: 0.2 } }
+            }
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-3 gap-2">
+              {TOPIC_METRICS[topic].map((m) => (
+                <div key={m.label} className="rounded-lg bg-background-sunken px-3 py-2.5">
+                  <p className="text-[0.625rem] uppercase tracking-wider text-muted-subtle">{m.label}</p>
+                  <p
+                    className={`telemetry mt-1 text-[0.9375rem] ${
+                      m.emphasis ? "text-brand" : "text-foreground"
+                    }`}
+                  >
+                    {m.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* The card that would land in the call */}
       <div className="mt-6 border-t border-border pt-6">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <span className="eyebrow">Sample card preview</span>
+          <span className="eyebrow">Stream overlay preview</span>
           <Pill tone={topic ? "brand" : "neutral"}>
-            <StatusDot
-              tone={topic ? "brand" : "neutral"}
-              pulse={Boolean(topic)}
-            />
-            {topic ? "Sample matched" : "Standing by"}
+            <StatusDot tone={topic ? "brand" : "neutral"} pulse={Boolean(topic)} />
+            {topic ? "Live in meeting" : "Standing by"}
           </Pill>
         </div>
 
-        <div
-          ref={previewRef}
-          className="voice-demo-preview flex min-h-[280px] items-center justify-center rounded-card bg-background-sunken p-4"
-        >
+        <div className="flex min-h-[280px] items-center justify-center rounded-card bg-background-sunken p-4">
           <AnimatePresence mode="wait" initial={false}>
             {topic ? (
               <motion.div
-                style={{ width: cardWidth, height: cardHeight }}
+                className="w-full"
                 key={topic}
-                initial={
-                  reduced ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.95 }
-                }
-                animate={
-                  reduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }
-                }
-                exit={
-                  reduced ? { opacity: 0 } : { opacity: 0, y: -14, scale: 0.96 }
-                }
-                transition={
-                  reduced
-                    ? { duration: 0.01 }
-                    : { duration: DURATION.base, ease: EASE }
-                }
+                initial={reduced ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.95 }}
+                animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, y: -14, scale: 0.96 }}
+                transition={reduced ? { duration: 0.01 } : { duration: DURATION.base, ease: EASE }}
               >
-                <GlassCard
-                  spec={TOPIC_CARDS[topic]}
-                  theme={DEMO_THEME}
-                  width={cardWidth}
-                  reducedMotion={reduced}
-                />
+                <FittedCard spec={TOPIC_CARDS[topic]} reduced={reduced} />
               </motion.div>
             ) : (
               <motion.div
@@ -357,7 +310,7 @@ export function VoiceDemo() {
                 initial={reduced ? undefined : { opacity: 0 }}
                 animate={reduced ? undefined : { opacity: 1 }}
                 exit={reduced ? { opacity: 0 } : { opacity: 0 }}
-                className="flex flex-col items-center gap-3 text-center"
+               className="flex flex-col items-center gap-3 text-center"
               >
                 <div className="flex size-11 items-center justify-center rounded-full bg-accent text-muted-foreground">
                   {active ? (
@@ -383,10 +336,7 @@ export function VoiceDemo() {
           {warning ? (
             <StatusMessage tone="danger">
               <span className="flex items-start gap-2">
-                <TriangleAlert
-                  className="mt-0.5 size-3.5 shrink-0"
-                  aria-hidden
-                />
+                <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
                 {warning}
               </span>
             </StatusMessage>

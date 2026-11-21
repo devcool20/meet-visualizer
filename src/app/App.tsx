@@ -9,39 +9,34 @@
  */
 import { useEffect, useState } from "react";
 import { motion, useScroll, useSpring } from "motion/react";
-import { useReducedMotion, useMotionPrefs } from "@/app/motion";
+import { useAuth } from "@/app/auth/AuthContext";
+import { isDemoSession } from "@/lib/auth";
+import { useReducedMotion } from "@/app/motion";
 import { Hero } from "./landing/Hero";
 import { LandingHeader } from "./landing/LandingHeader";
 import { HowItWorks } from "./landing/HowItWorks";
 import { MeetPlatform } from "./landing/MeetPlatform";
 import { EngagementGap } from "./landing/EngagementGap";
-import "./landing/landing.css";
+import { TaglineBand } from "./landing/TaglineBand";
 import { Integrations } from "./landing/Integrations";
 import { LandingFooter } from "./landing/LandingFooter";
 import { TOPIC_KEYS, type TopicKey } from "./landing/content";
 
-/** Rotate sample cards until the visitor chooses reduced motion. */
+/** The hero teaser and the demo share one rotating topic so they feel linked. */
 const CYCLE_MS = 4200;
 
 export default function App() {
   const reduced = useReducedMotion();
-  const { toggle } = useMotionPrefs();
+  const { status, session } = useAuth();
   const [topic, setTopic] = useState<TopicKey>(TOPIC_KEYS[0]);
 
   const { scrollYProgress } = useScroll();
-  const progress = useSpring(scrollYProgress, {
-    stiffness: 160,
-    damping: 32,
-    mass: 0.4,
-  });
+  const progress = useSpring(scrollYProgress, { stiffness: 160, damping: 32, mass: 0.4 });
 
   useEffect(() => {
     if (reduced) return;
     const id = setInterval(() => {
-      setTopic(
-        (prev) =>
-          TOPIC_KEYS[(TOPIC_KEYS.indexOf(prev) + 1) % TOPIC_KEYS.length],
-      );
+      setTopic((prev) => TOPIC_KEYS[(TOPIC_KEYS.indexOf(prev) + 1) % TOPIC_KEYS.length]);
     }, CYCLE_MS);
     return () => clearInterval(id);
   }, [reduced]);
@@ -51,11 +46,11 @@ export default function App() {
   }, []);
 
   return (
-    <div className="landing-page relative flex min-h-screen w-full flex-col bg-background">
+    <div className="relative flex min-h-screen w-full flex-col bg-background">
       {/* Reading progress */}
       <div aria-hidden className="fixed inset-x-0 top-0 z-[60] h-0.5">
         <motion.div
-          className="h-full w-full origin-left"
+         className="h-full w-full origin-left"
           style={{
             scaleX: progress,
             background: "linear-gradient(90deg, rgba(251,133,0,0.25), #fb8500)",
@@ -64,25 +59,40 @@ export default function App() {
       </div>
 
       <LandingHeader />
-      <button
-        type="button"
-        className="landing-motion-control"
-        aria-pressed={reduced}
-        onClick={() => toggle()}
-      >
-        {reduced ? "Motion off" : "Motion on"}
-        <span aria-hidden="true">{reduced ? "○" : "◉"}</span>
-      </button>
 
       <main id="main" className="flex-1">
         <Hero topic={topic} />
         <HowItWorks />
         <MeetPlatform />
         <EngagementGap />
+        <TaglineBand />
         <Integrations />
       </main>
 
       <LandingFooter />
+
+      {/* Real signed-in visitors keep a persistent route back to their
+          workspace. The demo session is excluded: with no Supabase project
+          configured, `status` is 'signed-in' for every anonymous visitor, so
+          without this check the nudge appeared for people who never signed in
+          anywhere. */}
+      {status === "signed-in" && !isDemoSession(session) && <SignedInNudge />}
+    </div>
+  );
+}
+
+function SignedInNudge() {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center px-4">
+      <div className="glass-strong pointer-events-auto flex items-center gap-4 rounded-full py-2 pl-5 pr-2">
+        <span className="text-[0.8125rem] text-foreground">You&rsquo;re signed in</span>
+        <a
+          href="/dashboard"
+         className="rounded-full bg-primary px-4 py-2 text-[0.8125rem] font-medium text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover active:translate-y-0"
+        >
+          Open dashboard
+        </a>
+      </div>
     </div>
   );
 }

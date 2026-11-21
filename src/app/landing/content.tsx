@@ -6,12 +6,7 @@
  * the simulator, and the preview cards.
  */
 import type { ReactElement, ReactNode } from "react";
-import {
-  REVENUE_CARD,
-  TEAM_CARD,
-  PRODUCT_CARD,
-  GROWTH_CARD,
-} from "@stash/card-core";
+import { REVENUE_CARD, TEAM_CARD, PRODUCT_CARD, GROWTH_CARD } from "@stash/card-core";
 import type { CardSpec } from "@stash/card-spec";
 
 export type TopicKey = "revenue" | "team" | "product" | "growth";
@@ -53,7 +48,7 @@ export const TOPIC_METRICS: Record<
 
 /** Caption line the simulated speaker "says" while each card is projected. */
 export const TOPIC_CAPTIONS: Record<TopicKey, string> = {
-  revenue: "…our Q2 revenue came in at…",
+  revenue: "…our Q3 revenue came in at…",
   team: "…the active team size is…",
   product: "…on product latency…",
   growth: "…month over month growth…",
@@ -92,19 +87,13 @@ export type Integration = {
   note?: string;
   /** Real integrations link out; the rest are declared as upcoming. */
   available: boolean;
-  icon: (props: { className?: string }) => ReactElement;
+   icon: (props: { className?: string }) => ReactElement;
 };
 
 function makeIcon(path: ReactNode, viewBox = "0 0 24 24") {
   return function IntegrationIcon({ className }: { className?: string }) {
     return (
-      <svg
-        viewBox={viewBox}
-        fill="currentColor"
-        className={className}
-        aria-hidden
-        focusable="false"
-      >
+      <svg viewBox={viewBox} fill="currentColor" className={className} aria-hidden focusable="false">
         {path}
       </svg>
     );
@@ -115,8 +104,7 @@ export const INTEGRATIONS: Integration[] = [
   {
     id: "notion",
     name: "Notion",
-    description:
-      "Sync database records and live workspace tables straight into your overlay.",
+    description: "Sync database records and live workspace tables straight into your overlay.",
     available: true,
     icon: makeIcon(
       <path d="M4.6 2h14.8c1.4 0 2.6 1.2 2.6 2.6v14.8c0 1.4-1.2 2.6-2.6 2.6H4.6C3.2 22 2 20.8 2 19.4V4.6C2 3.2 3.2 2 4.6 2zm1.6 3.6v12.8h2.3V7.2l5.6 9.2h2.3V5.6h-2.3v9.2L8.5 5.6H6.2z" />,
@@ -125,8 +113,7 @@ export const INTEGRATIONS: Integration[] = [
   {
     id: "google-drive",
     name: "Google Drive",
-    description:
-      "Pull in presentation decks and spreadsheet charts without leaving the call.",
+    description: "Pull in presentation decks and spreadsheet charts without leaving the call.",
     available: true,
     icon: makeIcon(
       <path d="M15.2 2H8.8L2 13.8L5.2 19.3L12 7.5L18.8 19.3H22L15.2 2ZM9.4 14.8L6 20.8H18L21.4 14.8H9.4ZM3 13.8L8.2 20.8L11.6 14.8L6.4 7.8L3 13.8Z" />,
@@ -135,8 +122,7 @@ export const INTEGRATIONS: Integration[] = [
   {
     id: "airtable",
     name: "Airtable",
-    description:
-      "Project live inventory rows and customer records as structured cards.",
+    description: "Project live inventory rows and customer records as structured cards.",
     note: "Beta",
     available: true,
     icon: makeIcon(
@@ -146,8 +132,7 @@ export const INTEGRATIONS: Integration[] = [
   {
     id: "slack",
     name: "Slack",
-    description:
-      "Stream channel alerts and workspace notifications as they happen.",
+    description: "Stream channel alerts and workspace notifications as they happen.",
     note: "Requires admin",
     available: true,
     icon: makeIcon(
@@ -157,8 +142,7 @@ export const INTEGRATIONS: Integration[] = [
   {
     id: "hubspot",
     name: "HubSpot",
-    description:
-      "Project pipeline value, deal stages, and activity logs on the fly.",
+    description: "Project pipeline value, deal stages, and activity logs on the fly.",
     note: "Beta",
     available: true,
     icon: makeIcon(
@@ -168,8 +152,7 @@ export const INTEGRATIONS: Integration[] = [
   {
     id: "salesforce",
     name: "Salesforce",
-    description:
-      "Surface live pipeline dashboards and customer growth figures.",
+    description: "Surface live pipeline dashboards and customer growth figures.",
     note: "Planned",
     available: false,
     icon: makeIcon(
